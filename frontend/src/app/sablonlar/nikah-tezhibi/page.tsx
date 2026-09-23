@@ -8,6 +8,7 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { useInvitationDraft } from "@/lib/invitationDraft";
 import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
+import { contentFromValues, toApiFields } from "@/lib/invitationForm";
 
 // Fallback placeholder content for the "Nikâh Tezhibi" template — used when
 // no invitation-details draft exists yet (e.g. someone browsing the gallery
@@ -32,9 +33,10 @@ export default function NikahTezhibiPreviewPage() {
   const names = draft ? `${draft.brideName} & ${draft.groomName}` : undefined;
   const dateLine = draft?.weddingDate ? formatDateLine(draft.weddingDate) : undefined;
   const venueLine = draft ? `${draft.venueName}, ${draft.venueAddress}` : undefined;
-  const includePhotoAlbum = draft?.includePhotoAlbum ?? true;
-  const includeDressCode = draft?.includeDressCode ?? true;
   const rsvpEnabled = draft?.rsvpEnabled ?? true;
+  // No draft → gallery showcase with the template's sample content; with a
+  // draft, only what the couple actually filled in (see NikahTezhibiTemplate).
+  const content = draft ? contentFromValues(draft) : undefined;
 
   // The draft is only ever staged locally up to this point — this is where
   // the form + chosen template actually become a real, shareable invitation.
@@ -46,15 +48,7 @@ export default function NikahTezhibiPreviewPage() {
     try {
       const invitation = await createInvitation(token, {
         templateSlug: "nikah-tezhibi",
-        brideName: draft.brideName,
-        groomName: draft.groomName,
-        weddingDate: draft.weddingDate,
-        weddingTime: draft.weddingTime,
-        venueName: draft.venueName,
-        venueAddress: draft.venueAddress,
-        includePhotoAlbum: draft.includePhotoAlbum,
-        includeDressCode: draft.includeDressCode,
-        rsvpEnabled: draft.rsvpEnabled,
+        ...toApiFields(draft),
       });
       clearDraft();
       router.push(`/davetiyem/${invitation.slug}`);
@@ -137,9 +131,8 @@ export default function NikahTezhibiPreviewPage() {
         venueLine={venueLine}
         venueName={draft?.venueName}
         venueAddress={draft?.venueAddress}
-        mapUrl={PLACEHOLDER_MAP_URL}
-        includePhotoAlbum={includePhotoAlbum}
-        includeDressCode={includeDressCode}
+        mapUrl={draft ? undefined : PLACEHOLDER_MAP_URL}
+        content={content}
         rsvpEnabled={rsvpEnabled}
       />
     </main>

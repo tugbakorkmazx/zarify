@@ -7,6 +7,7 @@ import { NikahTezhibiTemplate } from "@/components/templates/NikahTezhibiTemplat
 import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
+import { contentFromInvitation } from "@/lib/invitationForm";
 
 type Status = "loading" | "found" | "not-found" | "error";
 
@@ -79,8 +80,7 @@ export default function PublicInvitationPage() {
           venueLine={`${inv.venueName}, ${inv.venueAddress}`}
           venueName={inv.venueName}
           venueAddress={inv.venueAddress}
-          includePhotoAlbum={inv.includePhotoAlbum}
-          includeDressCode={inv.includeDressCode}
+          content={contentFromInvitation(inv)}
           rsvpEnabled={inv.rsvpEnabled}
           invitationSlug={inv.slug}
         />

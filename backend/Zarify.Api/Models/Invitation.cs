@@ -7,7 +7,8 @@ public class Invitation
     public User? User { get; set; }
 
     /// URL-safe, globally unique — this is what the public /davetiye/{slug}
-    /// page and the share link are addressed by.
+    /// page and the share link are addressed by. Fixed at creation: editing
+    /// the couple's names later must not break links already sent to guests.
     public required string Slug { get; set; }
     public required string TemplateSlug { get; set; }
 
@@ -18,9 +19,27 @@ public class Invitation
     public required string VenueName { get; set; }
     public required string VenueAddress { get; set; }
 
-    public bool IncludePhotoAlbum { get; set; } = true;
-    public bool IncludeDressCode { get; set; } = true;
+    // Optional content. Every field here is nullable/empty by default, and
+    // the public page renders a section only when the couple filled it in —
+    // a published invitation never falls back to template placeholder text.
+    public string? StoryText { get; set; }
+    public List<ScheduleItem> Schedule { get; set; } = [];
+    public string? DressCode { get; set; }
+    public string? GiftNote { get; set; }
+    public string? AccommodationNote { get; set; }
+    public DateOnly? RsvpDeadline { get; set; }
+
     public bool RsvpEnabled { get; set; } = true;
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAtUtc { get; set; }
+}
+
+/// One line of the day's programme, e.g. 16:00 · Nikâh Töreni.
+public class ScheduleItem
+{
+    /// "HH:mm"
+    public required string Time { get; set; }
+    public required string Title { get; set; }
+    public string? Description { get; set; }
 }

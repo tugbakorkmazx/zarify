@@ -2,6 +2,13 @@ import { ApiError } from "@/lib/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
 
+export interface ScheduleItemDto {
+  /** "HH:mm" */
+  time: string;
+  title: string;
+  description: string | null;
+}
+
 export interface InvitationDto {
   id: string;
   slug: string;
@@ -14,23 +21,39 @@ export interface InvitationDto {
   weddingTime: string;
   venueName: string;
   venueAddress: string;
-  includePhotoAlbum: boolean;
-  includeDressCode: boolean;
+  /** Optional content — null / empty when the couple left it blank, in
+   * which case the page doesn't render that section at all. */
+  storyText: string | null;
+  schedule: ScheduleItemDto[];
+  dressCode: string | null;
+  giftNote: string | null;
+  accommodationNote: string | null;
+  /** "2027-05-01" */
+  rsvpDeadline: string | null;
   rsvpEnabled: boolean;
   createdAtUtc: string;
+  updatedAtUtc: string | null;
 }
 
-export interface CreateInvitationInput {
-  templateSlug: string;
+/** Everything an owner can set — the body of both create and update. */
+export interface InvitationFieldsInput {
   brideName: string;
   groomName: string;
   weddingDate: string;
   weddingTime: string;
   venueName: string;
   venueAddress: string;
-  includePhotoAlbum: boolean;
-  includeDressCode: boolean;
+  storyText: string | null;
+  schedule: { time: string; title: string; description: string | null }[];
+  dressCode: string | null;
+  giftNote: string | null;
+  accommodationNote: string | null;
+  rsvpDeadline: string | null;
   rsvpEnabled: boolean;
+}
+
+export interface CreateInvitationInput extends InvitationFieldsInput {
+  templateSlug: string;
 }
 
 async function parseErrorMessage(res: Response, fallback: string): Promise<string> {
@@ -63,6 +86,27 @@ export async function createInvitation(
   });
   if (!res.ok) {
     throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye oluşturulamadı."));
+  }
+  return res.json();
+}
+
+/** Updates one of the owner's invitations in place — same slug, so links
+ * already shared with guests keep working. */
+export async function updateInvitation(
+  token: string,
+  id: string,
+  input: InvitationFieldsInput,
+): Promise<InvitationDto> {
+  const res = await fetch(`${API_URL}/api/invitations/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye güncellenemedi."));
   }
   return res.json();
 }

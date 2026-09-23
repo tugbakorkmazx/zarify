@@ -2,6 +2,8 @@ using Zarify.Api.Models;
 
 namespace Zarify.Api.Dtos;
 
+public record ScheduleItemDto(string Time, string Title, string? Description);
+
 public record InvitationDto(
     Guid Id,
     string Slug,
@@ -12,10 +14,15 @@ public record InvitationDto(
     TimeOnly WeddingTime,
     string VenueName,
     string VenueAddress,
-    bool IncludePhotoAlbum,
-    bool IncludeDressCode,
+    string? StoryText,
+    List<ScheduleItemDto> Schedule,
+    string? DressCode,
+    string? GiftNote,
+    string? AccommodationNote,
+    DateOnly? RsvpDeadline,
     bool RsvpEnabled,
-    DateTime CreatedAtUtc)
+    DateTime CreatedAtUtc,
+    DateTime? UpdatedAtUtc)
 {
     public static InvitationDto FromEntity(Invitation invitation) => new(
         invitation.Id,
@@ -27,8 +34,13 @@ public record InvitationDto(
         invitation.WeddingTime,
         invitation.VenueName,
         invitation.VenueAddress,
-        invitation.IncludePhotoAlbum,
-        invitation.IncludeDressCode,
+        invitation.StoryText,
+        invitation.Schedule.Select(s => new ScheduleItemDto(s.Time, s.Title, s.Description)).ToList(),
+        invitation.DressCode,
+        invitation.GiftNote,
+        invitation.AccommodationNote,
+        invitation.RsvpDeadline,
         invitation.RsvpEnabled,
-        invitation.CreatedAtUtc);
+        invitation.CreatedAtUtc,
+        invitation.UpdatedAtUtc);
 }

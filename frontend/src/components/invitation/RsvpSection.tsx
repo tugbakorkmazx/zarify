@@ -7,6 +7,8 @@ import { coupleInitials } from "@/lib/coupleInitials";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
 
+type Attendance = "yes" | "maybe" | "no";
+
 /** enabled is owner-configurable: a couple can turn RSVP collection off for
  * their invitation, in which case this section renders a closing note
  * instead of a form.
@@ -14,12 +16,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
  * This is the page's one deep-ink beat: every other section sits on
  * parchment, so the moment that asks for an action gets the strongest
  * contrast turn on the page instead of blending into the rest of the scroll. */
-type Attendance = "yes" | "maybe" | "no";
-
 export function RsvpSection({
   enabled = true,
   names,
   invitationSlug,
+  deadline,
 }: {
   enabled?: boolean;
   /** The published invitation replies are saved against. Absent on the
@@ -30,8 +31,20 @@ export function RsvpSection({
    * signature so they match the hero instead of the template's static
    * placeholder monogram. */
   names?: string;
+  /** "2027-05-01" — mentioned in the intro only when the couple set one. */
+  deadline?: string | null;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const deadlineLine = deadline
+    ? t.rsvp.deadline.replace(
+        "{date}",
+        new Intl.DateTimeFormat(lang === "tr" ? "tr-TR" : "en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date(`${deadline}T00:00:00`)),
+      )
+    : null;
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +115,7 @@ export function RsvpSection({
           <form onSubmit={handleSubmit} className="w-full text-left flex flex-col gap-6">
             <p className="font-body text-sm text-parchment/80 text-center -mt-2">
               {t.rsvp.intro}
+              {deadlineLine && ` ${deadlineLine}`}
             </p>
             {!invitationSlug && (
               <p className="font-body text-xs italic text-parchment/60 text-center -mt-3">

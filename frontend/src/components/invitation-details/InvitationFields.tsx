@@ -1,0 +1,167 @@
+import type { FormEvent } from "react";
+import { FormField } from "@/components/auth/FormField";
+import { FormError } from "@/components/auth/FormError";
+import { TextAreaField } from "@/components/forms/TextAreaField";
+import { ToggleField } from "@/components/forms/ToggleField";
+import { ScheduleEditor } from "./ScheduleEditor";
+import type { InvitationFormValues } from "@/lib/invitationForm";
+
+function SectionHeading({ title, note }: { title: string; note?: string }) {
+  return (
+    <div className="pt-4 border-t border-gold/30">
+      <h2 className="font-display text-xl text-ink">{title}</h2>
+      {note && <p className="font-body text-sm text-ink-soft mt-1">{note}</p>}
+    </div>
+  );
+}
+
+/** The invitation form body shared by the create flow and the edit page —
+ * the same fields, validation and wording either way; only what happens on
+ * submit differs. */
+export function InvitationFields({
+  values,
+  onChange,
+  onSubmit,
+  submitLabel,
+  submitting = false,
+  error,
+}: {
+  values: InvitationFormValues;
+  onChange: (values: InvitationFormValues) => void;
+  onSubmit: () => void;
+  submitLabel: string;
+  submitting?: boolean;
+  error?: string | null;
+}) {
+  const set = <K extends keyof InvitationFormValues>(key: K, value: InvitationFormValues[K]) =>
+    onChange({ ...values, [key]: value });
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSubmit();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          label="Gelin Adı"
+          type="text"
+          required
+          maxLength={100}
+          value={values.brideName}
+          onChange={(e) => set("brideName", e.target.value)}
+        />
+        <FormField
+          label="Damat Adı"
+          type="text"
+          required
+          maxLength={100}
+          value={values.groomName}
+          onChange={(e) => set("groomName", e.target.value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          label="Düğün Tarihi"
+          type="date"
+          required
+          value={values.weddingDate}
+          onChange={(e) => set("weddingDate", e.target.value)}
+        />
+        <FormField
+          label="Saat"
+          type="time"
+          required
+          value={values.weddingTime}
+          onChange={(e) => set("weddingTime", e.target.value)}
+        />
+      </div>
+
+      <FormField
+        label="Mekan Adı"
+        type="text"
+        required
+        maxLength={150}
+        value={values.venueName}
+        onChange={(e) => set("venueName", e.target.value)}
+      />
+      <FormField
+        label="Adres / Konum"
+        type="text"
+        required
+        maxLength={300}
+        value={values.venueAddress}
+        onChange={(e) => set("venueAddress", e.target.value)}
+      />
+
+      <SectionHeading
+        title="İsteğe Bağlı Bölümler"
+        note="Boş bıraktığınız her bölüm davetiyede hiç görünmez."
+      />
+
+      <TextAreaField
+        label="Hikayemiz"
+        rows={4}
+        maxLength={2000}
+        placeholder="Nasıl tanıştınız, bu güne nasıl geldiniz?"
+        value={values.storyText}
+        onChange={(e) => set("storyText", e.target.value)}
+      />
+
+      <ScheduleEditor rows={values.schedule} onChange={(rows) => set("schedule", rows)} />
+
+      <TextAreaField
+        label="Kıyafet Kodu"
+        maxLength={1000}
+        placeholder="Örn. Şık, koyu tonlar tercih edilir."
+        value={values.dressCode}
+        onChange={(e) => set("dressCode", e.target.value)}
+      />
+      <TextAreaField
+        label="Hediye"
+        maxLength={1000}
+        placeholder="Örn. Varlığınız en büyük hediyemiz."
+        value={values.giftNote}
+        onChange={(e) => set("giftNote", e.target.value)}
+      />
+      <TextAreaField
+        label="Konaklama"
+        maxLength={1000}
+        placeholder="Şehir dışından gelecek misafirler için öneriler"
+        value={values.accommodationNote}
+        onChange={(e) => set("accommodationNote", e.target.value)}
+      />
+
+      <SectionHeading title="Katılım Bildirimi" />
+
+      <ToggleField
+        legend="Katılım Bildirimi (RSVP) Açık Olsun mu?"
+        name="rsvpEnabled"
+        value={values.rsvpEnabled}
+        onChange={(v) => set("rsvpEnabled", v)}
+      />
+      {values.rsvpEnabled && (
+        <FormField
+          label="Son Bildirim Tarihi"
+          hint="İsteğe bağlı. Boş bırakırsanız davetiyede tarih yazmaz."
+          type="date"
+          max={values.weddingDate || undefined}
+          value={values.rsvpDeadline}
+          onChange={(e) => set("rsvpDeadline", e.target.value)}
+        />
+      )}
+
+      {error && <FormError message={error} />}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="mt-2 font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97] disabled:opacity-60"
+      >
+        {submitLabel}
+      </button>
+    </form>
+  );
+}

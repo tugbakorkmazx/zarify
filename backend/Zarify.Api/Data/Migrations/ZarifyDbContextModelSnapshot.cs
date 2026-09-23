@@ -28,6 +28,10 @@ namespace Zarify.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("AccommodationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
                     b.Property<string>("BrideName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -36,29 +40,45 @@ namespace Zarify.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("DressCode")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("GiftNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
                     b.Property<string>("GroomName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<bool>("IncludeDressCode")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IncludePhotoAlbum")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<DateOnly?>("RsvpDeadline")
+                        .HasColumnType("date");
 
                     b.Property<bool>("RsvpEnabled")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Schedule")
+                        .IsRequired()
+                        .HasColumnType("json");
 
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("varchar(160)");
 
+                    b.Property<string>("StoryText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
                     b.Property<string>("TemplateSlug")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");

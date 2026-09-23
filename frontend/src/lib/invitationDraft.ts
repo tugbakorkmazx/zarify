@@ -1,20 +1,13 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { withFormDefaults, type InvitationFormValues } from "@/lib/invitationForm";
 
 const STORAGE_KEY = "zarify.invitationDraft";
 
-export interface InvitationDraft {
-  brideName: string;
-  groomName: string;
-  weddingDate: string;
-  weddingTime: string;
-  venueName: string;
-  venueAddress: string;
-  includePhotoAlbum: boolean;
-  includeDressCode: boolean;
-  rsvpEnabled: boolean;
-}
+/** The create flow's not-yet-published form values, kept in localStorage
+ * between the details form and the template preview. */
+export type InvitationDraft = InvitationFormValues;
 
 // Same useSyncExternalStore-over-localStorage pattern as lib/auth.ts — SSR
 // safe with no mount effect, and kept in sync across tabs.
@@ -36,7 +29,8 @@ function readSnapshot(): InvitationDraft | null {
     return null;
   }
   try {
-    cachedValue = JSON.parse(raw) as InvitationDraft;
+    // drafts saved before the optional-content fields existed lack them
+    cachedValue = withFormDefaults(JSON.parse(raw) as Partial<InvitationDraft>);
   } catch {
     cachedValue = null;
   }

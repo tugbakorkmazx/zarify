@@ -78,6 +78,12 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
           >
             Görüntüle
           </Link>
+          <Link
+            href={`/davetiyelerim/${inv.id}/duzenle`}
+            className="font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+          >
+            Düzenle
+          </Link>
           <button
             type="button"
             onClick={handleCopy}

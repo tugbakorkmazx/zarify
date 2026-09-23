@@ -1,25 +1,17 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useInvitationDraft } from "@/lib/invitationDraft";
+import { EMPTY_FORM } from "@/lib/invitationForm";
 import { AuthLayout } from "@/components/auth/AuthLayout";
-import { FormField } from "@/components/auth/FormField";
-import { ToggleField } from "@/components/forms/ToggleField";
+import { InvitationFields } from "./InvitationFields";
 
-const DEFAULTS = {
-  brideName: "",
-  groomName: "",
-  weddingDate: "",
-  weddingTime: "16:00",
-  venueName: "",
-  venueAddress: "",
-  includePhotoAlbum: true,
-  includeDressCode: true,
-  rsvpEnabled: true,
-};
-
+/** Step one of creating an invitation: the details are saved as a local
+ * draft, then previewed on a template and published from there. Editing an
+ * already-published invitation is a different page
+ * (/davetiyelerim/[id]/duzenle) that saves straight to the API. */
 export function InvitationDetailsForm() {
   const { ready, user } = useAuth();
   const { draft, saveDraft } = useInvitationDraft();
@@ -27,7 +19,7 @@ export function InvitationDetailsForm() {
   // draft comes from useSyncExternalStore, already resolved to its real
   // client value by the time this component's initializer runs — no effect
   // needed to seed the form from it.
-  const [form, setForm] = useState(() => draft ?? DEFAULTS);
+  const [form, setForm] = useState(() => draft ?? EMPTY_FORM);
 
   // Guard the route: only signed-in users get here. Waits for `ready` —
   // during hydration `user` is still the server's logged-out snapshot.
@@ -37,8 +29,7 @@ export function InvitationDetailsForm() {
     }
   }, [ready, user, router]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function handleSubmit() {
     saveDraft(form);
     router.push("/sablonlar");
   }
@@ -48,91 +39,18 @@ export function InvitationDetailsForm() {
   }
 
   return (
-    <AuthLayout
-      eyebrow="Davetiye Bilgileri"
-      title="Davetiyenizi anlatın."
-    >
+    <AuthLayout eyebrow="Davetiye Bilgileri" title="Davetiyenizi anlatın." wide>
       <p className="font-body text-sm text-ink-soft -mt-2 mb-6">
-        Bu bilgilerle seçeceğiniz şablon otomatik doldurulacak; ince ayarları
-        sonradan değiştirebilirsiniz.
+        Bu bilgilerle seçeceğiniz şablon otomatik doldurulacak. Yayınladıktan
+        sonra da istediğiniz zaman düzenleyebilirsiniz.
       </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            label="Gelin Adı"
-            type="text"
-            required
-            value={form.brideName}
-            onChange={(e) => setForm((f) => ({ ...f, brideName: e.target.value }))}
-          />
-          <FormField
-            label="Damat Adı"
-            type="text"
-            required
-            value={form.groomName}
-            onChange={(e) => setForm((f) => ({ ...f, groomName: e.target.value }))}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            label="Düğün Tarihi"
-            type="date"
-            required
-            value={form.weddingDate}
-            onChange={(e) => setForm((f) => ({ ...f, weddingDate: e.target.value }))}
-          />
-          <FormField
-            label="Saat"
-            type="time"
-            required
-            value={form.weddingTime}
-            onChange={(e) => setForm((f) => ({ ...f, weddingTime: e.target.value }))}
-          />
-        </div>
-
-        <FormField
-          label="Mekan Adı"
-          type="text"
-          required
-          value={form.venueName}
-          onChange={(e) => setForm((f) => ({ ...f, venueName: e.target.value }))}
-        />
-        <FormField
-          label="Adres / Konum"
-          type="text"
-          required
-          value={form.venueAddress}
-          onChange={(e) => setForm((f) => ({ ...f, venueAddress: e.target.value }))}
-        />
-
-        <ToggleField
-          legend="Fotoğraf Albümü Eklensin mi?"
-          name="includePhotoAlbum"
-          value={form.includePhotoAlbum}
-          onChange={(v) => setForm((f) => ({ ...f, includePhotoAlbum: v }))}
-        />
-        <ToggleField
-          legend="Kıyafet Kodu Bilgisi Eklensin mi?"
-          name="includeDressCode"
-          value={form.includeDressCode}
-          onChange={(v) => setForm((f) => ({ ...f, includeDressCode: v }))}
-        />
-        <ToggleField
-          legend="Katılım Bildirimi (RSVP) Açık Olsun mu?"
-          name="rsvpEnabled"
-          value={form.rsvpEnabled}
-          onChange={(v) => setForm((f) => ({ ...f, rsvpEnabled: v }))}
-        />
-
-        <button
-          type="submit"
-          className="mt-2 font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97]"
-        >
-          Davetiyemi Oluştur
-        </button>
-      </form>
+      <InvitationFields
+        values={form}
+        onChange={setForm}
+        onSubmit={handleSubmit}
+        submitLabel="Davetiyemi Oluştur"
+      />
     </AuthLayout>
   );
 }

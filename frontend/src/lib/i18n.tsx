@@ -52,6 +52,8 @@ export interface Strings {
   rsvp: {
     heading: string;
     intro: string;
+    /** "{date}" is replaced with the couple's RSVP deadline. */
+    deadline: string;
     nameLabel: string;
     attendingLabel: string;
     attendingYes: string;
@@ -193,7 +195,8 @@ export const strings: Record<Lang, Strings> = {
     },
     rsvp: {
       heading: "Katılım Bildirimi",
-      intro: "Sizi aramızda görmekten mutluluk duyarız. Lütfen 1 Mayıs 2026'ya kadar bildiriniz.",
+      intro: "Sizi aramızda görmekten mutluluk duyarız.",
+      deadline: "Lütfen {date} tarihine kadar bildiriniz.",
       nameLabel: "Ad Soyad",
       attendingLabel: "Katılım durumu",
       attendingYes: "Seve seve geliyorum",
@@ -346,7 +349,8 @@ export const strings: Record<Lang, Strings> = {
     },
     rsvp: {
       heading: "RSVP",
-      intro: "We would be delighted to have you with us. Please respond by May 1, 2026.",
+      intro: "We would be delighted to have you with us.",
+      deadline: "Please respond by {date}.",
       nameLabel: "Full name",
       attendingLabel: "Will you attend?",
       attendingYes: "Joyfully attending",

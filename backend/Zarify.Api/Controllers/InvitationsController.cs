@@ -48,16 +48,14 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 UserId = userId,
                 Slug = slug,
                 TemplateSlug = request.TemplateSlug.Trim(),
-                BrideName = request.BrideName.Trim(),
-                GroomName = request.GroomName.Trim(),
+                BrideName = "",
+                GroomName = "",
                 WeddingDate = request.WeddingDate,
                 WeddingTime = request.WeddingTime,
-                VenueName = request.VenueName.Trim(),
-                VenueAddress = request.VenueAddress.Trim(),
-                IncludePhotoAlbum = request.IncludePhotoAlbum,
-                IncludeDressCode = request.IncludeDressCode,
-                RsvpEnabled = request.RsvpEnabled,
+                VenueName = "",
+                VenueAddress = "",
             };
+            ApplyFields(invitation, request);
 
             db.Invitations.Add(invitation);
             try
@@ -79,6 +77,66 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
 
         return Conflict(new { message = "Davetiye linki oluşturulamadı. Lütfen tekrar deneyin." });
     }
+
+    /// Updates one of the signed-in owner's invitations in place. The slug
+    /// (and so every share link already sent) stays the same even if the
+    /// names change. Another user's invitation id gets the same 404 as a
+    /// nonexistent one.
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<InvitationDto>> Update(Guid id, UpdateInvitationRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
+        if (invitation is null)
+        {
+            return NotFound();
+        }
+
+        ApplyFields(invitation, request);
+        invitation.UpdatedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        return Ok(InvitationDto.FromEntity(invitation));
+    }
+
+    /// Copies the owner-editable fields onto the entity, trimming text and
+    /// turning blank optional fields into null so "left empty" is stored the
+    /// same way however the client sent it — the public page keys section
+    /// visibility off that. (Programme rows with a blank title never get
+    /// here: validation rejects them, and the form drops them before
+    /// sending.)
+    private static void ApplyFields(Invitation invitation, InvitationFieldsRequest request)
+    {
+        invitation.BrideName = request.BrideName.Trim();
+        invitation.GroomName = request.GroomName.Trim();
+        invitation.WeddingDate = request.WeddingDate;
+        invitation.WeddingTime = request.WeddingTime;
+        invitation.VenueName = request.VenueName.Trim();
+        invitation.VenueAddress = request.VenueAddress.Trim();
+        invitation.StoryText = NullIfBlank(request.StoryText);
+        invitation.Schedule = request.Schedule
+            .Select(item => new ScheduleItem
+            {
+                Time = item.Time,
+                Title = item.Title.Trim(),
+                Description = NullIfBlank(item.Description),
+            })
+            .OrderBy(item => item.Time, StringComparer.Ordinal)
+            .ToList();
+        invitation.DressCode = NullIfBlank(request.DressCode);
+        invitation.GiftNote = NullIfBlank(request.GiftNote);
+        invitation.AccommodationNote = NullIfBlank(request.AccommodationNote);
+        invitation.RsvpDeadline = request.RsvpDeadline;
+        invitation.RsvpEnabled = request.RsvpEnabled;
+    }
+
+    private static string? NullIfBlank(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static bool IsSlugCollision(DbUpdateException ex) =>
         ex.InnerException is MySqlException { Number: 1062 } mysqlEx

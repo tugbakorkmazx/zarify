@@ -115,12 +115,17 @@ export default function InvitationReadyPage() {
           >
             Davetiyeni Görüntüle
           </Link>
-          <Link
-            href="/davetiye-bilgileri"
-            className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-6 py-3 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-          >
-            Bilgileri Düzenle
-          </Link>
+          {/* Edits the published invitation in place (PUT, same slug) — the
+              old link here went back to the create form and made a second
+              invitation. */}
+          {invitation && (
+            <Link
+              href={`/davetiyelerim/${invitation.id}/duzenle`}
+              className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-6 py-3 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+            >
+              Bilgileri Düzenle
+            </Link>
+          )}
         </div>
       </div>
     </main>

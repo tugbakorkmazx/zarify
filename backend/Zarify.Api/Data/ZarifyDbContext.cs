@@ -1,10 +1,14 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Zarify.Api.Models;
 
 namespace Zarify.Api.Data;
 
 public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbContext(options)
 {
+    private static readonly JsonSerializerOptions ScheduleJson = new(JsonSerializerDefaults.Web);
+
     public DbSet<User> Users => Set<User>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
@@ -28,6 +32,23 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(i => i.GroomName).HasMaxLength(100);
             entity.Property(i => i.VenueName).HasMaxLength(150);
             entity.Property(i => i.VenueAddress).HasMaxLength(300);
+            entity.Property(i => i.StoryText).HasMaxLength(2000);
+            entity.Property(i => i.DressCode).HasMaxLength(1000);
+            entity.Property(i => i.GiftNote).HasMaxLength(1000);
+            entity.Property(i => i.AccommodationNote).HasMaxLength(1000);
+
+            // The programme is a short ordered list that's only ever read
+            // and written whole with its invitation — a JSON column rather
+            // than a child table with its own ordering column.
+            entity.Property(i => i.Schedule)
+                .HasColumnType("json")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, ScheduleJson),
+                    v => JsonSerializer.Deserialize<List<ScheduleItem>>(v, ScheduleJson) ?? new List<ScheduleItem>(),
+                    new ValueComparer<List<ScheduleItem>>(
+                        (a, b) => JsonSerializer.Serialize(a, ScheduleJson) == JsonSerializer.Serialize(b, ScheduleJson),
+                        v => JsonSerializer.Serialize(v, ScheduleJson).GetHashCode(),
+                        v => JsonSerializer.Deserialize<List<ScheduleItem>>(JsonSerializer.Serialize(v, ScheduleJson), ScheduleJson)!));
 
             entity.HasOne(i => i.User)
                 .WithMany()

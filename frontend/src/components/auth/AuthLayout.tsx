@@ -9,11 +9,15 @@ export function AuthLayout({
   title,
   children,
   footer,
+  wide = false,
 }: {
   eyebrow: string;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** For longer forms (the invitation details form) that need more than a
+   * login card's width. */
+  wide?: boolean;
 }) {
   return (
     <main className="paper-ground relative flex min-h-svh flex-col items-center justify-center px-6 py-20 overflow-hidden">
@@ -29,7 +33,7 @@ export function AuthLayout({
         className="absolute -bottom-6 -left-6 w-20 h-28 opacity-70 pointer-events-none hidden sm:block"
       />
 
-      <div className="relative w-full max-w-sm">
+      <div className={`relative w-full ${wide ? "max-w-lg" : "max-w-sm"}`}>
         <div className="flex justify-center mb-5">
           <WaxSeal size={44} />
         </div>
