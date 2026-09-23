@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useMemo,
   useState,
@@ -453,10 +454,19 @@ export function I18nProvider({
   initialLang?: Lang;
   children: ReactNode;
 }) {
-  const [lang, setLang] = useState<Lang>(initialLang);
+  const [lang, setLangState] = useState<Lang>(initialLang);
+  // Keep <html lang> in step with the toggle: CSS `text-transform:
+  // uppercase` is language-aware, so with lang="tr" left in place the
+  // English labels uppercase "i" to Turkish "İ" ("WİLL YOU ATTEND?"). It
+  // also tells screen readers which pronunciation to use. The server
+  // renders lang="tr" (see app/layout.tsx), matching initialLang.
+  const setLang = useCallback((next: Lang) => {
+    setLangState(next);
+    document.documentElement.lang = next;
+  }, []);
   const value = useMemo(
     () => ({ lang, setLang, t: strings[lang] }),
-    [lang],
+    [lang, setLang],
   );
   return (
     <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
