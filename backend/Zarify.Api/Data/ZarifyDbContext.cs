@@ -21,11 +21,14 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(u => u.Email).HasMaxLength(256);
             entity.Property(u => u.FirstName).HasMaxLength(100);
             entity.Property(u => u.LastName).HasMaxLength(100);
+            entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
         });
 
         modelBuilder.Entity<Invitation>(entity =>
         {
             entity.HasIndex(i => i.Slug).IsUnique();
+            entity.HasIndex(i => i.PaymentReference).IsUnique();
+            entity.Property(i => i.PaymentReference).HasMaxLength(16);
             entity.Property(i => i.Slug).HasMaxLength(160);
             entity.Property(i => i.TemplateSlug).HasMaxLength(100);
             entity.Property(i => i.BrideName).HasMaxLength(100);
@@ -36,6 +39,9 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(i => i.DressCode).HasMaxLength(1000);
             entity.Property(i => i.GiftNote).HasMaxLength(1000);
             entity.Property(i => i.AccommodationNote).HasMaxLength(1000);
+            entity.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
+            // The admin payment queue filters on it.
+            entity.HasIndex(i => i.Status);
 
             // The programme is a short ordered list that's only ever read
             // and written whole with its invitation — a JSON column rather

@@ -10,6 +10,9 @@ export interface AuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  /** Only decides whether the admin link shows — the API enforces the role
+   * on every admin endpoint. Absent on sessions stored before roles existed. */
+  role?: "user" | "admin";
 }
 
 interface StoredAuth {

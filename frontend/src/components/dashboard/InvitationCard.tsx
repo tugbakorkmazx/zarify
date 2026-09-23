@@ -37,6 +37,7 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
   const [copied, setCopied] = useState(false);
 
   const totalResponses = rsvp.attendingResponses + rsvp.maybeResponses + rsvp.notAttendingResponses;
+  const isLive = inv.status === "published";
 
   async function toggleReplies() {
     const next = !open;
@@ -70,13 +71,34 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
           </h2>
           <p className="font-body text-sm text-ink-soft mt-1">{formatDateLine(inv.weddingDate)}</p>
           <p className="font-body text-sm text-ink-soft truncate">{inv.venueName}</p>
+          <span
+            className={`mt-2 inline-block font-body text-[11px] tracking-[0.15em] uppercase rounded-full px-3 py-1 border ${
+              isLive ? "border-gold/50 text-gold-deep" : "border-gold-deep/60 bg-gold-light/40 text-ink"
+            }`}
+          >
+            {isLive ? "Yayında" : "Ödeme bekleniyor"}
+          </span>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
+          {/* While payment is pending, paying is the one thing to do next —
+              it gets the primary button; previewing drops to secondary. */}
+          {!isLive && (
+            <Link
+              href={`/davetiyem/${inv.slug}`}
+              className="font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
+            >
+              Ödeme Bilgileri
+            </Link>
+          )}
           <Link
             href={`/davetiye/${inv.slug}`}
-            className="font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
+            className={
+              isLive
+                ? "font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
+                : "font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+            }
           >
-            Görüntüle
+            {isLive ? "Görüntüle" : "Önizle"}
           </Link>
           <Link
             href={`/davetiyelerim/${inv.id}/duzenle`}
@@ -84,18 +106,26 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
           >
             Düzenle
           </Link>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-          >
-            {copied ? "Kopyalandı" : "Linki Kopyala"}
-          </button>
+          {/* The share link only works for guests once the invitation is live. */}
+          {isLive && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+            >
+              {copied ? "Kopyalandı" : "Linki Kopyala"}
+            </button>
+          )}
         </div>
       </div>
 
       <div className="mt-6">
-        {!inv.rsvpEnabled ? (
+        {!isLive ? (
+          <p className="border border-gold/60 bg-parchment-deep px-4 py-3 font-body text-sm text-ink">
+            Davetiyeniz hazır. Ödemeniz onaylanınca yayına alınır ve linkiniz misafirlerinize
+            açılır — IBAN ve referans kodu için <strong>Ödeme Bilgileri</strong>&apos;ne tıklayın.
+          </p>
+        ) : !inv.rsvpEnabled ? (
           <p className="font-body text-sm italic text-ink-soft">
             Bu davetiyede katılım bildirimi kapalı.
           </p>

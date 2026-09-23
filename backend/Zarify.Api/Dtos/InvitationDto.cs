@@ -21,9 +21,18 @@ public record InvitationDto(
     string? AccommodationNote,
     DateOnly? RsvpDeadline,
     bool RsvpEnabled,
+    string Status,
+    DateTime? PublishedAtUtc,
     DateTime CreatedAtUtc,
     DateTime? UpdatedAtUtc)
 {
+    public static string StatusToWire(InvitationStatus status) => status switch
+    {
+        InvitationStatus.Draft => "draft",
+        InvitationStatus.PendingPayment => "pendingPayment",
+        _ => "published",
+    };
+
     public static InvitationDto FromEntity(Invitation invitation) => new(
         invitation.Id,
         invitation.Slug,
@@ -41,6 +50,8 @@ public record InvitationDto(
         invitation.AccommodationNote,
         invitation.RsvpDeadline,
         invitation.RsvpEnabled,
+        StatusToWire(invitation.Status),
+        invitation.PublishedAtUtc,
         invitation.CreatedAtUtc,
         invitation.UpdatedAtUtc);
 }

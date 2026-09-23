@@ -53,6 +53,13 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<DateTime?>("PublishedAtUtc")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateOnly?>("RsvpDeadline")
                         .HasColumnType("date");
 
@@ -67,6 +74,11 @@ namespace Zarify.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("varchar(160)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("StoryText")
                         .HasMaxLength(2000)
@@ -101,8 +113,13 @@ namespace Zarify.Api.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PaymentReference")
+                        .IsUnique();
+
                     b.HasIndex("Slug")
                         .IsUnique();
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
@@ -183,6 +200,11 @@ namespace Zarify.Api.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.HasKey("Id");
 

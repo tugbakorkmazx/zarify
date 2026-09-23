@@ -62,12 +62,22 @@ export default function MyInvitationsPage() {
         >
           ← Zarify
         </Link>
-        <Link
-          href="/davetiye-bilgileri"
-          className="font-body text-sm text-ink bg-gold-light rounded-full px-4 py-1.5 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-        >
-          Yeni Davetiye
-        </Link>
+        <div className="flex items-center gap-4">
+          {user.role === "admin" && (
+            <Link
+              href="/yonetim"
+              className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+            >
+              Yönetim
+            </Link>
+          )}
+          <Link
+            href="/davetiye-bilgileri"
+            className="font-body text-sm text-ink bg-gold-light rounded-full px-4 py-1.5 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
+          >
+            Yeni Davetiye
+          </Link>
+        </div>
       </div>
 
       <div className="mx-auto max-w-3xl pt-12 sm:pt-16">

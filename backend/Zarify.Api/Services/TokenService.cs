@@ -21,6 +21,9 @@ public class TokenService(IOptions<JwtOptions> jwtOptions) : ITokenService
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // Read by [Authorize(Roles = "Admin")]. A role change takes
+            // effect at the user's next login (tokens live ExpiryMinutes).
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));

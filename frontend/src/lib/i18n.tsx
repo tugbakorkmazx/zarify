@@ -76,6 +76,7 @@ export interface Strings {
       login: string;
       logout: string;
       myInvitations: string;
+      admin: string;
       greetingPrefix: string;
       cta: string;
     };
@@ -223,6 +224,7 @@ export const strings: Record<Lang, Strings> = {
         login: "Giriş Yap",
         logout: "Çıkış Yap",
         myInvitations: "Davetiyelerim",
+        admin: "Yönetim",
         greetingPrefix: "Merhaba",
         cta: "Davetiye Oluştur",
       },
@@ -377,6 +379,7 @@ export const strings: Record<Lang, Strings> = {
         login: "Log In",
         logout: "Log Out",
         myInvitations: "My Invitations",
+        admin: "Admin",
         greetingPrefix: "Hello",
         cta: "Create an Invitation",
       },

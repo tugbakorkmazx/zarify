@@ -57,6 +57,15 @@ export function LandingHero() {
               >
                 {l.nav.myInvitations}
               </Link>
+              {/* Operator-only; the API enforces the role on every admin call. */}
+              {user.role === "admin" && (
+                <Link
+                  href="/yonetim"
+                  className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
+                >
+                  {l.nav.admin}
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={logout}

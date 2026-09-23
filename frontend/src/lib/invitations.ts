@@ -31,9 +31,15 @@ export interface InvitationDto {
   /** "2027-05-01" */
   rsvpDeadline: string | null;
   rsvpEnabled: boolean;
+  /** Guests can see the invitation (and RSVP) only once it's "published" —
+   * after an admin confirms the bank transfer. */
+  status: InvitationStatus;
+  publishedAtUtc: string | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
 }
+
+export type InvitationStatus = "draft" | "pendingPayment" | "published";
 
 /** Everything an owner can set — the body of both create and update. */
 export interface InvitationFieldsInput {
@@ -111,16 +117,49 @@ export async function updateInvitation(
   return res.json();
 }
 
-/** Public lookup by slug — used by the guest-facing /davetiye/[slug] page,
- * no auth. Returns null for an unknown slug instead of throwing, since "not
- * found" is an expected, distinct outcome from a network/server failure. */
-export async function getInvitationBySlug(slug: string): Promise<InvitationDto | null> {
+export type InvitationLookup =
+  | { kind: "found"; invitation: InvitationDto }
+  | { kind: "not-found" }
+  | { kind: "not-published" };
+
+/** Lookup by slug for the guest-facing /davetiye/[slug] page — no auth
+ * needed. Guests only get Published invitations; pass the owner's token and
+ * the owner also gets their own invitation in any status (preview while the
+ * payment is pending). "Unknown slug" and "exists but not live yet" are
+ * distinct, expected outcomes rather than errors. */
+export async function getInvitationBySlug(slug: string, token?: string | null): Promise<InvitationLookup> {
   const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(slug)}`, {
     cache: "no-store",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
-  if (res.status === 404) return null;
+  if (res.status === 404) {
+    const body = await res.json().catch(() => null);
+    return body?.code === "not_published" ? { kind: "not-published" } : { kind: "not-found" };
+  }
   if (!res.ok) {
     throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye yüklenemedi."));
+  }
+  return { kind: "found", invitation: await res.json() };
+}
+
+export interface PaymentInstructions {
+  /** What the couple writes in the transfer description, e.g. "ZRF-4K7Q"
+   * — its own short code, not the slug. */
+  reference: string;
+  bankName: string | null;
+  accountHolder: string;
+  iban: string;
+  amountTry: number;
+}
+
+/** Bank-transfer details for one of the owner's pending invitations. */
+export async function getPaymentInstructions(token: string, invitationId: string): Promise<PaymentInstructions> {
+  const res = await fetch(`${API_URL}/api/invitations/${invitationId}/payment`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, await parseErrorMessage(res, "Ödeme bilgileri yüklenemedi."));
   }
   return res.json();
 }

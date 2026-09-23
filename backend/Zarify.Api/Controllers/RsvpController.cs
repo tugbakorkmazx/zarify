@@ -24,10 +24,12 @@ public class RsvpController(ZarifyDbContext db) : ControllerBase
     {
         var invitation = await db.Invitations
             .Where(i => i.Slug == request.InvitationSlug)
-            .Select(i => new { i.Id, i.RsvpEnabled })
+            .Select(i => new { i.Id, i.RsvpEnabled, i.Status })
             .SingleOrDefaultAsync(ct);
 
-        if (invitation is null)
+        // Not yet published (payment pending) looks the same as unknown to a
+        // guest — the page itself isn't visible to them either.
+        if (invitation is null || invitation.Status != InvitationStatus.Published)
         {
             return NotFound(new { message = "Davetiye bulunamadı." });
         }

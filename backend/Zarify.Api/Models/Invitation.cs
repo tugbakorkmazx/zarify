@@ -1,5 +1,17 @@
 namespace Zarify.Api.Models;
 
+/// Draft → PendingPayment → Published. Only Published invitations are
+/// visible to guests (and accept RSVPs); the owner can always see and edit
+/// their own. Draft is reserved for server-side drafts — today the create
+/// flow keeps drafts in the browser and publishing creates the invitation
+/// directly as PendingPayment.
+public enum InvitationStatus
+{
+    Draft,
+    PendingPayment,
+    Published,
+}
+
 public class Invitation
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -11,6 +23,12 @@ public class Invitation
     /// the couple's names later must not break links already sent to guests.
     public required string Slug { get; set; }
     public required string TemplateSlug { get; set; }
+
+    /// What the couple writes in the bank-transfer description ("ZRF-4K7Q")
+    /// so the admin can match the payment. Separate from the slug: short,
+    /// name-independent, no look-alike characters. Null only on invitations
+    /// that were already live before payments existed.
+    public string? PaymentReference { get; set; }
 
     public required string BrideName { get; set; }
     public required string GroomName { get; set; }
@@ -30,6 +48,11 @@ public class Invitation
     public DateOnly? RsvpDeadline { get; set; }
 
     public bool RsvpEnabled { get; set; } = true;
+
+    public InvitationStatus Status { get; set; } = InvitationStatus.PendingPayment;
+
+    /// When an admin confirmed the bank transfer and the invitation went live.
+    public DateTime? PublishedAtUtc { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }

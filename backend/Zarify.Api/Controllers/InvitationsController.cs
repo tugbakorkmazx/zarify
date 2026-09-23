@@ -2,10 +2,12 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Zarify.Api.Data;
 using Zarify.Api.Dtos;
 using Zarify.Api.Models;
+using Zarify.Api.Options;
 using Zarify.Api.Services;
 
 namespace Zarify.Api.Controllers;
@@ -14,10 +16,14 @@ namespace Zarify.Api.Controllers;
 [Route("api/invitations")]
 public class InvitationsController(ZarifyDbContext db) : ControllerBase
 {
-    private const int MaxSlugAttempts = 5;
+    private const int MaxCreateAttempts = 5;
+    private const string SlugIndex = "IX_Invitations_Slug";
+    private const string PaymentReferenceIndex = "IX_Invitations_PaymentReference";
 
     /// Creates the signed-in user's invitation and returns it with the slug
-    /// its public page (and share link) will be addressed by.
+    /// its public page (and share link) will be addressed by. It starts as
+    /// PendingPayment: the link goes live once an admin confirms the bank
+    /// transfer (see AdminController).
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<InvitationDto>> Create(CreateInvitationRequest request, CancellationToken ct)
@@ -38,16 +44,16 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         }
 
         var baseSlug = SlugGenerator.Slugify($"{request.BrideName}-{request.GroomName}");
+        var slug = baseSlug;
 
-        for (var attempt = 0; attempt < MaxSlugAttempts; attempt++)
+        for (var attempt = 0; attempt < MaxCreateAttempts; attempt++)
         {
-            var slug = attempt == 0 ? baseSlug : $"{baseSlug}-{SlugGenerator.RandomSuffix()}";
-
             var invitation = new Invitation
             {
                 UserId = userId,
                 Slug = slug,
                 TemplateSlug = request.TemplateSlug.Trim(),
+                PaymentReference = PaymentReferenceGenerator.New(),
                 BrideName = "",
                 GroomName = "",
                 WeddingDate = request.WeddingDate,
@@ -63,15 +69,21 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 await db.SaveChangesAsync(ct);
                 return CreatedAtAction(nameof(GetBySlug), new { slug = invitation.Slug }, InvitationDto.FromEntity(invitation));
             }
-            catch (DbUpdateException ex) when (attempt < MaxSlugAttempts - 1 && IsSlugCollision(ex))
+            catch (DbUpdateException ex) when (attempt < MaxCreateAttempts - 1
+                && (IsUniqueViolation(ex, SlugIndex) || IsUniqueViolation(ex, PaymentReferenceIndex)))
             {
-                // Slug collision (unique index) — detach and retry with a
-                // fresh random suffix rather than round-tripping a lookup
-                // query for every create. Any other DbUpdateException (e.g.
-                // a foreign-key failure) is a different problem that a new
-                // slug won't fix, so it's left to propagate instead of
-                // being retried into a wasted loop and a generic 500.
+                // Collision on one of the two unique, randomly-completed
+                // values — detach and retry rather than round-tripping a
+                // lookup query for every create. Only the colliding value
+                // changes: a reference clash keeps the (nicer) base slug,
+                // and every attempt draws a fresh reference anyway. Any other
+                // DbUpdateException (e.g. a foreign-key failure) is a problem
+                // a retry won't fix, so it propagates.
                 db.Entry(invitation).State = EntityState.Detached;
+                if (IsUniqueViolation(ex, SlugIndex))
+                {
+                    slug = $"{baseSlug}-{SlugGenerator.RandomSuffix()}";
+                }
             }
         }
 
@@ -138,16 +150,92 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     private static string? NullIfBlank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private static bool IsSlugCollision(DbUpdateException ex) =>
-        ex.InnerException is MySqlException { Number: 1062 } mysqlEx
-        && mysqlEx.Message.Contains("IX_Invitations_Slug", StringComparison.Ordinal);
+    private async Task AssignPaymentReference(Invitation invitation, CancellationToken ct)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            invitation.PaymentReference = PaymentReferenceGenerator.New();
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return;
+            }
+            catch (DbUpdateException ex) when (attempt < MaxCreateAttempts - 1 && IsUniqueViolation(ex, PaymentReferenceIndex))
+            {
+                // taken — loop round with a fresh code
+            }
+        }
+    }
 
-    /// Public — a guest opening the shared link has no account.
+    private static bool IsUniqueViolation(DbUpdateException ex, string indexName) =>
+        ex.InnerException is MySqlException { Number: 1062 } mysqlEx
+        && mysqlEx.Message.Contains(indexName, StringComparison.Ordinal);
+
+    /// Public — a guest opening the shared link has no account, and sees
+    /// the invitation only once it's Published. The owner (if their token
+    /// comes along) can see their own invitation in any status, e.g. to
+    /// preview it while the payment is pending — and so can an admin.
     [HttpGet("{slug}")]
     public async Task<ActionResult<InvitationDto>> GetBySlug(string slug, CancellationToken ct)
     {
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Slug == slug, ct);
-        return invitation is null ? NotFound() : Ok(InvitationDto.FromEntity(invitation));
+        if (invitation is null)
+        {
+            return NotFound();
+        }
+
+        var isOwner = TryGetUserId(out var userId) && invitation.UserId == userId;
+        // The admin checks the invitation before approving its payment.
+        var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+        if (invitation.Status != InvitationStatus.Published && !isOwner && !isAdmin)
+        {
+            // Distinguishable from an unknown slug so the page can say
+            // "not published yet" rather than "this link is wrong".
+            return NotFound(new { code = "not_published", message = "Bu davetiye henüz yayında değil." });
+        }
+
+        return Ok(InvitationDto.FromEntity(invitation));
+    }
+
+    /// Bank-transfer details for one of the owner's invitations: where to
+    /// send the money and the reference to write in the transfer
+    /// description so the admin can match it.
+    [Authorize]
+    [HttpGet("{id:guid}/payment")]
+    public async Task<ActionResult<PaymentInstructionsDto>> Payment(
+        Guid id, [FromServices] IOptions<PaymentOptions> paymentOptions, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
+        if (invitation is null)
+        {
+            return NotFound();
+        }
+        if (invitation.Status == InvitationStatus.Published)
+        {
+            return Conflict(new { message = "Bu davetiyenin ödemesi zaten onaylandı." });
+        }
+
+        var payment = paymentOptions.Value;
+        if (!payment.IsConfigured)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { message = "Ödeme bilgileri henüz tanımlanmadı. Lütfen bizimle iletişime geçin." });
+        }
+
+        if (invitation.PaymentReference is null)
+        {
+            // Only possible for an invitation created before references
+            // existed and later moved back to pending — give it one now.
+            await AssignPaymentReference(invitation, ct);
+        }
+
+        return Ok(new PaymentInstructionsDto(
+            invitation.PaymentReference!, payment.BankName, payment.AccountHolder!, payment.Iban!, payment.AmountTry!.Value));
     }
 
     /// The signed-in owner's own invitations, newest first, each with its

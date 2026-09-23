@@ -35,6 +35,7 @@ var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
         "Jwt configuration is missing. Set Jwt:Key via `dotnet user-secrets set \"Jwt:Key\" \"...\"`.");
 
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
