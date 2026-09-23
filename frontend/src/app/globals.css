@@ -1,0 +1,338 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-parchment: #f6efdd;
+  --color-parchment-deep: #ecdfba;
+  --color-parchment-shadow: #d9c894;
+  --color-ink: #3a1420;
+  --color-ink-soft: #6b3242;
+  --color-gold: #a97a2f;
+  --color-gold-light: #d9bb78;
+  --color-gold-deep: #7c5720;
+  /* Botanical ink — used only by hairline sprig/leaf line-art, never for
+     text or UI chrome. Keeps gold as the one metal accent. */
+  --color-sage: #6f7a52;
+  --color-sage-deep: #545e3c;
+
+  --font-display: var(--font-bodoni);
+  --font-body: var(--font-garamond);
+  --font-script: var(--font-petit-formal-script);
+}
+
+:root {
+  /* Stronger custom curves — the built-in CSS easings read as flat/duller
+     than they should for a site this tactile. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  position: relative;
+}
+
+/* A cotton-paper grain over the whole site — generated, not an image
+   asset — so no ground ever reads as flat digital white/cream. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body::before {
+    display: none;
+  }
+}
+
+/* Browser surfaces we did not draw, still themed from the same palette. */
+::selection {
+  background: var(--color-gold);
+  color: var(--color-parchment);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-deep);
+  outline-offset: 2px;
+}
+
+input,
+textarea {
+  caret-color: var(--color-gold-deep);
+}
+
+.ink-ground input,
+.ink-ground textarea {
+  caret-color: var(--color-gold-light);
+}
+
+.ink-ground :focus-visible {
+  outline-color: var(--color-gold-light);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-parchment);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border: 3px solid var(--color-parchment);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.paper-ground {
+  background-color: var(--color-parchment);
+  background-image: radial-gradient(
+    ellipse at 20% -10%,
+    rgba(169, 122, 47, 0.08),
+    transparent 55%
+  );
+}
+
+.paper-ground-deep {
+  background-color: var(--color-parchment-deep);
+  background-image: radial-gradient(
+    ellipse at 80% 0%,
+    rgba(169, 122, 47, 0.1),
+    transparent 60%
+  );
+}
+
+.ink-ground {
+  background-color: var(--color-ink);
+  background-image: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(217, 187, 120, 0.14),
+    transparent 60%
+  );
+}
+
+/* Hero stagger-in: pure CSS so above-the-fold content is guaranteed to
+   reveal on first paint even if hydration is slow, instead of depending on
+   a JS-flipped "mounted" flag that can leave content stuck invisible. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Flip-card countdown: two stacked flaps, each a fresh mounted element that
+   animates in or out once per tick, so no manual rotation reset is needed. */
+@keyframes flap-out {
+  from {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flap-in {
+  from {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+.flap-out {
+  animation: flap-out 220ms ease-in forwards;
+  transform-origin: top center;
+}
+
+.flap-in {
+  animation: flap-in 240ms ease-out 200ms both;
+  transform-origin: bottom center;
+}
+
+/* Botanical sprig — thin pencil-line botanical mark, never filled, only
+   ever a corner accent (see BotanicalSprig.tsx). Sways gently from its
+   root on hover of the nearest .group ancestor. */
+.sprig-stem {
+  fill: none;
+  stroke: var(--color-sage);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.sprig-leaf {
+  fill: none;
+  stroke: var(--color-sage);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sprig-bud {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.4;
+}
+
+.sprig {
+  overflow: visible;
+  transform-origin: 12% 94%;
+  transition: transform 700ms var(--ease-in-out-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .sprig {
+    transform: rotate(-4deg);
+  }
+}
+
+/* Envelope intro — the guest's first beat on a published invitation page.
+   Guest-triggered, not autoplaying: it sits closed and pulses for a tap;
+   only on tap does the couple's own wax seal crack into shards, the flap
+   lift on a real spring, and the invitation crossfade in underneath. Plays
+   once per invitation per browser tab (see EnvelopeIntro.tsx).
+
+   The idle rest state and its `[data-idle]` gating live here in CSS — cheap,
+   declarative, never re-triggered. Everything that plays once on tap (the
+   pick-up, the crack, the shards, the flap's spring, the reveal) is
+   orchestrated by Motion (motion/react) in EnvelopeIntro.tsx instead of CSS
+   transitions/keyframes, specifically for the flap: a spring's overshoot
+   and settle reads as a real hinge in a way a fixed easing curve can only
+   approximate. Elements Motion animates carry no transform/opacity/
+   transition rules here — Motion owns those inline. */
+
+.envelope-scene {
+  perspective: 1400px;
+}
+
+/* Resting at a slight angle, as if set down on a table rather than facing
+   the viewer flat-on. Structural only — Motion sets rotateX/rotateY/scale
+   on this element directly (see .envelope-card's initial/animate props and
+   the tap sequence), so no transform is declared here. */
+.envelope-card {
+  transform-style: preserve-3d;
+  filter:
+    drop-shadow(0 22px 26px rgba(58, 20, 32, 0.28))
+    drop-shadow(0 6px 10px rgba(58, 20, 32, 0.16));
+}
+
+
+/* Cotton-paper grain on the envelope itself — same generated noise as the
+   site-wide wash (see body::before), just stronger, since here it's meant
+   to be felt as an object's texture rather than an ambient cast. */
+.envelope-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+/* Tap-to-open affordance — only alive while idle. A plain looped CSS
+   animation is the right tool here (cheapest that works): it's an ambient
+   loop, not a triggered, interruptible, or springy motion. */
+.envelope-pulse {
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+.envelope-overlay[data-idle="true"] .envelope-pulse {
+  opacity: 1;
+  animation: envelope-pulse-ring 1900ms var(--ease-in-out-strong) infinite;
+}
+@keyframes envelope-pulse-ring {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.95;
+  }
+}
+
+.envelope-hint {
+  opacity: 0;
+  transition: opacity 500ms ease 450ms;
+}
+.envelope-overlay[data-idle="true"] .envelope-hint {
+  opacity: 1;
+}
+
+/* The shadow the closed flap casts onto the body below it — resting state
+   only. Motion drives its fade-out as part of the tap sequence. */
+.envelope-flap-shadow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 62%;
+  background: linear-gradient(to bottom, rgba(58, 20, 32, 0.22), transparent);
+  opacity: 1;
+  pointer-events: none;
+}
+
+.envelope-flap {
+  transform-origin: top center;
+}
+
+/* Six wax shards making up the seal ring at rest — Motion scatters and
+   fades each one on its own spring during the tap sequence (see
+   EnvelopeIntro.tsx); no resting transform needed beyond the anchor. */
+.envelope-shard {
+  transform-origin: center;
+}
+
+/* Wax-seal monogram — a hairline pressed-wax outline, gold on parchment,
+   never a solid fill. See WaxSeal.tsx. */
+.seal-ring {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.2;
+}
+
+.seal-ring-inner {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.seal-glyph {
+  fill: var(--color-gold-deep);
+  font-family: var(--font-display);
+}
