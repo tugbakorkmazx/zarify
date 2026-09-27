@@ -2,33 +2,39 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
-import { WaxSeal } from "@/components/ornament/WaxSeal";
+import { DoubleRule } from "@/components/herbarium/DoubleRule";
 
+const LINK = "apparatus text-sm text-soot-soft transition-colors hover:text-wine";
+
+/** The colophon on the centre axis, with the page's one script line. */
 export function LandingFooter() {
   const { t } = useI18n();
   const l = t.landing.footer;
 
   return (
-    <footer className="paper-ground px-6 py-14 sm:px-10">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <span className="flex items-center gap-2">
-          <WaxSeal size={26} />
-          <span className="font-display text-lg text-gold-deep">Zarify</span>
-        </span>
-        <nav className="flex flex-wrap items-center justify-center gap-6 font-body text-sm text-ink-soft">
-          <Link href="/sablonlar" className="transition-colors hover:text-ink">
+    <footer className="paper-ground px-5 pt-16 pb-10 sm:px-10">
+      <div className="mx-auto flex max-w-6xl flex-col items-center text-center">
+        <DoubleRule className="w-full text-soot" />
+        <p className="mt-12 font-display text-4xl leading-none text-soot">Zarify</p>
+        <p className="mt-1 font-script text-3xl text-wine">{t.landing.tagline}</p>
+        <nav className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-3">
+          <Link href="/sablonlar" className={LINK}>
             {l.templates}
           </Link>
-          <Link href="/giris" className="transition-colors hover:text-ink">
+          <Link href="/giris" className={LINK}>
             {l.login}
           </Link>
-          <Link href="/kayit" className="transition-colors hover:text-ink">
+          <Link href="/kayit" className={LINK}>
             {l.register}
           </Link>
+          <Link href="/gizlilik" className={LINK}>
+            {l.privacy}
+          </Link>
+          <Link href="/kullanim-sartlari" className={LINK}>
+            {l.terms}
+          </Link>
         </nav>
-        <span className="font-body text-xs text-ink-soft/70">
-          © {new Date().getFullYear()} Zarify
-        </span>
+        <p className="apparatus mt-10 text-xs text-soot-soft">© {new Date().getFullYear()} Zarify</p>
       </div>
     </footer>
   );

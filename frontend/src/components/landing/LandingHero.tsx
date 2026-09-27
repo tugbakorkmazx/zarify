@@ -3,181 +3,91 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
-import { WaxSeal } from "@/components/ornament/WaxSeal";
-import { BotanicalSprig } from "@/components/ornament/BotanicalSprig";
-import { DeckleEdge } from "@/components/ornament/DeckleEdge";
+import { art } from "@/lib/art";
+import { Painting } from "@/components/art/Painting";
 import { LanguageToggle } from "@/components/invitation/LanguageToggle";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY_LIGHT } from "@/lib/ui";
 
-const STAGE_DELAY_MS = 90;
+const NAV_LINK = "apparatus whitespace-nowrap text-sm text-paper/80 transition-colors hover:text-paper";
 
-const PILL_BUTTON =
-  "transition-[filter,transform] duration-150 active:scale-[0.97]";
-const GHOST_PILL = "transition-[color,border-color,transform] duration-150 active:scale-[0.97]";
-
+/** The house cover: the letters-and-lilies still life full-bleed under a
+ * dark veil, the wordmark centred between two short navs, and the
+ * headline, body and both actions in ivory in the middle of the screen. */
 export function LandingHero() {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const l = t.landing;
+  const startHref = user ? "/davetiye-bilgileri" : "/kayit";
 
-  // A pure CSS keyframe animation (see .hero-rise / @keyframes hero-rise in
-  // globals.css) staggered per stage — this plays on first paint whether or
-  // not JS has hydrated yet, so above-the-fold content never gets stuck
-  // invisible waiting on a JS-flipped "mounted" flag.
-  const stageStyle = (index: number) => ({
-    animation: `hero-rise 850ms var(--ease-out-strong) ${index * STAGE_DELAY_MS}ms both`,
+  // Pure CSS keyframes (see @keyframes hero-rise in globals.css), so the
+  // cover reveals on first paint whether or not JS has hydrated yet.
+  const rise = (index: number) => ({
+    animation: `hero-rise 850ms var(--ease-out-strong) ${index * 90}ms both`,
   });
 
   return (
-    <section className="relative overflow-hidden paper-ground">
-      <div className="flex items-center justify-between px-6 pt-6 sm:px-10 sm:pt-8">
-        <div className="group flex items-center gap-2.5">
-          <WaxSeal size={30} />
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-xl tracking-wide text-ink">
-              Zarify
-            </span>
-            <span className="font-body italic text-sm text-gold-deep -mt-0.5">
-              {l.tagline}
-            </span>
-          </div>
-        </div>
-        <nav className="flex items-center gap-3 sm:gap-5">
-          <Link
-            href="/sablonlar"
-            className="hidden font-body text-sm text-ink-soft transition-colors hover:text-ink sm:inline"
-          >
+    <section className="on-painting relative isolate flex min-h-[100svh] flex-col overflow-hidden px-5 pt-5 sm:px-10 sm:pt-7">
+      <Painting piece={art.stillLifeLetters} shade="centre" priority />
+
+      <header className="relative z-20 mx-auto grid w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <nav className="flex items-center gap-5">
+          <Link href="/sablonlar" className={`hidden sm:inline ${NAV_LINK}`}>
             {l.nav.templates}
           </Link>
-          <LanguageToggle />
+          {user && (
+            <Link href="/davetiyelerim" className={`hidden sm:inline ${NAV_LINK}`}>
+              {l.nav.myInvitations}
+            </Link>
+          )}
+          {/* Operator-only; the API enforces the role on every admin call. */}
+          {user?.role === "admin" && (
+            <Link href="/yonetim" className={`hidden md:inline ${NAV_LINK}`}>
+              {l.nav.admin}
+            </Link>
+          )}
+        </nav>
+
+        <Link href="/" className="flex flex-col items-center text-center">
+          <span className="font-display text-4xl leading-none sm:text-5xl">Zarify</span>
+          <span className="mt-1 hidden font-body text-base italic text-paper/80 sm:block">{l.tagline}</span>
+        </Link>
+
+        <nav className="flex items-center justify-end gap-3 sm:gap-5">
           {user ? (
-            <>
-              <Link
-                href="/davetiyelerim"
-                className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
-              >
-                {l.nav.myInvitations}
-              </Link>
-              {/* Operator-only; the API enforces the role on every admin call. */}
-              {user.role === "admin" && (
-                <Link
-                  href="/yonetim"
-                  className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
-                >
-                  {l.nav.admin}
-                </Link>
-              )}
-              <button
-                type="button"
-                onClick={logout}
-                className={`font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 hover:border-gold hover:text-ink ${GHOST_PILL}`}
-              >
-                {l.nav.logout}
-              </button>
-            </>
+            <button type="button" onClick={logout} className={NAV_LINK}>
+              {l.nav.logout}
+            </button>
           ) : (
-            <Link
-              href="/giris"
-              className={`font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 hover:border-gold hover:text-ink ${GHOST_PILL}`}
-            >
+            <Link href="/giris" className={NAV_LINK}>
               {l.nav.login}
             </Link>
           )}
-          <Link
-            href={user ? "/davetiye-bilgileri" : "/kayit"}
-            className={`font-body text-sm text-ink bg-gold-light rounded-full px-4 py-1.5 border border-gold-deep/40 hover:brightness-105 ${PILL_BUTTON}`}
-          >
-            {l.nav.cta}
-          </Link>
+          <LanguageToggle tone="paper" />
         </nav>
-      </div>
+      </header>
 
-      <div className="grid gap-12 px-6 py-16 sm:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-8 lg:px-16 lg:py-24">
-        <div className="max-w-xl">
-          <p
-            className="font-body text-xs sm:text-sm tracking-[0.2em] uppercase text-gold-deep mb-5"
-            style={stageStyle(0)}
-          >
-            {l.hero.eyebrow}
-          </p>
-          <h1
-            className="font-display text-4xl sm:text-6xl lg:text-7xl leading-[0.98] text-ink"
-            style={stageStyle(1)}
-          >
-            {l.hero.headline}
-          </h1>
-          <p
-            className="font-body text-lg text-ink-soft mt-6 max-w-md"
-            style={stageStyle(2)}
-          >
-            {l.hero.body}
-          </p>
-          <div
-            className="flex flex-wrap items-center gap-4 mt-9"
-            style={stageStyle(3)}
-          >
-            <Link
-              href={user ? "/davetiye-bilgileri" : "/kayit"}
-              className={`font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 hover:brightness-105 ${PILL_BUTTON}`}
-            >
-              {l.hero.ctaPrimary}
-            </Link>
-            <Link
-              href="/sablonlar"
-              className={`font-body text-sm text-ink-soft border border-gold/50 rounded-full px-6 py-3 hover:border-gold hover:text-ink ${GHOST_PILL}`}
-            >
-              {l.hero.ctaSecondary}
-            </Link>
-          </div>
-        </div>
-
-        <div
-          className="relative mx-auto w-full max-w-sm lg:mx-0 lg:ml-auto"
-          style={stageStyle(4)}
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center py-20 text-center">
+        <p className="apparatus text-sm text-wine-pale" style={rise(0)}>
+          {l.hero.eyebrow}
+        </p>
+        <h1
+          className="mt-5 max-w-[14ch] font-display text-[clamp(3rem,8vw,6rem)] leading-[0.98] tracking-[-0.02em] text-balance"
+          style={rise(1)}
         >
-          <HeroInvitationMockup />
+          {l.hero.headline}
+        </h1>
+        <p className="mt-7 max-w-[46ch] font-body text-xl leading-relaxed text-paper/90" style={rise(2)}>
+          {l.hero.body}
+        </p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4" style={rise(3)}>
+          <Link href={startHref} className={BUTTON_PRIMARY}>
+            {l.hero.ctaPrimary}
+          </Link>
+          <Link href="/sablonlar" className={BUTTON_SECONDARY_LIGHT}>
+            {l.hero.ctaSecondary}
+          </Link>
         </div>
       </div>
     </section>
-  );
-}
-
-/** A miniature of the platform's own Nikâh Tezhibi template — grounded in
- * the actual product rather than a stock illustration or abstract shape. */
-function HeroInvitationMockup() {
-  const { t } = useI18n();
-  const l = t.landing.hero;
-
-  return (
-    <div className="group relative rotate-[1.5deg]">
-      <BotanicalSprig
-        flip
-        delay={700}
-        className="absolute -bottom-10 -left-10 w-16 h-24 opacity-90 pointer-events-none"
-      />
-      <div className="paper-ground-deep border border-gold/50 px-8 pt-12 pb-6 sm:px-10 sm:pt-14">
-        <p className="font-script text-lg text-ink-soft mb-2">{l.mockupInvite}</p>
-        <p className="font-display text-4xl sm:text-5xl leading-[0.95] text-ink">
-          {l.mockupNames}
-        </p>
-        <svg
-          viewBox="0 0 240 16"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          className="w-32 h-4 my-5"
-        >
-          <line x1="0" y1="8" x2="102" y2="8" stroke="var(--color-gold)" strokeWidth="1" opacity="0.8" />
-          <line x1="138" y1="8" x2="240" y2="8" stroke="var(--color-gold)" strokeWidth="1" opacity="0.8" />
-          <path d="M120 2 L126 8 L120 14 L114 8 Z" fill="none" stroke="var(--color-gold)" strokeWidth="1" />
-          <circle cx="120" cy="8" r="1.4" fill="var(--color-gold)" />
-        </svg>
-        <p className="font-body text-sm text-ink">{l.mockupDate}</p>
-        <p className="font-body text-sm text-ink-soft mb-3">{l.mockupVenue}</p>
-        <DeckleEdge />
-      </div>
-      <span
-        aria-hidden="true"
-        className="absolute -bottom-4 -right-4 h-full w-full border border-gold/30 -z-10"
-      />
-    </div>
   );
 }

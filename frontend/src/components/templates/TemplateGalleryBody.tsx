@@ -5,33 +5,34 @@ import { templates } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
 import { TemplateCard } from "@/components/templates/TemplateCard";
 import { LanguageToggle } from "@/components/invitation/LanguageToggle";
+import { DoubleRule } from "@/components/herbarium/DoubleRule";
+import { SectionHeading } from "@/components/art/SectionHeading";
 
 export function TemplateGalleryBody() {
   const { t } = useI18n();
   const l = t.landing.gallery;
 
   return (
-    <main className="paper-ground min-h-svh px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
-      <div className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between mb-2">
+    <main className="paper-ground min-h-svh px-5 pt-5 pb-24 sm:px-10 sm:pt-7">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
+            className="apparatus text-sm text-soot-soft transition-colors hover:text-wine"
           >
             {l.back}
           </Link>
           <LanguageToggle />
         </div>
+        <DoubleRule className="mt-4 text-soot" />
+        
 
-        <p className="font-body text-xs tracking-[0.2em] uppercase text-gold-deep mt-10 mb-3">
-          {l.eyebrow}
-        </p>
-        <h1 className="font-display text-4xl sm:text-5xl text-ink max-w-xl">
+        <SectionHeading as="h1" eyebrow={l.eyebrow} className="mt-16">
           {l.heading}
-        </h1>
-        <p className="font-body text-base text-ink-soft mt-4 max-w-lg">{l.body}</p>
+        </SectionHeading>
+        <p className="mx-auto mt-6 max-w-[52ch] text-center font-body text-xl leading-relaxed text-soot-soft">{l.body}</p>
 
-        <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto mt-16 grid max-w-3xl gap-8">
           {templates.map((template) => (
             <TemplateCard key={template.slug} template={template} />
           ))}
