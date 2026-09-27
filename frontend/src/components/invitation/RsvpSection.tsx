@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
+import { SectionHeading } from "@/components/art/SectionHeading";
+import { BUTTON_PRIMARY } from "@/lib/ui";
 import { coupleInitials } from "@/lib/coupleInitials";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
@@ -13,9 +15,8 @@ type Attendance = "yes" | "maybe" | "no";
  * their invitation, in which case this section renders a closing note
  * instead of a form.
  *
- * This is the page's one deep-ink beat: every other section sits on
- * parchment, so the moment that asks for an action gets the strongest
- * contrast turn on the page instead of blending into the rest of the scroll. */
+ * On the wine band, centred: the heading and intro, then the form inside an
+ * ivory paper card. */
 export function RsvpSection({
   enabled = true,
   names,
@@ -95,117 +96,131 @@ export function RsvpSection({
     }
   }
 
+  const labelClass = "apparatus text-sm text-soot-soft";
+  const lineInput =
+    "border-b border-soot-soft/60 bg-transparent py-2 font-body text-lg text-soot outline-none transition-[border-color,box-shadow] focus:border-wine focus:shadow-[0_1px_0_var(--color-wine)]";
+
   return (
-    <section className="ink-ground px-6 sm:px-16 lg:px-24 py-20 sm:py-28">
-      <div className="mx-auto max-w-md flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-parchment">
-          {t.rsvp.heading}
-        </h2>
-        <IlluminatedRule className="my-6" />
-
-        {!enabled ? (
-          <p className="font-body text-base text-parchment/85">
-            {t.rsvp.disabledNote}
-          </p>
-        ) : submitted ? (
-          <p className="font-body text-base text-parchment" role="status">
-            {t.footer.closing}
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="w-full text-left flex flex-col gap-6">
-            <p className="font-body text-sm text-parchment/80 text-center -mt-2">
-              {t.rsvp.intro}
-              {deadlineLine && ` ${deadlineLine}`}
-            </p>
-            {!invitationSlug && (
-              <p className="font-body text-xs italic text-parchment/60 text-center -mt-3">
-                {t.rsvp.previewNote}
-              </p>
-            )}
-
-            <label className="flex flex-col gap-1.5">
-              <span className="font-body text-xs tracking-[0.15em] uppercase text-gold-light">
-                {t.rsvp.nameLabel}
-              </span>
-              <input
-                required
-                type="text"
-                name="name"
-                className="border-b border-gold/50 bg-transparent py-1.5 font-body text-parchment outline-none focus:border-gold-light"
-              />
-            </label>
-
-            <fieldset className="flex flex-col gap-2">
-              <legend className="font-body text-xs tracking-[0.15em] uppercase text-gold-light mb-1">
-                {t.rsvp.attendingLabel}
-              </legend>
-              {(
-                [
-                  ["yes", t.rsvp.attendingYes],
-                  ["maybe", t.rsvp.attendingMaybe],
-                  ["no", t.rsvp.attendingNo],
-                ] as const
-              ).map(([value, label]) => (
-                <label key={value} className="flex items-center gap-2 font-body text-parchment">
-                  <input
-                    type="radio"
-                    name="attending"
-                    value={value}
-                    checked={attendance === value}
-                    onChange={() => setAttendance(value)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </fieldset>
-
-            {attendance !== "no" && (
-              <label className="flex flex-col gap-1.5">
-                <span className="font-body text-xs tracking-[0.15em] uppercase text-gold-light">
-                  {t.rsvp.guestsLabel}
-                </span>
-                <input
-                  type="number"
-                  name="guests"
-                  min={1}
-                  max={20}
-                  defaultValue={1}
-                  className="border-b border-gold/50 bg-transparent py-1.5 font-body text-parchment outline-none focus:border-gold-light w-24"
-                />
-              </label>
-            )}
-
-            <label className="flex flex-col gap-1.5">
-              <span className="font-body text-xs tracking-[0.15em] uppercase text-gold-light">
-                {t.rsvp.messageLabel}
-              </span>
-              <textarea
-                name="message"
-                rows={3}
-                placeholder={t.rsvp.messagePlaceholder}
-                className="border border-gold/50 bg-transparent rounded-sm p-2.5 font-body text-parchment placeholder:text-parchment/40 outline-none focus:border-gold-light resize-none"
-              />
-            </label>
-
-            {error && (
-              <p
-                role="alert"
-                className="border border-gold/50 bg-ink px-4 py-3 font-body text-sm text-parchment text-center"
-              >
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="self-center mt-2 h-16 w-16 rounded-full font-display text-sm text-ink bg-gold-light border border-gold-deep/50 shadow-[0_2px_6px_rgba(0,0,0,0.35)] hover:brightness-105 active:brightness-95 active:scale-[0.97] transition-[filter,transform] duration-150 disabled:opacity-60"
-              aria-label={t.rsvp.submit}
-            >
-              {signature}
-            </button>
-          </form>
+    <section className="wine-band px-5 py-24 sm:px-10 sm:py-32">
+      <div className="mx-auto flex max-w-2xl flex-col items-center">
+        <SectionHeading tone="light">{t.rsvp.heading}</SectionHeading>
+        <p className="mt-8 max-w-[40ch] text-center font-body text-xl italic leading-snug text-paper/90">
+          {t.rsvp.intro}
+        </p>
+        {deadlineLine && (
+          <p className="apparatus mt-3 text-center text-sm text-wine-pale">{deadlineLine}</p>
         )}
+
+        <div className="mt-12 w-full max-w-xl">
+          <div className="paper-card paper-ground p-2">
+            <div className="border border-soot/30 p-6 sm:p-10">
+              {!enabled ? (
+                <p className="font-body text-lg leading-relaxed text-soot">
+                  {t.rsvp.disabledNote}
+                </p>
+              ) : submitted ? (
+                <div className="flex flex-col items-center gap-4 py-8 text-center" role="status">
+                  <p className="font-display text-3xl text-soot">{t.footer.closing}</p>
+                  <span className="grid h-16 w-16 place-items-center rounded-full bg-wine font-display text-lg text-paper shadow-[0_2px_6px_rgba(31,28,23,0.4)]">
+                    {signature}
+                  </span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+                  {!invitationSlug && (
+                    <p className="font-body text-sm italic text-soot-soft">
+                      {t.rsvp.previewNote}
+                    </p>
+                  )}
+
+                  <label className="flex flex-col gap-1">
+                    <span className={labelClass}>{t.rsvp.nameLabel}</span>
+                    <input required type="text" name="name" autoComplete="name" className={lineInput} />
+                  </label>
+
+                  <fieldset className="flex flex-col gap-3">
+                    <legend className={`${labelClass} mb-3`}>{t.rsvp.attendingLabel}</legend>
+                    {(
+                      [
+                        ["yes", t.rsvp.attendingYes],
+                        ["maybe", t.rsvp.attendingMaybe],
+                        ["no", t.rsvp.attendingNo],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-center gap-3 font-body text-lg text-soot"
+                      >
+                        <input
+                          type="radio"
+                          name="attending"
+                          value={value}
+                          checked={attendance === value}
+                          onChange={() => setAttendance(value)}
+                          className="h-4 w-4 accent-wine"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </fieldset>
+
+                  {attendance !== "no" && (
+                    <label className="flex flex-col gap-1">
+                      <span className={labelClass}>{t.rsvp.guestsLabel}</span>
+                      <input
+                        type="number"
+                        name="guests"
+                        min={1}
+                        max={20}
+                        defaultValue={1}
+                        className={`${lineInput} numerals w-24`}
+                      />
+                    </label>
+                  )}
+
+                  <label className="flex flex-col gap-2">
+                    <span className={labelClass}>{t.rsvp.messageLabel}</span>
+                    <textarea
+                      name="message"
+                      rows={3}
+                      placeholder={t.rsvp.messagePlaceholder}
+                      className="resize-none border border-soot-soft/60 bg-transparent p-3 font-body text-lg text-soot placeholder:text-soot-soft/70 outline-none transition-colors focus:border-wine"
+                    />
+                  </label>
+
+                  {error && (
+                    <p
+                      role="alert"
+                      className="border border-wine/60 px-4 py-3 font-body text-base text-wine"
+                    >
+                      {error}
+                    </p>
+                  )}
+
+                  <div className="flex flex-col-reverse items-center gap-6 text-center">
+                    <p className="max-w-[40ch] font-body text-sm text-soot-soft">
+                      {t.rsvp.privacyNote}{" "}
+                      <Link
+                        href="/gizlilik"
+                        className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
+                      >
+                        {t.rsvp.privacyLink}
+                      </Link>
+                    </p>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      aria-busy={submitting}
+                      className={`${BUTTON_PRIMARY} min-w-[12rem]`}
+                    >
+                      {t.rsvp.submit}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

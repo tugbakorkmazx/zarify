@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { NikahTezhibiTemplate } from "@/components/templates/NikahTezhibiTemplate";
+import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
 import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
 import { useAuth } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
@@ -67,7 +67,7 @@ export default function PublicInvitationPage() {
   if (status === "loading") {
     return (
       <main className="paper-ground min-h-svh flex items-center justify-center px-6">
-        <p className="font-body text-sm text-ink-soft">Davetiye yükleniyor…</p>
+        <p className="font-body text-lg text-soot-soft" role="status">Davetiye yükleniyor…</p>
       </main>
     );
   }
@@ -76,11 +76,11 @@ export default function PublicInvitationPage() {
     const message = MESSAGES[status];
     return (
       <main className="paper-ground min-h-svh flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-display text-2xl text-ink">{message.title}</p>
-        <p className="font-body text-sm text-ink-soft max-w-sm">{message.body}</p>
+        <p className="font-display text-3xl text-soot">{message.title}</p>
+        <p className="max-w-sm font-body text-lg text-soot-soft">{message.body}</p>
         <Link
           href="/"
-          className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
+          className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
         >
           ← Zarify anasayfasına dön
         </Link>
@@ -98,20 +98,20 @@ export default function PublicInvitationPage() {
       {!isLive && (
         <div
           role="status"
-          className="paper-ground-deep border-b border-gold/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
+          className="bg-paper-deep border-b border-wine/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
         >
-          <p className="font-body text-sm text-ink">
+          <p className="font-body text-base text-wine">
             Önizleme — bu davetiye ödemeniz onaylandığında misafirlerinize açılacak.
           </p>
           <Link
             href={`/davetiyem/${inv.slug}`}
-            className="font-body text-sm text-ink underline decoration-gold-deep/60 underline-offset-4 hover:decoration-gold-deep"
+            className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
           >
             Ödeme bilgileri
           </Link>
         </div>
       )}
-      <NikahTezhibiTemplate
+      <HerbaryumTemplate
         eventDate={eventDate}
         names={names}
         dateLine={formatDateLine(inv.weddingDate)}

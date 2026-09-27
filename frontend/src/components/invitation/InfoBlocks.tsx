@@ -1,15 +1,16 @@
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
+import { SectionHeading } from "@/components/art/SectionHeading";
 
 // Static class names so Tailwind can see them — one column per filled block.
 const COLUMNS: Record<number, string> = {
-  1: "sm:grid-cols-1 max-w-md",
-  2: "sm:grid-cols-2",
-  3: "sm:grid-cols-3",
+  1: "max-w-md",
+  2: "max-w-3xl md:grid-cols-2",
+  3: "max-w-5xl md:grid-cols-3",
 };
 
-/** "Good to know" notes. Each block appears only if its text is set; the
- * caller skips the whole section when none are. */
+/** "Good to know", on ivory paper: the heading centred, then dress code,
+ * gifts and accommodation as equal centred blocks. Each block appears only
+ * if its text is set; the section disappears when none are. */
 export function InfoBlocks({
   dressCode,
   giftNote,
@@ -31,26 +32,18 @@ export function InfoBlocks({
   }
 
   return (
-    <section className="paper-ground px-6 sm:px-16 lg:px-24 py-20 sm:py-28">
-      <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-ink">
-          {t.info.heading}
-        </h2>
-        <IlluminatedRule className="my-6" />
-
-        <div
-          className={`mt-8 grid grid-cols-1 ${COLUMNS[blocks.length]} gap-10 sm:gap-8 w-full text-left`}
-        >
-          {blocks.map((block) => (
-            <div key={block.title} className="flex flex-col gap-3">
-              <h3 className="font-display text-xl text-ink">{block.title}</h3>
-              <span className="h-px w-10 bg-gold" aria-hidden="true" />
-              <p className="font-body text-sm leading-relaxed text-ink-soft whitespace-pre-line">
-                {block.body}
-              </p>
-            </div>
-          ))}
-        </div>
+    <section className="paper-ground px-5 py-24 sm:px-10 sm:py-32">
+      <SectionHeading>{t.info.heading}</SectionHeading>
+      <div className={`mx-auto mt-14 grid grid-cols-1 gap-x-12 gap-y-12 ${COLUMNS[blocks.length]}`}>
+        {blocks.map((block) => (
+          <div key={block.title} className="flex flex-col items-center gap-3 text-center">
+            <h3 className="font-display text-2xl leading-tight text-soot">{block.title}</h3>
+            <span aria-hidden="true" className="h-px w-10 bg-wine/60" />
+            <p className="max-w-[36ch] whitespace-pre-line font-body text-lg leading-relaxed text-soot-soft">
+              {block.body}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

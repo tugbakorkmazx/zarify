@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
+import { SectionHeading } from "@/components/art/SectionHeading";
 
 export interface ScheduleEntry {
   time: string;
@@ -7,38 +7,31 @@ export interface ScheduleEntry {
   description?: string | null;
 }
 
+/** The day's programme on ivory paper: a single centred column, each entry
+ * with its time large in wine on top and the event and its note under it,
+ * separated by short hairlines. */
 export function ScheduleSection({ items }: { items: ScheduleEntry[] }) {
   const { t } = useI18n();
 
   return (
-    <section className="paper-ground px-6 sm:px-16 lg:px-24 py-20 sm:py-28">
-      <div className="mx-auto max-w-2xl flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-ink">
-          {t.schedule.heading}
-        </h2>
-        <IlluminatedRule className="my-6" />
-
-        <ol className="w-full mt-8 flex flex-col divide-y divide-gold/25">
-          {items.map((item, index) => (
-            <li
-              key={`${item.time}-${index}`}
-              className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-8 py-6 text-left"
-            >
-              <span className="font-display text-lg text-gold-deep sm:w-28 shrink-0">
-                {item.time}
-              </span>
-              <div>
-                <p className="font-body text-lg text-ink">{item.title}</p>
-                {item.description && (
-                  <p className="font-body text-sm text-ink-soft mt-1">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+    <section className="paper-ground px-5 py-24 sm:px-10 sm:py-32">
+      <SectionHeading>{t.schedule.heading}</SectionHeading>
+      <ol className="mx-auto mt-14 flex max-w-xl flex-col items-center">
+        {items.map((item, index) => (
+          <li key={`${item.time}-${index}`} className="flex flex-col items-center text-center">
+            {index > 0 && <span aria-hidden="true" className="my-9 h-10 w-px bg-soot/30" />}
+            <span className="font-display numerals text-4xl leading-none text-wine sm:text-5xl">
+              {item.time}
+            </span>
+            <p className="mt-3 font-display text-2xl leading-tight text-soot">{item.title}</p>
+            {item.description && (
+              <p className="mt-2 max-w-[44ch] font-body text-lg leading-relaxed text-soot-soft">
+                {item.description}
+              </p>
+            )}
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

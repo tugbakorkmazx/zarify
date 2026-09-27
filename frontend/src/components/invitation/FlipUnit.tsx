@@ -39,18 +39,18 @@ export function FlipUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className="relative h-12 w-14 sm:h-16 sm:w-20 rounded-sm border border-gold-deep/40 bg-ink text-parchment shadow-[0_1px_0_rgba(217,187,120,0.5)_inset]"
+        className="relative h-14 w-[3.75rem] border border-paper/40 bg-ink/[0.93] text-paper sm:h-[4.5rem] sm:w-20"
         style={{ perspective: "240px" }}
       >
         <span
           aria-hidden
-          className="absolute left-1/2 top-1/2 h-px w-full -translate-x-1/2 -translate-y-1/2 bg-gold/40"
+          className="absolute left-1/2 top-1/2 z-10 h-px w-full -translate-x-1/2 -translate-y-1/2 bg-paper/25"
         />
         {outgoing !== null && (
           <span
             key={`out-${outgoing}`}
             aria-hidden
-            className="flap-out absolute inset-0 flex items-center justify-center font-display text-2xl sm:text-3xl tabular-nums"
+            className="flap-out absolute inset-0 flex items-center justify-center font-display numerals text-3xl sm:text-4xl"
           >
             {outgoing}
           </span>
@@ -60,14 +60,14 @@ export function FlipUnit({ value, label }: { value: number; label: string }) {
           aria-hidden
           className={
             outgoing !== null
-              ? "flap-in absolute inset-0 flex items-center justify-center font-display text-2xl sm:text-3xl tabular-nums"
-              : "absolute inset-0 flex items-center justify-center font-display text-2xl sm:text-3xl tabular-nums"
+              ? "flap-in absolute inset-0 flex items-center justify-center font-display numerals text-3xl sm:text-4xl"
+              : "absolute inset-0 flex items-center justify-center font-display numerals text-3xl sm:text-4xl"
           }
         >
           {displayValue}
         </span>
       </div>
-      <span className="text-[0.65rem] sm:text-xs tracking-[0.2em] uppercase text-ink-soft font-body">
+      <span className="apparatus text-xs text-paper/80">
         {label}
       </span>
     </div>

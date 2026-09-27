@@ -1,9 +1,12 @@
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
+import { art } from "@/lib/art";
+import { Framed } from "@/components/art/Framed";
+import { SectionHeading } from "@/components/art/SectionHeading";
 
-/** mapUrl is optional by design: a venue only needs a name and an address
- * to be usable. When the owner adds a map link, the CTA appears; otherwise
- * the section still stands on plain text alone. */
+/** The venue, on the dark olive band: the dark floral still life in the
+ * gilded rectangular frame, centred, then the heading, the venue's name
+ * and address and the map button under it. mapUrl is optional by design:
+ * a venue only needs a name and an address to be usable. */
 export function VenueSection({
   mapUrl,
   name,
@@ -16,14 +19,20 @@ export function VenueSection({
   const { t } = useI18n();
 
   return (
-    <section className="paper-ground-deep px-6 sm:px-16 lg:px-24 py-20 sm:py-28">
-      <div className="mx-auto max-w-xl flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-ink">
-          {t.venue.heading}
-        </h2>
-        <IlluminatedRule className="my-6" />
-        <p className="font-body text-lg text-ink">{name ?? t.venue.name}</p>
-        <p className="font-body text-base text-ink-soft mt-2 max-w-sm">
+    <section className="olive-band px-5 py-24 sm:px-10 sm:py-32">
+      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+        <Framed
+          shape="rect"
+          painting={art.darkFlorals}
+          focus="50% 38%"
+          sizes="(min-width: 640px) 18rem, 60vw"
+          className="mb-12 w-[min(60vw,15rem)] sm:w-72"
+        />
+        <SectionHeading tone="light">{t.venue.heading}</SectionHeading>
+        <p className="mt-10 font-display text-3xl leading-tight text-paper text-balance sm:text-4xl">
+          {name ?? t.venue.name}
+        </p>
+        <p className="mt-4 max-w-[40ch] font-body text-lg leading-relaxed text-paper/80">
           {address ?? t.venue.address}
         </p>
         {mapUrl && (
@@ -31,7 +40,7 @@ export function VenueSection({
             href={mapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 font-body text-sm tracking-[0.15em] uppercase text-gold-deep border-b border-gold-deep/60 pb-0.5 hover:text-ink hover:border-ink transition-colors"
+            className="apparatus mt-9 inline-block border border-paper/70 px-7 py-3.5 text-sm text-paper transition-[background-color,color,transform] duration-200 hover:bg-paper hover:text-soot active:scale-[0.97]"
           >
             {t.venue.mapCta}
           </a>

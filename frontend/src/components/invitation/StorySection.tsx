@@ -1,43 +1,28 @@
+import Image from "next/image";
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
-import { PhotoPlate } from "./PhotoPlate";
+import { art } from "@/lib/art";
+import { SectionHeading } from "@/components/art/SectionHeading";
 
-/** The couple's story. `showPhotoPlaceholders` is only for the gallery
- * showcase — a real invitation has no photo upload yet, so it shows the
- * text alone rather than empty "photo coming soon" plates. */
-export function StorySection({
-  text,
-  showPhotoPlaceholders = false,
-}: {
-  text: string;
-  showPhotoPlaceholders?: boolean;
-}) {
+/** Our story, on the wine band: the dried rose branch centred on top, the
+ * heading and the couple's text centred under it. */
+export function StorySection({ text }: { text: string }) {
   const { t } = useI18n();
 
   return (
-    <section className="paper-ground-deep px-6 sm:px-16 lg:px-24 py-20 sm:py-28">
-      <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-ink">
-          {t.story.heading}
-        </h2>
-        <IlluminatedRule className="my-6" />
-        <p className="font-body text-base sm:text-lg leading-relaxed text-ink-soft max-w-xl whitespace-pre-line">
+    <section className="wine-band px-5 py-24 sm:px-10 sm:py-32">
+      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+        <Image
+          src={art.roseBranch.src}
+          alt=""
+          width={art.roseBranch.width}
+          height={art.roseBranch.height}
+          sizes="(min-width: 640px) 13rem, 10rem"
+          className="object-shadow mb-8 h-auto w-40 sm:w-52"
+        />
+        <SectionHeading tone="light">{t.story.heading}</SectionHeading>
+        <p className="mt-10 max-w-[56ch] whitespace-pre-line font-body text-lg leading-[1.75] text-paper/90 sm:text-xl">
           {text}
         </p>
-
-        {showPhotoPlaceholders && (
-          <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-14 w-full max-w-2xl">
-            <PhotoPlate
-              caption={t.story.photoCaptionA}
-              placeholderNote={t.story.placeholderNote}
-            />
-            <PhotoPlate
-              caption={t.story.photoCaptionB}
-              placeholderNote={t.story.placeholderNote}
-              className="sm:mt-10"
-            />
-          </div>
-        )}
       </div>
     </section>
   );

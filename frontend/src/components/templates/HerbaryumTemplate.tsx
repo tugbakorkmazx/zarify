@@ -10,7 +10,7 @@ import { SiteFooter } from "@/components/invitation/SiteFooter";
 import { useI18n } from "@/lib/i18n";
 import type { InvitationContent } from "@/lib/invitationForm";
 
-/** The "Nikâh Tezhibi" template's content, decoupled from where the content
+/** The "Herbaryum" template (slug `nikah-tezhibi`, kept so existing invitations still resolve)'s content, decoupled from where the content
  * comes from — a local unpublished draft (see the /sablonlar preview) or a
  * real invitation fetched from the backend by slug (see /davetiye/[slug]).
  *
@@ -20,7 +20,7 @@ import type { InvitationContent } from "@/lib/invitationForm";
  * - given: the couple's own invitation (draft preview or published) — an
  *   optional section renders only if the couple filled it in. Sample text
  *   never leaks onto a real invitation. */
-export function NikahTezhibiTemplate({
+export function HerbaryumTemplate({
   eventDate,
   names,
   dateLine,
@@ -61,7 +61,7 @@ export function NikahTezhibiTemplate({
   return (
     <>
       <Hero eventDate={eventDate} names={names} dateLine={dateLine} venueLine={venueLine} />
-      {story && <StorySection text={story} showPhotoPlaceholders={showcase} />}
+      {story && <StorySection text={story} />}
       {schedule.length > 0 && <ScheduleSection items={schedule} />}
       <VenueSection mapUrl={mapUrl} name={venueName} address={venueAddress} />
       <InfoBlocks

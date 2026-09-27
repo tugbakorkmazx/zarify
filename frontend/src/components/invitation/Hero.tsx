@@ -1,9 +1,15 @@
 import { useI18n } from "@/lib/i18n";
-import { IlluminatedRule } from "./IlluminatedRule";
+import { art } from "@/lib/art";
+import { coupleInitials } from "@/lib/coupleInitials";
+import { Painting } from "@/components/art/Painting";
+import { CoverCard } from "@/components/art/LaceCard";
+import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { Countdown } from "./Countdown";
 import { LanguageToggle } from "./LanguageToggle";
-import { BotanicalSprig } from "@/components/ornament/BotanicalSprig";
 
+/** The cover: the swan-lake painting full-bleed, the lace card centred on
+ * it with the names, invite line, date and venue in dark ink inside its
+ * oval, and the ivory countdown centred under the card. */
 export function Hero({
   eventDate,
   names,
@@ -18,38 +24,41 @@ export function Hero({
   venueLine?: string;
 }) {
   const { t } = useI18n();
+  const shownNames = names ?? t.hero.names;
+
+  const rise = (index: number) => ({
+    animation: `hero-rise 850ms var(--ease-out-strong) ${index * 110}ms both`,
+  });
 
   return (
-    <section className="relative min-h-[100svh] paper-ground flex flex-col overflow-hidden">
-      <div className="flex justify-end px-6 pt-6 sm:px-10 sm:pt-8">
-        <LanguageToggle />
-      </div>
+    <section className="on-painting relative isolate flex min-h-[100svh] flex-col items-center overflow-hidden px-5 pt-5 pb-12 sm:px-10 sm:pt-7">
+      <Painting piece={art.swanLake} shade="soft" priority />
 
-      {/* Sits in the asymmetric negative space the hero already reserves to
-          the right of the names — a single accent, not a wraparound border. */}
-      <BotanicalSprig
-        className="absolute right-8 top-1/3 w-24 h-36 opacity-80 pointer-events-none hidden lg:block"
-        delay={900}
-      />
+      <header className="relative z-10 grid w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center">
+        <span />
+        <p className="apparatus text-sm text-paper/85">
+          {coupleInitials(shownNames)} · {t.hero.folio}
+        </p>
+        <div className="flex justify-end">
+          <LanguageToggle tone="paper" />
+        </div>
+      </header>
 
-      <div className="flex-1 flex flex-col items-start justify-center px-6 sm:px-16 lg:px-24 py-16 max-w-3xl">
-        <p className="font-script text-xl sm:text-2xl text-ink-soft mb-3">
-          {t.hero.invite}
-        </p>
-        <h1 className="font-display text-5xl sm:text-7xl lg:text-8xl leading-[0.95] text-ink">
-          {names ?? t.hero.names}
-        </h1>
-        <IlluminatedRule className="mt-6 mb-6" />
-        <p className="font-body text-lg sm:text-xl text-ink">
-          {dateLine ?? t.hero.dateLine}
-        </p>
-        <p className="font-body text-base sm:text-lg text-ink-soft">
-          {venueLine ?? t.hero.venueLine}
-        </p>
-      </div>
-
-      <div className="px-6 sm:px-16 lg:px-24 pb-12 sm:pb-16 self-center sm:self-start">
-        <Countdown target={eventDate} />
+      <div className="flex w-full flex-1 flex-col items-center justify-center gap-5 pt-8 sm:gap-6">
+        <div className="settle-in w-[min(78vw,21rem)] sm:w-[23rem]">
+          <CoverCard
+            as="h1"
+            names={<CoupleNames names={shownNames} stacked />}
+            invite={t.hero.invite}
+            dateLine={dateLine ?? t.hero.dateLine}
+            venueLine={venueLine ?? t.hero.venueLine}
+            preload
+            sizes="(min-width: 640px) 23rem, 78vw"
+          />
+        </div>
+        <div style={rise(3)}>
+          <Countdown target={eventDate} />
+        </div>
       </div>
     </section>
   );

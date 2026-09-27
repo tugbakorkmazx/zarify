@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { NikahTezhibiTemplate } from "@/components/templates/NikahTezhibiTemplate";
+import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
 import { useAuth, ApiError } from "@/lib/auth";
 import { useInvitationDraft } from "@/lib/invitationDraft";
 import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromValues, toApiFields } from "@/lib/invitationForm";
 
-// Fallback placeholder content for the "Nikâh Tezhibi" template — used when
+// Fallback placeholder content for the "Herbaryum" template — used when
 // no invitation-details draft exists yet (e.g. someone browsing the gallery
 // before signing up). Once a draft exists, it fills every field below.
-const PLACEHOLDER_EVENT_DATE = new Date("2026-06-14T16:00:00+03:00");
+const PLACEHOLDER_EVENT_DATE = new Date("2027-06-12T16:00:00+03:00");
 const PLACEHOLDER_MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=Bo%C4%9Fazi%C3%A7i+Yal%C4%B1s%C4%B1+%C3%9Csk%C3%BCdar";
 
-export default function NikahTezhibiPreviewPage() {
+export default function HerbaryumPreviewPage() {
   const { user, token, logout } = useAuth();
   const { draft, clearDraft } = useInvitationDraft();
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function NikahTezhibiPreviewPage() {
   const venueLine = draft ? `${draft.venueName}, ${draft.venueAddress}` : undefined;
   const rsvpEnabled = draft?.rsvpEnabled ?? true;
   // No draft → gallery showcase with the template's sample content; with a
-  // draft, only what the couple actually filled in (see NikahTezhibiTemplate).
+  // draft, only what the couple actually filled in (see HerbaryumTemplate).
   const content = draft ? contentFromValues(draft) : undefined;
 
   // The draft is only ever staged locally up to this point — this is where
@@ -77,20 +77,20 @@ export default function NikahTezhibiPreviewPage() {
 
   return (
     <main>
-      <div className="paper-ground-deep px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-gold/30">
+      <div className="bg-soot text-paper px-5 py-3 flex flex-wrap items-center justify-between gap-3 sm:px-10">
         <Link
           href="/sablonlar"
-          className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
+          className="apparatus text-sm text-paper/80 transition-colors hover:text-paper"
         >
           ← Şablonlar
         </Link>
-        <span className="font-body text-xs tracking-[0.15em] uppercase text-gold-deep">
-          {draft ? "Davetiyeniz — Nikâh Tezhibi" : "Şablon Önizlemesi — Nikâh Tezhibi"}
+        <span className="apparatus text-sm text-olive-pale">
+          {draft ? "Davetiyeniz — Herbaryum" : "Şablon Önizlemesi — Herbaryum"}
         </span>
         <div className="flex items-center gap-3">
           <Link
             href={editCta.href}
-            className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+            className="apparatus text-sm text-paper border border-paper/50 px-4 py-1.5 transition-[background-color,color,border-color,transform] duration-150 hover:border-paper hover:bg-paper hover:text-soot active:scale-[0.97]"
           >
             {editCta.label}
           </Link>
@@ -99,7 +99,7 @@ export default function NikahTezhibiPreviewPage() {
               type="button"
               onClick={handlePublish}
               disabled={publishing}
-              className="font-body text-sm text-ink bg-gold-light rounded-full px-4 py-1.5 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97] disabled:opacity-60"
+              className="apparatus text-sm text-paper bg-wine px-4 py-1.5 transition-[background-color,transform] duration-150 hover:bg-wine-deep active:scale-[0.97] disabled:opacity-60"
             >
               {publishing ? "Yayınlanıyor…" : "Davetiyemi Yayınla"}
             </button>
@@ -110,13 +110,13 @@ export default function NikahTezhibiPreviewPage() {
       {publishError && (
         <div
           role="alert"
-          className="paper-ground-deep border-b border-gold/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
+          className="bg-paper-deep border-b border-wine/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
         >
-          <p className="font-body text-sm text-ink">{publishError}</p>
+          <p className="font-body text-base text-wine">{publishError}</p>
           {sessionExpired && (
             <Link
               href="/giris"
-              className="font-body text-sm text-ink underline decoration-gold-deep/60 underline-offset-4 hover:decoration-gold-deep"
+              className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
             >
               Giriş Yap
             </Link>
@@ -124,7 +124,7 @@ export default function NikahTezhibiPreviewPage() {
         </div>
       )}
 
-      <NikahTezhibiTemplate
+      <HerbaryumTemplate
         eventDate={eventDate}
         names={names}
         dateLine={dateLine}
