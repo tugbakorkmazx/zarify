@@ -14,7 +14,9 @@ export function useReveal<T extends Element>(threshold = 0.15) {
     if (!node) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        // Also reveal anything already scrolled past (a jump link, a
+        // restored scroll position) so it's never left invisible above.
+        if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
           setVisible(true);
           observer.unobserve(node);
         }

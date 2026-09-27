@@ -1,22 +1,26 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-parchment: #f6efdd;
-  --color-parchment-deep: #ecdfba;
-  --color-parchment-shadow: #d9c894;
-  --color-ink: #3a1420;
-  --color-ink-soft: #6b3242;
-  --color-gold: #a97a2f;
-  --color-gold-light: #d9bb78;
-  --color-gold-deep: #7c5720;
-  /* Botanical ink — used only by hairline sprig/leaf line-art, never for
-     text or UI chrome. Keeps gold as the one metal accent. */
-  --color-sage: #6f7a52;
-  --color-sage-deep: #545e3c;
+  /* Palette — see DESIGN.md. Wine, dark olive, ivory and near-black.
+     Antique gold is never a UI colour: it exists only in the gilded frame
+     images. */
+  --color-paper: #efe8d6;
+  --color-paper-deep: #e4d9bf;
+  --color-paper-shade: #cfc09e;
+  --color-olive: #4a5433;
+  --color-olive-deep: #2e3520;
+  --color-olive-soft: #7b8459;
+  --color-olive-pale: #c9c9a3;
+  --color-wine: #6d1d28;
+  --color-wine-deep: #4b111a;
+  --color-wine-pale: #d9a7a4;
+  --color-soot: #1f1c17;
+  --color-soot-soft: #4c463b;
+  --color-ink: #120f0c;
 
-  --font-display: var(--font-bodoni);
+  --font-display: var(--font-gloock);
   --font-body: var(--font-garamond);
-  --font-script: var(--font-petit-formal-script);
+  --font-script: var(--font-pinyon);
 }
 
 :root {
@@ -31,54 +35,25 @@ html {
 }
 
 body {
-  background: var(--color-parchment);
-  color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-soot);
   position: relative;
-}
-
-/* A cotton-paper grain over the whole site — generated, not an image
-   asset — so no ground ever reads as flat digital white/cream. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  body::before {
-    display: none;
-  }
 }
 
 /* Browser surfaces we did not draw, still themed from the same palette. */
 ::selection {
-  background: var(--color-gold);
-  color: var(--color-parchment);
+  background: var(--color-wine);
+  color: var(--color-paper);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold-deep);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-wine);
+  outline-offset: 3px;
 }
 
 input,
 textarea {
-  caret-color: var(--color-gold-deep);
-}
-
-.ink-ground input,
-.ink-ground textarea {
-  caret-color: var(--color-gold-light);
-}
-
-.ink-ground :focus-visible {
-  outline-color: var(--color-gold-light);
+  caret-color: var(--color-wine);
 }
 
 ::-webkit-scrollbar {
@@ -86,13 +61,16 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-parchment);
+  background: var(--color-paper);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gold);
-  border: 3px solid var(--color-parchment);
-  border-radius: 999px;
+  background: var(--color-olive-soft);
+  border: 3px solid var(--color-paper);
+}
+
+html {
+  scrollbar-color: var(--color-olive-soft) var(--color-paper);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -109,31 +87,126 @@ textarea {
   }
 }
 
+/* Grounds live in the components layer so utilities (fixed, absolute,
+   inset-*) placed on the same element always win over their
+   `position: relative`. */
+@layer components {
+/* Grounds. Every section is one of: a full-bleed painting (see
+   components/art/Painting.tsx), or one of the three flat paper bands
+   below. The band textures are washed with their own colour so the
+   pattern stays a whisper under the type. */
 .paper-ground {
-  background-color: var(--color-parchment);
-  background-image: radial-gradient(
-    ellipse at 20% -10%,
-    rgba(169, 122, 47, 0.08),
-    transparent 55%
-  );
+  background-color: var(--color-paper);
+  background-image: url("/images/art/paper-ivory.webp");
+  background-size: 627px 627px;
+  color: var(--color-soot);
 }
 
-.paper-ground-deep {
-  background-color: var(--color-parchment-deep);
-  background-image: radial-gradient(
-    ellipse at 80% 0%,
-    rgba(169, 122, 47, 0.1),
-    transparent 60%
-  );
+.wine-band {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--color-wine-deep);
+  background-image:
+    linear-gradient(rgba(109, 29, 40, 0.45), rgba(109, 29, 40, 0.45)),
+    url("/images/art/texture-wine.webp");
+  background-size: auto, 445px 792px;
+  color: var(--color-paper);
 }
 
-.ink-ground {
-  background-color: var(--color-ink);
-  background-image: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(217, 187, 120, 0.14),
-    transparent 60%
-  );
+.olive-band {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--color-olive-deep);
+  background-image:
+    linear-gradient(rgba(38, 44, 26, 0.45), rgba(38, 44, 26, 0.45)),
+    url("/images/art/texture-olive.webp");
+  background-size: auto, 450px 450px;
+  color: var(--color-paper);
+}
+
+.wine-band :focus-visible,
+.olive-band :focus-visible,
+.on-painting :focus-visible {
+  outline-color: var(--color-paper);
+}
+
+.wine-band input,
+.wine-band textarea {
+  caret-color: var(--color-wine-pale);
+}
+
+/* Painting shades: where type sits on a painting, a dark gradient under
+   it keeps ivory text comfortably readable. */
+.painting-shade-soft {
+  background: linear-gradient(to bottom, rgba(18, 15, 12, 0.35), rgba(18, 15, 12, 0.15) 40%, rgba(18, 15, 12, 0.55));
+}
+
+.painting-shade-centre {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 50%, rgba(18, 15, 12, 0.6), rgba(18, 15, 12, 0.15) 75%),
+    linear-gradient(rgba(18, 15, 12, 0.25), rgba(18, 15, 12, 0.35));
+}
+
+.painting-shade-strong {
+  background: linear-gradient(rgba(18, 15, 12, 0.62), rgba(18, 15, 12, 0.72));
+}
+}
+
+/* Small-caps apparatus: folios, captions, labels, nav, buttons. */
+.apparatus {
+  font-family: var(--font-body);
+  font-variant-caps: all-small-caps;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.numerals {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Double hairline — the world's frame and divider, drawn with borders. */
+.double-rule {
+  height: 4px;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+}
+
+/* Paper on paper or on a painting: a real, soft paper shadow. */
+.paper-card {
+  box-shadow:
+    0 1px 1px rgba(18, 15, 12, 0.15),
+    0 18px 40px -12px rgba(18, 15, 12, 0.55);
+}
+
+/* Cut-out objects (lace card, frames, the rose branch). */
+.object-shadow {
+  filter: drop-shadow(0 10px 18px rgba(18, 15, 12, 0.45));
+}
+
+/* Ivory type set directly on a painting gets a faint shadow as a second
+   line of defence behind the gradient. */
+.on-painting {
+  color: var(--color-paper);
+  text-shadow: 0 1px 12px rgba(18, 15, 12, 0.55);
+}
+
+/* A paper object settling onto the page: drops from a little higher and
+   more askew into its resting angle. Pure CSS so it plays on first paint,
+   before hydration. Each piece may set --r (resting rotation). */
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-1.5rem) scale(1.06) rotate(calc(var(--r, 0deg) - 6deg));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--r, 0deg));
+  }
+}
+
+.settle-in {
+  transform: rotate(var(--r, 0deg));
+  animation: tip-in 900ms var(--ease-out-strong) both;
 }
 
 /* Hero stagger-in: pure CSS so above-the-fold content is guaranteed to
@@ -184,45 +257,10 @@ textarea {
   transform-origin: bottom center;
 }
 
-/* Botanical sprig — thin pencil-line botanical mark, never filled, only
-   ever a corner accent (see BotanicalSprig.tsx). Sways gently from its
-   root on hover of the nearest .group ancestor. */
-.sprig-stem {
-  fill: none;
-  stroke: var(--color-sage);
-  stroke-width: 1.1;
-  stroke-linecap: round;
-}
-
-.sprig-leaf {
-  fill: none;
-  stroke: var(--color-sage);
-  stroke-width: 1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sprig-bud {
-  fill: none;
-  stroke: var(--color-gold);
-  stroke-width: 1.4;
-}
-
-.sprig {
-  overflow: visible;
-  transform-origin: 12% 94%;
-  transition: transform 700ms var(--ease-in-out-strong);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .group:hover .sprig {
-    transform: rotate(-4deg);
-  }
-}
-
 /* Envelope intro — the guest's first beat on a published invitation page.
-   Guest-triggered, not autoplaying: it sits closed and pulses for a tap;
-   only on tap does the couple's own wax seal crack into shards, the flap
+   Guest-triggered, not autoplaying: an ivory envelope on an olive damask
+   field sits closed under a wine wax seal and waits for a tap; only on
+   tap does the seal crack into shards, the flap
    lift on a real spring, and the invitation crossfade in underneath. Plays
    once per invitation per browser tab (see EnvelopeIntro.tsx).
 
@@ -246,46 +284,10 @@ textarea {
 .envelope-card {
   transform-style: preserve-3d;
   filter:
-    drop-shadow(0 22px 26px rgba(58, 20, 32, 0.28))
-    drop-shadow(0 6px 10px rgba(58, 20, 32, 0.16));
+    drop-shadow(0 26px 30px rgba(15, 18, 10, 0.45))
+    drop-shadow(0 6px 10px rgba(15, 18, 10, 0.3));
 }
 
-
-/* Cotton-paper grain on the envelope itself — same generated noise as the
-   site-wide wash (see body::before), just stronger, since here it's meant
-   to be felt as an object's texture rather than an ambient cast. */
-.envelope-grain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 140px 140px;
-}
-
-/* Tap-to-open affordance — only alive while idle. A plain looped CSS
-   animation is the right tool here (cheapest that works): it's an ambient
-   loop, not a triggered, interruptible, or springy motion. */
-.envelope-pulse {
-  opacity: 0;
-  transition: opacity 250ms ease;
-}
-.envelope-overlay[data-idle="true"] .envelope-pulse {
-  opacity: 1;
-  animation: envelope-pulse-ring 1900ms var(--ease-in-out-strong) infinite;
-}
-@keyframes envelope-pulse-ring {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.55;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.95;
-  }
-}
 
 .envelope-hint {
   opacity: 0;
@@ -300,8 +302,8 @@ textarea {
 .envelope-flap-shadow {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 62%;
-  background: linear-gradient(to bottom, rgba(58, 20, 32, 0.22), transparent);
+  height: 56%;
+  background: linear-gradient(to bottom, rgba(31, 28, 23, 0.18), transparent);
   opacity: 1;
   pointer-events: none;
 }
@@ -310,29 +312,39 @@ textarea {
   transform-origin: top center;
 }
 
-/* Six wax shards making up the seal ring at rest — Motion scatters and
-   fades each one on its own spring during the tap sequence (see
-   EnvelopeIntro.tsx); no resting transform needed beyond the anchor. */
-.envelope-shard {
+/* The wine wax seal: six filled wedges that read as one disc at rest (a
+   same-colour stroke closes the seams) and scatter on their own springs
+   when it breaks, over a darker rim where the wax spread. Motion owns their
+   transforms and opacity (see EnvelopeIntro.tsx). */
+.envelope-shard,
+.envelope-seal-rim {
+  transform-box: fill-box;
   transform-origin: center;
 }
 
-/* Wax-seal monogram — a hairline pressed-wax outline, gold on parchment,
-   never a solid fill. See WaxSeal.tsx. */
-.seal-ring {
-  fill: none;
-  stroke: var(--color-gold);
-  stroke-width: 1.2;
+.seal-svg {
+  filter: drop-shadow(0 2px 3px rgba(31, 28, 23, 0.45));
 }
 
-.seal-ring-inner {
+.seal-rim {
+  fill: var(--color-wine-deep);
+}
+
+.seal-shard {
+  fill: var(--color-wine);
+  stroke: var(--color-wine);
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+
+.seal-inner-ring {
   fill: none;
-  stroke: var(--color-gold);
-  stroke-width: 1;
-  opacity: 0.7;
+  stroke: var(--color-wine-pale);
+  stroke-width: 0.8;
+  opacity: 0.55;
 }
 
 .seal-glyph {
-  fill: var(--color-gold-deep);
+  fill: var(--color-paper);
   font-family: var(--font-display);
 }

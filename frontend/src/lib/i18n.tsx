@@ -19,6 +19,8 @@ export interface Strings {
     invite: string;
     dateLine: string;
     venueLine: string;
+    /** Folio strip label at the top of the cover. */
+    folio: string;
   };
   countdown: {
     heading: string;
@@ -30,9 +32,6 @@ export interface Strings {
   story: {
     heading: string;
     paragraph: string;
-    photoCaptionA: string;
-    photoCaptionB: string;
-    placeholderNote: string;
   };
   schedule: {
     heading: string;
@@ -67,8 +66,18 @@ export interface Strings {
     submit: string;
     submitError: string;
     disabledNote: string;
+    /** Shown under the form — the point where guest data is collected, so
+     * KVKK wants the notice (and a link to the full text) right here. */
+    privacyNote: string;
+    privacyLink: string;
   };
   footer: { closing: string; signature: string };
+  envelope: {
+    hint: string;
+    /** aria-label while closed / while opening. */
+    openLabel: string;
+    viewLabel: string;
+  };
   landing: {
     tagline: string;
     nav: {
@@ -94,6 +103,7 @@ export interface Strings {
     howItWorks: {
       eyebrow: string;
       heading: string;
+        motto: string;
       steps: { numeral: string; title: string; body: string }[];
     };
     valueProps: {
@@ -105,10 +115,7 @@ export interface Strings {
       heading: string;
       body: string;
       linkAll: string;
-      liveName: string;
       liveLabel: string;
-      livePreview: string;
-      soonLabel: string;
     };
     cta: {
       heading: string;
@@ -119,6 +126,8 @@ export interface Strings {
       templates: string;
       login: string;
       register: string;
+      privacy: string;
+      terms: string;
     };
     gallery: {
       back: string;
@@ -136,8 +145,9 @@ export const strings: Record<Lang, Strings> = {
     hero: {
       names: "Elif & Kerem",
       invite: "sizi düğünlerine davet ediyor",
-      dateLine: "14 Haziran 2026 · Cumartesi",
+      dateLine: "12 Haziran 2027 · Cumartesi",
       venueLine: "Boğaziçi Yalısı, İstanbul",
+      folio: "Düğün Davetiyesi",
     },
     countdown: {
       heading: "Geriye kalan süre",
@@ -150,9 +160,6 @@ export const strings: Record<Lang, Strings> = {
       heading: "Hikayemiz",
       paragraph:
         "Yedi yıl önce bir arkadaş toplantısında tanıştık; o günden bugüne büyüyen bir hikaye, artık sizlerle birlikte kutlamak istediğimiz bir güne dönüştü.",
-      photoCaptionA: "Söz günü, 2023",
-      photoCaptionB: "Nişan, 2024",
-      placeholderNote: "Fotoğraf alanı — gerçek kareler eklenecek",
     },
     schedule: {
       heading: "Günün Programı",
@@ -212,10 +219,18 @@ export const strings: Record<Lang, Strings> = {
       submitError: "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
       disabledNote:
         "Bu davetiye için katılım bildirimi kapatılmış. Sorularınız için çifte doğrudan ulaşabilirsiniz.",
+      privacyNote:
+        "Adınız, katılım durumunuz ve notunuz yalnızca davetiye sahibiyle paylaşılır.",
+      privacyLink: "Gizlilik Politikası",
     },
     footer: {
       closing: "Sevgiyle bekliyoruz.",
       signature: "E. & K.",
+    },
+    envelope: {
+      hint: "Açmak için dokunun",
+      openLabel: "Davetiyeyi açmak için dokunun",
+      viewLabel: "Davetiyeyi görüntüle",
     },
     landing: {
       tagline: "davetiye stüdyosu",
@@ -231,17 +246,18 @@ export const strings: Record<Lang, Strings> = {
       hero: {
         eyebrow: "Dijital Düğün Davetiyesi",
         headline: "Davetiyeniz, el işi kadar özenli.",
-        body: "Şablon seçin, bilgilerinizi girin — dakikalar içinde paylaşılabilir bir davetiye sayfanız hazır olsun. Misafirleriniz linkten görüntüler, dilerseniz katılım bildirir.",
+        body: "Şablon seçin, bilgilerinizi girin — davetiye sayfanız dakikalar içinde hazır olsun. Yayına aldığınızda misafirleriniz linkten görüntüler, dilerseniz katılım bildirir.",
         ctaPrimary: "Davetiye Oluşturmaya Başla",
         ctaSecondary: "Şablonları İncele",
         mockupInvite: "sizi düğünlerine davet ediyor",
         mockupNames: "Elif & Kerem",
-        mockupDate: "14 Haziran 2026 · Cumartesi",
+        mockupDate: "12 Haziran 2027 · Cumartesi",
         mockupVenue: "Boğaziçi Yalısı, İstanbul",
       },
       howItWorks: {
         eyebrow: "Nasıl Çalışır",
         heading: "Dört adımda, davetiyeniz elinizde.",
+        motto: "Sevginizi çerçeveleyin.",
         steps: [
           { numeral: "I", title: "Şablon Seçin", body: "Zevkinize uygun tasarımı galeriden seçin." },
           { numeral: "II", title: "Bilgilerinizi Girin", body: "İsimleriniz, tarih, mekân ve tercihlerinizi tek seferde girin." },
@@ -252,36 +268,35 @@ export const strings: Record<Lang, Strings> = {
       valueProps: {
         eyebrow: "Neden Zarify",
         items: [
-          { index: "01", title: "Kolay Düzenleme", body: "Kod bilmeden, adım adım bir formla davetiyenizi oluşturun; sonradan fontunu, rengini, fotoğraflarını değiştirin." },
+          { index: "01", title: "Kolay Düzenleme", body: "Kod bilmeden, adım adım bir formla davetiyenizi oluşturun; yayınladıktan sonra da bilgilerinizi dilediğiniz zaman güncelleyin." },
           { index: "02", title: "Katılım Takibi", body: "Misafirlerinizin katılım yanıtlarını tek panelden görün, RSVP'yi dilediğinizde açıp kapatın." },
-          { index: "03", title: "Türkçe & İngilizce", body: "Misafirleriniz davetiyeyi ikisinden istediği dilde görüntüleyebilir." },
+          { index: "03", title: "Türkçe & İngilizce", body: "Davetiyenin başlıkları, geri sayımı ve katılım formu iki dilde hazır; misafirleriniz dili tek dokunuşla değiştirir." },
         ],
       },
       templateTeaser: {
         eyebrow: "Şablon Galerisi",
         heading: "Bir şablonla başlayın.",
-        body: "Galeri her ay büyüyor; seçtiğiniz şablonu kendi bilgilerinizle doldurup ince ayar yaparsınız.",
-        linkAll: "Tüm şablonları gör →",
-        liveName: "Nikâh Daveti",
+        body: "Herbaryum şablonunu kendi bilgilerinizle doldurun, önizleyin; hazır olduğunuzda yayınlayın.",
+        linkAll: "Şablon galerisi →",
         liveLabel: "Önizle",
-        livePreview: "E & K",
-        soonLabel: "Yakında",
       },
       cta: {
         heading: "Davetiyenizi bugün oluşturmaya başlayın.",
-        body: "Kayıt ve bilgilerinizi girmek ücretsiz. Şablonunuzu seçtikten sonra paket fiyatlarını görür, dilediğiniz an karar verirsiniz.",
+        body: "Kayıt olmak, bilgilerinizi girmek ve davetiyenizi önizlemek ücretsiz. Ücret yalnızca davetiyenizi yayına alırken ödenir.",
         button: "Ücretsiz Başla",
       },
       footer: {
         templates: "Şablonlar",
         login: "Giriş Yap",
         register: "Kayıt Ol",
+        privacy: "Gizlilik Politikası",
+        terms: "Kullanım Şartları",
       },
       gallery: {
         back: "← Zarify",
         eyebrow: "Şablon Galerisi",
         heading: "Davetiyenize bir başlangıç noktası seçin.",
-        body: "Her şablon kendi renk, yazı ve düzen kimliğiyle gelir. Seçtiğiniz şablonu sonradan kendi bilgilerinizle doldurup ince ayar yapabilirsiniz.",
+        body: "Şablonu kendi bilgilerinizle doldurun, nasıl göründüğünü önizleyin; hazır olduğunuzda yayınlayın.",
       },
     },
   },
@@ -291,8 +306,9 @@ export const strings: Record<Lang, Strings> = {
     hero: {
       names: "Elif & Kerem",
       invite: "invite you to their wedding",
-      dateLine: "June 14, 2026 · Saturday",
+      dateLine: "June 12, 2027 · Saturday",
       venueLine: "Bosphorus Waterside House, Istanbul",
+      folio: "Wedding Invitation",
     },
     countdown: {
       heading: "Time remaining",
@@ -305,9 +321,6 @@ export const strings: Record<Lang, Strings> = {
       heading: "Our Story",
       paragraph:
         "We met seven years ago at a friend's gathering. What began that evening has grown into a story we now want to celebrate with all of you.",
-      photoCaptionA: "The proposal, 2023",
-      photoCaptionB: "Engagement, 2024",
-      placeholderNote: "Photo placeholder — real photos coming soon",
     },
     schedule: {
       heading: "Order of the Day",
@@ -367,10 +380,18 @@ export const strings: Record<Lang, Strings> = {
       submitError: "Couldn't reach the server. Please try again.",
       disabledNote:
         "RSVP has been turned off for this invitation. Please reach out to the couple directly with any questions.",
+      privacyNote:
+        "Your name, reply, and note are shared only with the invitation's owner.",
+      privacyLink: "Privacy Policy (Turkish)",
     },
     footer: {
       closing: "With love, we look forward to seeing you.",
       signature: "E. & K.",
+    },
+    envelope: {
+      hint: "Tap to open",
+      openLabel: "Tap to open the invitation",
+      viewLabel: "View the invitation",
     },
     landing: {
       tagline: "invitation atelier",
@@ -386,17 +407,18 @@ export const strings: Record<Lang, Strings> = {
       hero: {
         eyebrow: "Digital Wedding Invitations",
         headline: "Your invitation, as considered as handwork.",
-        body: "Pick a template, fill in your details — have a shareable invitation page ready in minutes. Guests view it from a link, and can RSVP if you enable it.",
+        body: "Pick a template, fill in your details — have your invitation page ready in minutes. Once it's published, guests view it from a link, and can RSVP if you enable it.",
         ctaPrimary: "Start Creating Your Invitation",
         ctaSecondary: "Browse Templates",
         mockupInvite: "invite you to their wedding",
         mockupNames: "Elif & Kerem",
-        mockupDate: "June 14, 2026 · Saturday",
+        mockupDate: "June 12, 2027 · Saturday",
         mockupVenue: "Bosphorus Waterside House, Istanbul",
       },
       howItWorks: {
         eyebrow: "How It Works",
         heading: "Your invitation, in four steps.",
+        motto: "Frame your love story.",
         steps: [
           { numeral: "I", title: "Choose a Template", body: "Pick the design that fits your taste from the gallery." },
           { numeral: "II", title: "Add Your Details", body: "Names, date, venue, and preferences — all in one pass." },
@@ -407,36 +429,35 @@ export const strings: Record<Lang, Strings> = {
       valueProps: {
         eyebrow: "Why Zarify",
         items: [
-          { index: "01", title: "Easy to Edit", body: "Build your invitation through a step-by-step form, no code — change its font, color, and photos afterward." },
+          { index: "01", title: "Easy to Edit", body: "Build your invitation through a step-by-step form, no code — and update your details whenever you like, even after it's published." },
           { index: "02", title: "RSVP Tracking", body: "See every guest's response from one dashboard, and turn RSVP on or off whenever you like." },
-          { index: "03", title: "Turkish & English", body: "Guests can view the invitation in whichever language they prefer." },
+          { index: "03", title: "Turkish & English", body: "The invitation's headings, countdown and RSVP form come in both languages; guests switch with one tap." },
         ],
       },
       templateTeaser: {
         eyebrow: "Template Gallery",
         heading: "Start with a template.",
-        body: "The gallery grows every month; fill your chosen template with your own details and fine-tune it afterward.",
-        linkAll: "See all templates →",
-        liveName: "Wedding Invitation",
+        body: "Fill the Herbaryum template with your own details, preview it, and publish when you're ready.",
+        linkAll: "Template gallery →",
         liveLabel: "Preview",
-        livePreview: "E & K",
-        soonLabel: "Coming Soon",
       },
       cta: {
         heading: "Start creating your invitation today.",
-        body: "Signing up and entering your details is free. Once you choose a template, you'll see package pricing and can decide whenever you're ready.",
+        body: "Signing up, entering your details and previewing your invitation are free. You only pay when you publish it.",
         button: "Start for Free",
       },
       footer: {
         templates: "Templates",
         login: "Log In",
         register: "Sign Up",
+        privacy: "Privacy Policy",
+        terms: "Terms of Use",
       },
       gallery: {
         back: "← Zarify",
         eyebrow: "Template Gallery",
         heading: "Choose a starting point for your invitation.",
-        body: "Each template carries its own color, type, and layout identity. Fill your chosen template with your own details and fine-tune it afterward.",
+        body: "Fill the template with your own details, preview how it looks, and publish when you're ready.",
       },
     },
   },
