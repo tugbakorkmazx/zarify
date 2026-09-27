@@ -5,12 +5,13 @@ import { TextAreaField } from "@/components/forms/TextAreaField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { ScheduleEditor } from "./ScheduleEditor";
 import type { InvitationFormValues } from "@/lib/invitationForm";
+import { BUTTON_PRIMARY } from "@/lib/ui";
 
 function SectionHeading({ title, note }: { title: string; note?: string }) {
   return (
-    <div className="pt-4 border-t border-gold/30">
-      <h2 className="font-display text-xl text-ink">{title}</h2>
-      {note && <p className="font-body text-sm text-ink-soft mt-1">{note}</p>}
+    <div className="border-t border-soot pt-6">
+      <h2 className="font-display text-2xl leading-tight text-soot">{title}</h2>
+      {note && <p className="mt-1 font-body text-base italic text-soot-soft">{note}</p>}
     </div>
   );
 }
@@ -158,7 +159,7 @@ export function InvitationFields({
       <button
         type="submit"
         disabled={submitting}
-        className="mt-2 font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97] disabled:opacity-60"
+        className={`mt-4 w-full ${BUTTON_PRIMARY}`}
       >
         {submitLabel}
       </button>

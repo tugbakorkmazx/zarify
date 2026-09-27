@@ -1,4 +1,5 @@
 import type { TextareaHTMLAttributes } from "react";
+import { BOX_INPUT, FIELD_LABEL } from "@/lib/ui";
 
 export function TextAreaField({
   label,
@@ -7,16 +8,16 @@ export function TextAreaField({
   ...textareaProps
 }: { label: string; hint?: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <label className={`flex flex-col gap-1.5 ${className}`}>
-      <span className="font-body text-xs tracking-[0.15em] uppercase text-ink-soft">
+    <label className={`flex flex-col gap-2 ${className}`}>
+      <span className={FIELD_LABEL}>
         {label}
       </span>
       <textarea
         rows={3}
         {...textareaProps}
-        className="border border-gold/50 bg-transparent rounded-sm p-2.5 font-body text-ink placeholder:text-ink-soft/50 outline-none focus:border-gold-deep resize-y"
+        className={`${BOX_INPUT} resize-y`}
       />
-      {hint && <span className="font-body text-xs text-ink-soft/80">{hint}</span>}
+      {hint && <span className="font-body text-sm text-soot-soft">{hint}</span>}
     </label>
   );
 }

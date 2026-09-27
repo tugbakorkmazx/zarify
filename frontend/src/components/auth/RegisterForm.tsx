@@ -7,6 +7,7 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { FormField } from "@/components/auth/FormField";
 import { FormError } from "@/components/auth/FormError";
+import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
 
 export function RegisterForm() {
   const { register } = useAuth();
@@ -40,11 +41,11 @@ export function RegisterForm() {
       eyebrow="Hesap Oluştur"
       title="Davetiyenize başlayın."
       footer={
-        <p className="mt-8 text-center font-body text-sm text-ink-soft">
+        <p className="mt-10 border-t border-soot/20 pt-6 font-body text-lg text-soot-soft">
           Zaten hesabın var mı?{" "}
           <Link
             href="/giris"
-            className="text-ink underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
+            className={TEXT_LINK}
           >
             Giriş yap
           </Link>
@@ -98,10 +99,28 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97] disabled:opacity-60"
+          className={`mt-4 w-full ${BUTTON_PRIMARY}`}
         >
           {submitting ? "Hesap oluşturuluyor…" : "Hesap Oluştur"}
         </button>
+
+        <p className="font-body text-sm leading-relaxed text-soot-soft">
+          Hesap oluşturarak{" "}
+          <Link
+            href="/kullanim-sartlari"
+            className={TEXT_LINK}
+          >
+            Kullanım Şartları
+          </Link>
+          &apos;nı kabul etmiş olursunuz. Verilerinizin nasıl işlendiğini{" "}
+          <Link
+            href="/gizlilik"
+            className={TEXT_LINK}
+          >
+            Gizlilik Politikası
+          </Link>
+          &apos;nda bulabilirsiniz.
+        </p>
       </form>
     </AuthLayout>
   );

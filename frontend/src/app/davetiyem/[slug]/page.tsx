@@ -3,8 +3,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { WaxSeal } from "@/components/ornament/WaxSeal";
-import { IlluminatedRule } from "@/components/invitation/IlluminatedRule";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { BUTTON_PRIMARY, BUTTON_PRIMARY_SM, BUTTON_SECONDARY, TEXT_LINK } from "@/lib/ui";
 import { PaymentInstructionsPanel } from "@/components/payment/PaymentInstructionsPanel";
 import { useAuth } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
@@ -71,87 +71,62 @@ export default function InvitationReadyPage() {
 
   if (notFound) {
     return (
-      <main className="paper-ground min-h-svh flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-display text-2xl text-ink">Bu davetiyeyi bulamadık.</p>
-        <Link
-          href="/davetiyelerim"
-          className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
-        >
+      <AuthLayout eyebrow="Davetiyelerim" title="Bu davetiyeyi bulamadık.">
+        <Link href="/davetiyelerim" className={`apparatus text-sm ${TEXT_LINK}`}>
           ← Davetiyelerim
         </Link>
-      </main>
+      </AuthLayout>
     );
   }
 
   const isLive = invitation?.status === "published";
 
   return (
-    <main className="paper-ground relative flex min-h-svh flex-col items-center justify-center px-6 py-20 overflow-hidden">
-      <Link
-        href="/davetiyelerim"
-        className="absolute top-6 left-6 sm:top-8 sm:left-10 font-body text-sm text-ink-soft transition-colors hover:text-ink"
-      >
-        ← Davetiyelerim
-      </Link>
-
-      <div className="relative w-full max-w-md text-center">
-        <div className="flex justify-center mb-5">
-          <WaxSeal size={44} />
-        </div>
-        <p className="font-body text-xs tracking-[0.2em] uppercase text-gold-deep mb-3">
-          {!invitation ? "Davetiyeniz" : isLive ? "Davetiyeniz Yayında" : "Ödeme Bekleniyor"}
+    <AuthLayout
+      eyebrow={!invitation ? "Davetiyeniz" : isLive ? "Davetiyeniz yayında" : "Ödeme bekleniyor"}
+      title={invitation ? `${invitation.brideName} & ${invitation.groomName}` : "Davetiyeniz yükleniyor…"}
+      wide
+      footer={
+        <p className="mt-12 border-t border-soot/20 pt-6">
+          <Link href="/davetiyelerim" className={`apparatus text-sm ${TEXT_LINK}`}>
+            ← Davetiyelerim
+          </Link>
         </p>
-        <h1 className="font-display text-3xl sm:text-4xl text-ink">
-          {invitation ? `${invitation.brideName} & ${invitation.groomName}` : "Davetiyeniz yükleniyor…"}
-        </h1>
-        <IlluminatedRule className="my-6 mx-auto" />
+      }
+    >
+      {invitation && token && !isLive && (
+        <div className="mb-10">
+          <PaymentInstructionsPanel token={token} invitationId={invitation.id} />
+        </div>
+      )}
 
-        {invitation && token && !isLive && (
-          <div className="mb-8">
-            <PaymentInstructionsPanel token={token} invitationId={invitation.id} />
+      {invitation && isLive && (
+        <>
+          <p className="mb-6 font-body text-lg leading-relaxed text-soot-soft">
+            Davetiyeniz yayında. Aşağıdaki linki misafirlerinizle paylaşabilir,
+            dilediğiniz zaman kendiniz görüntüleyebilirsiniz.
+          </p>
+
+          <div className="mb-10 flex items-center gap-3 border-y border-soot py-3">
+            <span className="flex-1 truncate font-body text-lg text-soot">{shareUrl}</span>
+            <button type="button" onClick={handleCopy} className={`shrink-0 ${BUTTON_PRIMARY_SM}`}>
+              {copied ? "Kopyalandı" : "Kopyala"}
+            </button>
           </div>
-        )}
+        </>
+      )}
 
-        {invitation && isLive && (
-          <>
-            <p className="font-body text-sm text-ink-soft mb-6">
-              Davetiyeniz yayında. Aşağıdaki linki misafirlerinizle paylaşabilir,
-              dilediğiniz zaman kendiniz görüntüleyebilirsiniz.
-            </p>
-
-            <div className="flex items-center gap-2 border border-gold/50 rounded-full pl-5 pr-1.5 py-1.5 mb-6">
-              <span className="flex-1 truncate font-body text-sm text-ink text-left">
-                {shareUrl}
-              </span>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="shrink-0 font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97]"
-              >
-                {copied ? "Kopyalandı" : "Kopyala"}
-              </button>
-            </div>
-          </>
-        )}
-
-        {invitation && (
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href={`/davetiye/${slug}`}
-              className="font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97]"
-            >
-              {isLive ? "Davetiyeni Görüntüle" : "Önizle"}
-            </Link>
-            {/* Edits the invitation in place (PUT, same slug) — in any status. */}
-            <Link
-              href={`/davetiyelerim/${invitation.id}/duzenle`}
-              className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-6 py-3 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-            >
-              Bilgileri Düzenle
-            </Link>
-          </div>
-        )}
-      </div>
-    </main>
+      {invitation && (
+        <div className="flex flex-wrap items-center gap-4">
+          <Link href={`/davetiye/${slug}`} className={BUTTON_PRIMARY}>
+            {isLive ? "Davetiyeni Görüntüle" : "Önizle"}
+          </Link>
+          {/* Edits the invitation in place (PUT, same slug) — in any status. */}
+          <Link href={`/davetiyelerim/${invitation.id}/duzenle`} className={BUTTON_SECONDARY}>
+            Bilgileri Düzenle
+          </Link>
+        </div>
+      )}
+    </AuthLayout>
   );
 }

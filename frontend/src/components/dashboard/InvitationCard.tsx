@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatDateLine } from "@/lib/formatDateLine";
+import { CoverMiniature } from "@/components/art/CoverMiniature";
+import { CoupleNames } from "@/components/herbarium/CoupleNames";
+import { BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, TEXT_LINK } from "@/lib/ui";
 import {
   getInvitationRsvps,
   type MyInvitation,
@@ -16,12 +19,24 @@ const ATTENDANCE_LABEL: Record<RsvpAttendance, string> = {
   no: "Gelmiyor",
 };
 
-function Tally({ label, primary, secondary }: { label: string; primary: number; secondary: string }) {
+/** One RSVP figure: its label over a large wine numeral, centred in a
+ * column divided from its neighbours by a hairline rule. */
+function Tally({
+  label,
+  primary,
+  secondary,
+  first = false,
+}: {
+  label: string;
+  primary: number;
+  secondary: string;
+  first?: boolean;
+}) {
   return (
-    <div className="flex flex-col items-center gap-1 border border-gold/40 rounded-sm px-3 py-4">
-      <span className="font-body text-[11px] tracking-[0.18em] uppercase text-gold-deep">{label}</span>
-      <span className="font-display text-3xl text-ink tabular-nums">{primary}</span>
-      <span className="font-body text-xs text-ink-soft">{secondary}</span>
+    <div className={`flex flex-col items-center gap-1 px-3 text-center sm:px-6 ${first ? "" : "border-l border-soot/20"}`}>
+      <span className="apparatus text-sm text-soot-soft">{label}</span>
+      <span className="font-display numerals text-4xl leading-none text-wine sm:text-5xl">{primary}</span>
+      <span className="font-body text-sm text-soot-soft">{secondary}</span>
     </div>
   );
 }
@@ -62,143 +77,157 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
     }
   }
 
+  const names = `${inv.brideName} & ${inv.groomName}`;
+
   return (
-    <article className="border border-gold/50 bg-parchment/40 px-5 py-6 sm:px-8 sm:py-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="font-display text-2xl text-ink">
-            {inv.brideName} &amp; {inv.groomName}
-          </h2>
-          <p className="font-body text-sm text-ink-soft mt-1">{formatDateLine(inv.weddingDate)}</p>
-          <p className="font-body text-sm text-ink-soft truncate">{inv.venueName}</p>
-          <span
-            className={`mt-2 inline-block font-body text-[11px] tracking-[0.15em] uppercase rounded-full px-3 py-1 border ${
-              isLive ? "border-gold/50 text-gold-deep" : "border-gold-deep/60 bg-gold-light/40 text-ink"
-            }`}
-          >
-            {isLive ? "Yayında" : "Ödeme bekleniyor"}
-          </span>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          {/* While payment is pending, paying is the one thing to do next —
-              it gets the primary button; previewing drops to secondary. */}
-          {!isLive && (
-            <Link
-              href={`/davetiyem/${inv.slug}`}
-              className="font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-            >
-              Ödeme Bilgileri
-            </Link>
-          )}
-          <Link
-            href={`/davetiye/${inv.slug}`}
-            className={
-              isLive
-                ? "font-body text-xs text-ink bg-gold-light rounded-full px-4 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-                : "font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-            }
-          >
-            {isLive ? "Görüntüle" : "Önizle"}
-          </Link>
-          <Link
-            href={`/davetiyelerim/${inv.id}/duzenle`}
-            className="font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-          >
-            Düzenle
-          </Link>
-          {/* The share link only works for guests once the invitation is live. */}
-          {isLive && (
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="font-body text-xs text-ink-soft border border-gold/50 rounded-full px-4 py-2 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-            >
-              {copied ? "Kopyalandı" : "Linki Kopyala"}
-            </button>
-          )}
-        </div>
-      </div>
+    <article className="flex flex-col items-center text-center">
+      {/* The couple's cover, in miniature. */}
+      <Link
+        href={`/davetiye/${inv.slug}`}
+        aria-label={`${names} davetiyesini aç`}
+        className="group block w-full max-w-md"
+      >
+        <CoverMiniature names={names} sizes="28rem" className="aspect-[16/10]" />
+      </Link>
 
-      <div className="mt-6">
-        {!isLive ? (
-          <p className="border border-gold/60 bg-parchment-deep px-4 py-3 font-body text-sm text-ink">
-            Davetiyeniz hazır. Ödemeniz onaylanınca yayına alınır ve linkiniz misafirlerinize
-            açılır — IBAN ve referans kodu için <strong>Ödeme Bilgileri</strong>&apos;ne tıklayın.
-          </p>
-        ) : !inv.rsvpEnabled ? (
-          <p className="font-body text-sm italic text-ink-soft">
-            Bu davetiyede katılım bildirimi kapalı.
-          </p>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
-              <Tally
-                label="Geliyor"
-                primary={rsvp.attendingGuests}
-                secondary={`kişi · ${rsvp.attendingResponses} yanıt`}
+      <div className="mt-8 w-full min-w-0">
+        <div className="flex flex-col items-center gap-6">
+          <div className="min-w-0">
+            <p className="apparatus flex items-center justify-center gap-2 text-sm">
+              <span
+                aria-hidden="true"
+                className={`inline-block h-2 w-2 ${isLive ? "bg-olive" : "bg-wine"}`}
               />
-              <Tally
-                label="Belirsiz"
-                primary={rsvp.maybeGuests}
-                secondary={`kişi · ${rsvp.maybeResponses} yanıt`}
-              />
-              <Tally
-                label="Gelmiyor"
-                primary={rsvp.notAttendingResponses}
-                secondary="yanıt"
-              />
-            </div>
-
-            {totalResponses === 0 ? (
-              <p className="mt-4 font-body text-sm text-ink-soft text-center">
-                Henüz yanıt yok. Linki paylaştıkça yanıtlar burada görünecek.
-              </p>
-            ) : (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={toggleReplies}
-                  aria-expanded={open}
-                  className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold hover:text-ink"
-                >
-                  {open ? "Yanıtları gizle" : `Yanıtları göster (${totalResponses})`}
-                </button>
-
-                {open && (
-                  <div className="mt-4">
-                    {loadError ? (
-                      <p role="alert" className="font-body text-sm text-ink-soft">
-                        Yanıtlar yüklenemedi. Lütfen tekrar deneyin.
-                      </p>
-                    ) : replies === null ? (
-                      <p className="font-body text-sm text-ink-soft">Yükleniyor…</p>
-                    ) : (
-                      <ul className="divide-y divide-gold/30 border-t border-b border-gold/30">
-                        {replies.map((r) => (
-                          <li key={r.id} className="py-3 flex flex-col gap-1">
-                            <div className="flex items-baseline justify-between gap-3">
-                              <span className="font-body text-sm text-ink truncate">{r.guestName}</span>
-                              <span className="shrink-0 font-body text-xs text-ink-soft">
-                                {ATTENDANCE_LABEL[r.attendance]}
-                                {r.attendance !== "no" && ` · ${r.guestCount} kişi`}
-                                {r.updatedAtUtc && " · güncellendi"}
-                              </span>
-                            </div>
-                            {r.message && (
-                              <p className="font-body text-sm italic text-ink-soft break-words">
-                                “{r.message}”
-                              </p>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-              </div>
+              <span className={isLive ? "text-olive" : "text-wine"}>
+                {isLive ? "Yayında" : "Ödeme bekleniyor"}
+              </span>
+            </p>
+            <h2 className="mt-2 font-display text-3xl leading-tight text-soot sm:text-4xl">
+              <CoupleNames names={names} />
+            </h2>
+            <p className="apparatus mt-2 text-sm text-soot">{formatDateLine(inv.weddingDate)}</p>
+            <p className="apparatus truncate text-sm text-soot-soft">{inv.venueName}</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2">
+            {/* While payment is pending, paying is the one thing to do next —
+                it gets the primary button; previewing drops to secondary. */}
+            {!isLive && (
+              <Link href={`/davetiyem/${inv.slug}`} className={BUTTON_PRIMARY_SM}>
+                Ödeme Bilgileri
+              </Link>
             )}
-          </>
-        )}
+            <Link
+              href={`/davetiye/${inv.slug}`}
+              className={isLive ? BUTTON_PRIMARY_SM : BUTTON_SECONDARY_SM}
+            >
+              {isLive ? "Görüntüle" : "Önizle"}
+            </Link>
+            <Link href={`/davetiyelerim/${inv.id}/duzenle`} className={BUTTON_SECONDARY_SM}>
+              Düzenle
+            </Link>
+            {/* The share link only works for guests once the invitation is live. */}
+            {isLive && (
+              <button type="button" onClick={handleCopy} className={BUTTON_SECONDARY_SM}>
+                {copied ? "Kopyalandı" : "Linki Kopyala"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-8">
+          {!isLive ? (
+            <p className="mx-auto max-w-2xl bg-paper-deep px-5 py-4 font-body text-lg leading-relaxed text-soot">
+              Davetiyeniz hazır. Ödemeniz onaylanınca yayına alınır ve linkiniz misafirlerinize
+              açılır — IBAN ve referans kodu için <strong className="font-semibold">Ödeme Bilgileri</strong>&apos;ne tıklayın.
+            </p>
+          ) : !inv.rsvpEnabled ? (
+            <p className="font-body text-lg italic text-soot-soft">
+              Bu davetiyede katılım bildirimi kapalı.
+            </p>
+          ) : (
+            <>
+              <div className="mx-auto grid max-w-xl grid-cols-3">
+                <Tally
+                  first
+                  label="Geliyor"
+                  primary={rsvp.attendingGuests}
+                  secondary={`kişi · ${rsvp.attendingResponses} yanıt`}
+                />
+                <Tally
+                  label="Belirsiz"
+                  primary={rsvp.maybeGuests}
+                  secondary={`kişi · ${rsvp.maybeResponses} yanıt`}
+                />
+                <Tally
+                  label="Gelmiyor"
+                  primary={rsvp.notAttendingResponses}
+                  secondary="yanıt"
+                />
+              </div>
+
+              {totalResponses === 0 ? (
+                <p className="mt-6 font-body text-lg text-soot-soft">
+                  Henüz yanıt yok. Linki paylaştıkça yanıtlar burada görünecek.
+                </p>
+              ) : (
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={toggleReplies}
+                    aria-expanded={open}
+                    className={`apparatus text-sm ${TEXT_LINK}`}
+                  >
+                    {open ? "Yanıtları gizle" : `Yanıtları göster (${totalResponses})`}
+                  </button>
+
+                  {open && (
+                    <div className="mx-auto mt-4 max-w-xl text-left">
+                      {loadError ? (
+                        <p role="alert" className="font-body text-base text-wine">
+                          Yanıtlar yüklenemedi. Lütfen tekrar deneyin.
+                        </p>
+                      ) : replies === null ? (
+                        <p className="font-body text-base text-soot-soft" role="status">
+                          Yükleniyor…
+                        </p>
+                      ) : (
+                        <ul className="divide-y divide-soot/15 border-y border-soot/25">
+                          {replies.map((r) => (
+                            <li key={r.id} className="flex flex-col gap-1 py-3">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <span className="truncate font-body text-lg text-soot">{r.guestName}</span>
+                                <span className="apparatus shrink-0 text-sm text-soot-soft">
+                                  <span
+                                    className={
+                                      r.attendance === "yes"
+                                        ? "text-olive"
+                                        : r.attendance === "no"
+                                          ? "text-wine"
+                                          : ""
+                                    }
+                                  >
+                                    {ATTENDANCE_LABEL[r.attendance]}
+                                  </span>
+                                  {r.attendance !== "no" && ` · ${r.guestCount} kişi`}
+                                  {r.updatedAtUtc && " · güncellendi"}
+                                </span>
+                              </div>
+                              {r.message && (
+                                <p className="break-words font-body text-base italic text-soot-soft">
+                                  “{r.message}”
+                                </p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </article>
   );

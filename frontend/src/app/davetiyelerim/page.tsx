@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth, ApiError } from "@/lib/auth";
-import { WaxSeal } from "@/components/ornament/WaxSeal";
-import { IlluminatedRule } from "@/components/invitation/IlluminatedRule";
+import { OwnerShell } from "@/components/owner/OwnerShell";
+import { CoverMiniature } from "@/components/art/CoverMiniature";
+import { BUTTON_PRIMARY } from "@/lib/ui";
 import { InvitationCard } from "@/components/dashboard/InvitationCard";
 import { getMyInvitations, type MyInvitation } from "@/lib/invitations";
 
@@ -54,79 +55,51 @@ export default function MyInvitationsPage() {
   }
 
   return (
-    <main className="paper-ground min-h-svh px-6 py-8 sm:px-10">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
-        >
-          ← Zarify
-        </Link>
-        <div className="flex items-center gap-4">
-          {user.role === "admin" && (
-            <Link
-              href="/yonetim"
-              className="font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
-            >
-              Yönetim
-            </Link>
-          )}
-          <Link
-            href="/davetiye-bilgileri"
-            className="font-body text-sm text-ink bg-gold-light rounded-full px-4 py-1.5 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-          >
-            Yeni Davetiye
-          </Link>
-        </div>
-      </div>
+    <OwnerShell
+      section="Hesabım"
+      title="Davetiyelerim"
+      lede={`Merhaba, ${user.firstName}. Davetiyelerin, ödeme durumları ve gelen yanıtlar burada.`}
+      current="invitations"
+    >
+      {status === "loading" && (
+        <p className="font-body text-lg text-soot-soft" role="status">
+          Davetiyeler yükleniyor…
+        </p>
+      )}
 
-      <div className="mx-auto max-w-3xl pt-12 sm:pt-16">
-        <header className="text-center">
-          <div className="flex justify-center mb-5">
-            <WaxSeal size={40} />
-          </div>
-          <p className="font-body text-xs tracking-[0.2em] uppercase text-gold-deep mb-3">
-            Merhaba, {user.firstName}
-          </p>
-          <h1 className="font-display text-3xl sm:text-4xl text-ink">Davetiyelerim</h1>
-          <IlluminatedRule className="my-6 mx-auto" />
-        </header>
+      {status === "error" && (
+        <p role="alert" className="border border-wine/50 px-5 py-4 font-body text-lg text-wine">
+          Davetiyeler yüklenemedi. Sunucuya ulaşılamadı; lütfen daha sonra tekrar deneyin.
+        </p>
+      )}
 
-        {status === "loading" && (
-          <p className="text-center font-body text-sm text-ink-soft">Davetiyeler yükleniyor…</p>
-        )}
-
-        {status === "error" && (
-          <p role="alert" className="text-center font-body text-sm text-ink-soft">
-            Davetiyeler yüklenemedi. Sunucuya ulaşılamadı; lütfen daha sonra tekrar deneyin.
-          </p>
-        )}
-
-        {status === "ready" && items.length === 0 && (
-          <div className="text-center flex flex-col items-center gap-5">
-            <p className="font-body text-base text-ink-soft max-w-sm">
+      {status === "ready" && items.length === 0 && (
+        <div className="flex flex-col items-center text-center">
+          <CoverMiniature names="Elif & Kerem" sizes="28rem" className="aspect-[16/10] w-full max-w-md" />
+          <div className="mt-10 flex flex-col items-center gap-6">
+            <h2 className="font-display text-3xl leading-tight text-soot sm:text-4xl">
+              İlk sayınızı birlikte hazırlayalım.
+            </h2>
+            <p className="max-w-[46ch] font-body text-lg leading-relaxed text-soot-soft">
               Henüz yayınlanmış bir davetiyeniz yok. Bilgilerinizi girip bir şablon
               seçerek ilk davetiyenizi birkaç dakikada hazırlayabilirsiniz.
             </p>
-            <Link
-              href="/davetiye-bilgileri"
-              className="font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-            >
+            <Link href="/davetiye-bilgileri" className={BUTTON_PRIMARY}>
               İlk Davetiyeni Oluştur
             </Link>
           </div>
-        )}
+        </div>
+      )}
 
-        {status === "ready" && items.length > 0 && (
-          <ul className="flex flex-col gap-8">
-            {items.map((item) => (
-              <li key={item.invitation.id}>
-                <InvitationCard item={item} token={token} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </main>
+      {status === "ready" && items.length > 0 && (
+        <ul className="flex flex-col divide-y divide-soot/40 [&>li]:py-12 [&>li:first-child]:pt-0">
+          {items.map((item) => (
+            <li key={item.invitation.id}>
+              <InvitationCard item={item} token={token} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </OwnerShell>
   );
 }

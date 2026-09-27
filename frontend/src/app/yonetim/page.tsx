@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth, ApiError } from "@/lib/auth";
-import { IlluminatedRule } from "@/components/invitation/IlluminatedRule";
+import { OwnerShell } from "@/components/owner/OwnerShell";
+import { CoupleNames } from "@/components/herbarium/CoupleNames";
+import { BUTTON_PRIMARY_SM, TEXT_LINK } from "@/lib/ui";
 import { approvePayment, getPendingPayments, type AdminInvitation } from "@/lib/admin";
 import { formatDateLine } from "@/lib/formatDateLine";
 
@@ -53,49 +55,57 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="paper-ground min-h-svh px-6 py-8 sm:px-10">
-      <Link
-        href="/davetiyelerim"
-        className="font-body text-sm text-ink-soft transition-colors hover:text-ink"
-      >
-        ← Davetiyelerim
-      </Link>
+    <OwnerShell
+      section="Yönetim"
+      title="Ödeme Bekleyenler"
+      lede={
+        status === "ready"
+          ? items.length > 0
+            ? `${items.length} davetiye havale onayı bekliyor. Referans kodunu banka açıklamasıyla eşleştirip onaylayın.`
+            : "Onay bekleyen havale yok."
+          : undefined
+      }
+      current="admin"
+    >
+      {status === "loading" && (
+        <p className="font-body text-lg text-soot-soft" role="status">
+          Yükleniyor…
+        </p>
+      )}
 
-      <div className="mx-auto max-w-3xl pt-12 sm:pt-16">
-        <header className="text-center">
-          <p className="font-body text-xs tracking-[0.2em] uppercase text-gold-deep mb-3">Yönetim</p>
-          <h1 className="font-display text-3xl sm:text-4xl text-ink">Ödeme Bekleyenler</h1>
-          <IlluminatedRule className="my-6 mx-auto" />
-        </header>
+      {status === "forbidden" && (
+        <p role="alert" className="border border-wine/50 px-5 py-4 font-body text-lg text-wine">
+          Bu sayfaya erişim yetkiniz yok.
+          {user?.role !== "admin" &&
+            " Yönetici yetkisi yeni verildiyse çıkış yapıp tekrar giriş yapmanız gerekir."}
+        </p>
+      )}
 
-        {status === "loading" && (
-          <p className="text-center font-body text-sm text-ink-soft">Yükleniyor…</p>
-        )}
+      {status === "error" && (
+        <p role="alert" className="border border-wine/50 px-5 py-4 font-body text-lg text-wine">
+          Liste yüklenemedi. Lütfen daha sonra tekrar deneyin.
+        </p>
+      )}
 
-        {status === "forbidden" && (
-          <p role="alert" className="text-center font-body text-sm text-ink-soft">
-            Bu sayfaya erişim yetkiniz yok.
-            {user?.role !== "admin" &&
-              " Yönetici yetkisi yeni verildiyse çıkış yapıp tekrar giriş yapmanız gerekir."}
-          </p>
-        )}
+      {status === "ready" && items.length === 0 && (
+        <p className="bg-paper-deep px-6 py-8 font-body text-lg text-soot-soft">
+          Yeni bir davetiye yayınlandığında ödemesi burada onayınızı bekler.
+        </p>
+      )}
 
-        {status === "error" && (
-          <p role="alert" className="text-center font-body text-sm text-ink-soft">
-            Liste yüklenemedi. Lütfen daha sonra tekrar deneyin.
-          </p>
-        )}
-
-        {status === "ready" && items.length === 0 && (
-          <p className="text-center font-body text-base text-ink-soft">
-            Ödeme bekleyen davetiye yok.
-          </p>
-        )}
-
-        {status === "ready" && items.length > 0 && (
-          <ul className="flex flex-col gap-6">
+      {status === "ready" && items.length > 0 && (
+        <>
+          <div
+            aria-hidden="true"
+            className="apparatus hidden grid-cols-12 gap-6 pb-3 text-xs text-soot-soft lg:grid"
+          >
+            <span className="col-span-3">Referans kodu</span>
+            <span className="col-span-5">Davetiye · sahibi</span>
+            <span className="col-span-4 text-right">İşlem</span>
+          </div>
+          <ul className="border-t border-soot">
             {items.map((item) => (
-              <li key={item.invitation.id}>
+              <li key={item.invitation.id} className="border-b border-soot/25">
                 <PendingRow
                   item={item}
                   token={token}
@@ -106,9 +116,9 @@ export default function AdminPage() {
               </li>
             ))}
           </ul>
-        )}
-      </div>
-    </main>
+        </>
+      )}
+    </OwnerShell>
   );
 }
 
@@ -140,75 +150,69 @@ function PendingRow({
   }
 
   return (
-    <article className="border border-gold/50 bg-parchment/40 px-5 py-5 sm:px-7">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="font-display text-xl text-ink">
-            {inv.brideName} &amp; {inv.groomName}
-          </h2>
-          <p className="font-body text-sm text-ink-soft">{formatDateLine(inv.weddingDate)}</p>
-          <p className="font-body text-sm text-ink-soft mt-2">
-            {owner.firstName} {owner.lastName} · <span className="break-all">{owner.email}</span>
-          </p>
-          <p className="font-body text-xs text-ink-soft mt-1">
-            Oluşturulma: {DATE_TIME.format(new Date(inv.createdAtUtc))}
-          </p>
-        </div>
-
-        <div className="shrink-0 text-left sm:text-right">
-          <p className="font-body text-[11px] tracking-[0.18em] uppercase text-gold-deep">Referans kodu</p>
-          <p className="font-body text-lg text-ink font-semibold tracking-wider">
-            {paymentReference ?? "—"}
-          </p>
-          <p className="font-body text-xs text-ink-soft mt-1 break-all">Link: {inv.slug}</p>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        {!confirming ? (
-          <button
-            type="button"
-            onClick={() => setConfirming(true)}
-            className="font-body text-sm text-ink bg-gold-light rounded-full px-5 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97]"
-          >
-            Ödemeyi Onayla
-          </button>
-        ) : (
-          <>
-            <span className="font-body text-sm text-ink">
-              Bu referansla ödeme geldiğinden emin misiniz? Davetiye hemen yayına alınır.
-            </span>
-            <button
-              type="button"
-              onClick={handleApprove}
-              disabled={approving}
-              className="font-body text-sm text-ink bg-gold-light rounded-full px-5 py-2 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:scale-[0.97] disabled:opacity-60"
-            >
-              {approving ? "Onaylanıyor…" : "Evet, onayla"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              disabled={approving}
-              className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:text-ink"
-            >
-              Vazgeç
-            </button>
-          </>
-        )}
-        <Link
-          href={`/davetiye/${inv.slug}`}
-          className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
-        >
-          Davetiyeye bak
-        </Link>
-      </div>
-
-      {error && (
-        <p role="alert" className="mt-3 font-body text-sm text-ink">
-          {error}
+    <article className="grid gap-4 py-6 lg:grid-cols-12 lg:items-start lg:gap-6">
+      <div className="lg:col-span-3">
+        <p className="apparatus text-xs text-soot-soft lg:hidden">Referans kodu</p>
+        <p className="font-display numerals text-3xl leading-none tracking-wide text-wine">
+          {paymentReference ?? "—"}
         </p>
-      )}
+        <p className="mt-2 break-all font-body text-sm text-soot-soft">/{inv.slug}</p>
+      </div>
+
+      <div className="min-w-0 lg:col-span-5">
+        <h2 className="font-display text-2xl leading-tight text-soot">
+          <CoupleNames names={`${inv.brideName} & ${inv.groomName}`} />
+        </h2>
+        <p className="apparatus mt-1 text-sm text-soot">{formatDateLine(inv.weddingDate)}</p>
+        <p className="mt-2 font-body text-base text-soot-soft">
+          {owner.firstName} {owner.lastName} · <span className="break-all">{owner.email}</span>
+        </p>
+        <p className="font-body text-sm text-soot-soft">
+          Oluşturulma: {DATE_TIME.format(new Date(inv.createdAtUtc))}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 lg:col-span-4 lg:items-end">
+        {!confirming ? (
+          <div className="flex flex-wrap items-center gap-4 lg:justify-end">
+            <Link href={`/davetiye/${inv.slug}`} className={`apparatus text-sm ${TEXT_LINK}`}>
+              Davetiyeye bak
+            </Link>
+            <button type="button" onClick={() => setConfirming(true)} className={BUTTON_PRIMARY_SM}>
+              Ödemeyi Onayla
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3 bg-paper-deep p-4 lg:max-w-xs">
+            <p className="font-body text-base text-soot">
+              Bu referansla ödeme geldiğinden emin misiniz? Davetiye hemen yayına alınır.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={handleApprove}
+                disabled={approving}
+                className={BUTTON_PRIMARY_SM}
+              >
+                {approving ? "Onaylanıyor…" : "Evet, onayla"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirming(false)}
+                disabled={approving}
+                className={`apparatus text-sm ${TEXT_LINK}`}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </div>
+        )}
+        {error && (
+          <p role="alert" className="font-body text-base text-wine">
+            {error}
+          </p>
+        )}
+      </div>
     </article>
   );
 }

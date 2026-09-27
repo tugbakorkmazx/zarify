@@ -7,6 +7,7 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { FormField } from "@/components/auth/FormField";
 import { FormError } from "@/components/auth/FormError";
+import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -38,11 +39,11 @@ export function LoginForm() {
       eyebrow="Hesabım"
       title="Tekrar hoş geldiniz."
       footer={
-        <p className="mt-8 text-center font-body text-sm text-ink-soft">
+        <p className="mt-10 border-t border-soot/20 pt-6 font-body text-lg text-soot-soft">
           Hesabın yok mu?{" "}
           <Link
             href="/kayit"
-            className="text-ink underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
+            className={TEXT_LINK}
           >
             Kayıt ol
           </Link>
@@ -74,7 +75,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 font-body text-sm text-ink bg-gold-light rounded-full px-6 py-3 border border-gold-deep/40 transition-[filter,transform] duration-150 hover:brightness-105 active:brightness-95 active:scale-[0.97] disabled:opacity-60"
+          className={`mt-4 w-full ${BUTTON_PRIMARY}`}
         >
           {submitting ? "Giriş yapılıyor…" : "Giriş Yap"}
         </button>

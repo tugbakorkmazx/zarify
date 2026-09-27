@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes } from "react";
+import { FIELD_LABEL, LINE_INPUT } from "@/lib/ui";
 
 export function FormField({
   label,
@@ -7,16 +8,16 @@ export function FormField({
   ...inputProps
 }: { label: string; hint?: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className={`flex flex-col gap-1.5 ${className}`}>
-      <span className="font-body text-xs tracking-[0.15em] uppercase text-ink-soft">
+    <label className={`flex flex-col gap-1 ${className}`}>
+      <span className={FIELD_LABEL}>
         {label}
       </span>
       <input
         {...inputProps}
-        className="border-b border-gold/50 bg-transparent py-1.5 font-body text-ink outline-none focus:border-gold-deep"
+        className={LINE_INPUT}
       />
       {hint && (
-        <span className="font-body text-xs text-ink-soft/80">{hint}</span>
+        <span className="font-body text-sm text-soot-soft">{hint}</span>
       )}
     </label>
   );

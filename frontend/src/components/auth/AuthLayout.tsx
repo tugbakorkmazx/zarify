@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { IlluminatedRule } from "@/components/invitation/IlluminatedRule";
-import { WaxSeal } from "@/components/ornament/WaxSeal";
-import { BotanicalSprig } from "@/components/ornament/BotanicalSprig";
+import { art } from "@/lib/art";
+import { Painting } from "@/components/art/Painting";
+import { DoubleRule } from "@/components/herbarium/DoubleRule";
 
+/** Sign-in, sign-up and the invitation forms: the dark floral still life
+ * full-bleed under a dark veil, the wordmark centred above, and the form
+ * in an ivory paper card in the middle of the screen. No side panel.
+ * `eyebrow` is the small-caps line over the heading. */
 export function AuthLayout({
   eyebrow,
   title,
@@ -20,33 +24,28 @@ export function AuthLayout({
   wide?: boolean;
 }) {
   return (
-    <main className="paper-ground relative flex min-h-svh flex-col items-center justify-center px-6 py-20 overflow-hidden">
-      <Link
-        href="/"
-        className="absolute top-6 left-6 sm:top-8 sm:left-10 font-body text-sm text-ink-soft transition-colors hover:text-ink"
-      >
-        ← Zarify
+    <main className="relative isolate flex min-h-svh flex-col items-center px-4 py-8 sm:px-10 sm:py-12">
+      <Painting piece={art.darkFlorals} shade="strong" priority />
+
+      <Link href="/" className="on-painting font-display text-4xl leading-none sm:text-5xl">
+        Zarify
       </Link>
 
-      <BotanicalSprig
-        flip
-        className="absolute -bottom-6 -left-6 w-20 h-28 opacity-70 pointer-events-none hidden sm:block"
-      />
+      <div
+        className={`paper-card paper-ground mt-8 w-full ${wide ? "max-w-2xl" : "max-w-md"} p-2 sm:mt-10`}
+      >
+        <div className="border border-soot/25 px-6 py-10 sm:px-12 sm:py-12">
+          <div className="flex flex-col items-center text-center">
+            <p className="apparatus text-sm text-wine">{eyebrow}</p>
+            <h1 className="mt-3 font-display text-[clamp(2rem,4.5vw,3rem)] leading-[1.02] tracking-[-0.015em] text-soot text-balance">
+              {title}
+            </h1>
+            <DoubleRule className="mt-5 mb-10 w-32 text-soot" />
+          </div>
 
-      <div className={`relative w-full ${wide ? "max-w-lg" : "max-w-sm"}`}>
-        <div className="flex justify-center mb-5">
-          <WaxSeal size={44} />
+          {children}
+          {footer}
         </div>
-        <p className="font-body text-xs tracking-[0.2em] uppercase text-gold-deep mb-3 text-center">
-          {eyebrow}
-        </p>
-        <h1 className="font-display text-3xl sm:text-4xl text-ink text-center">
-          {title}
-        </h1>
-        <IlluminatedRule className="my-6 mx-auto" />
-
-        {children}
-        {footer}
       </div>
     </main>
   );

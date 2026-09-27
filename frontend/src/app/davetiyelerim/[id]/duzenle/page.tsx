@@ -12,6 +12,7 @@ import {
   type InvitationDto,
 } from "@/lib/invitations";
 import { fromInvitation, toApiFields } from "@/lib/invitationForm";
+import { TEXT_LINK } from "@/lib/ui";
 
 type Status = "loading" | "ready" | "not-found" | "error";
 
@@ -60,16 +61,16 @@ export default function EditInvitationPage() {
   if (status !== "ready" || !invitation) {
     return (
       <AuthLayout eyebrow="Davetiyeyi Düzenle" title="Davetiyeniz">
-        <p className="text-center font-body text-sm text-ink-soft">
+        <p className="font-body text-lg text-soot-soft" role="status">
           {status === "loading" && "Davetiye yükleniyor…"}
           {status === "not-found" && "Bu davetiye bulunamadı ya da size ait değil."}
           {status === "error" && "Davetiye yüklenemedi. Lütfen daha sonra tekrar deneyin."}
         </p>
         {status !== "loading" && (
-          <p className="mt-6 text-center">
+          <p className="mt-8">
             <Link
               href="/davetiyelerim"
-              className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
+              className={`apparatus text-sm ${TEXT_LINK}`}
             >
               ← Davetiyelerim
             </Link>
@@ -134,7 +135,7 @@ function EditForm({
       title={`${invitation.brideName} & ${invitation.groomName}`}
       wide
     >
-      <p className="font-body text-sm text-ink-soft -mt-2 mb-6">
+      <p className="-mt-4 mb-8 font-body text-lg italic leading-relaxed text-soot-soft">
         Değişiklikleriniz kaydettiğiniz anda yayındaki davetiyede görünür.
         Davetiye linkiniz değişmez; misafirlerinize gönderdiğiniz link aynen çalışmaya devam eder.
       </p>
@@ -142,12 +143,12 @@ function EditForm({
       {savedAt && (
         <div
           role="status"
-          className="mb-6 border border-gold/60 bg-parchment-deep px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+          className="mb-8 flex flex-wrap items-center justify-between gap-3 bg-olive px-5 py-4 text-paper"
         >
-          <span className="font-body text-sm text-ink">Değişiklikler kaydedildi.</span>
+          <span className="font-body text-lg">Değişiklikler kaydedildi.</span>
           <Link
             href={`/davetiye/${invitation.slug}`}
-            className="font-body text-sm text-ink underline decoration-gold-deep/60 underline-offset-4 hover:decoration-gold-deep"
+            className="apparatus text-sm text-paper underline decoration-paper/60 underline-offset-4 hover:decoration-paper"
           >
             Davetiyeyi görüntüle →
           </Link>
@@ -166,10 +167,10 @@ function EditForm({
         error={error}
       />
 
-      <p className="mt-8 text-center">
+      <p className="mt-12 border-t border-soot/20 pt-6">
         <Link
           href="/davetiyelerim"
-          className="font-body text-sm text-ink-soft underline decoration-gold/50 underline-offset-4 hover:decoration-gold"
+          className={`apparatus text-sm ${TEXT_LINK}`}
         >
           ← Davetiyelerim
         </Link>

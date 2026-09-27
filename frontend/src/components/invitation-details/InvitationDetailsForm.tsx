@@ -40,7 +40,7 @@ export function InvitationDetailsForm() {
 
   return (
     <AuthLayout eyebrow="Davetiye Bilgileri" title="Davetiyenizi anlatın." wide>
-      <p className="font-body text-sm text-ink-soft -mt-2 mb-6">
+      <p className="-mt-4 mb-8 font-body text-lg italic text-soot-soft">
         Bu bilgilerle seçeceğiniz şablon otomatik doldurulacak. Yayınladıktan
         sonra da istediğiniz zaman düzenleyebilirsiniz.
       </p>

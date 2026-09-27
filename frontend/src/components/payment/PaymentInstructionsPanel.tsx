@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ApiError } from "@/lib/auth";
 import { getPaymentInstructions, type PaymentInstructions } from "@/lib/invitations";
+import { BUTTON_SECONDARY_SM } from "@/lib/ui";
 
 const TRY = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" });
 
@@ -21,10 +22,10 @@ function CopyRow({ label, value, emphasis = false }: { label: string; value: str
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
+    <div className="flex items-center justify-between gap-3 py-4">
       <div className="min-w-0 text-left">
-        <p className="font-body text-[11px] tracking-[0.18em] uppercase text-gold-deep">{label}</p>
-        <p className={`font-body text-ink break-all ${emphasis ? "text-lg font-semibold" : "text-base"}`}>
+        <p className="apparatus text-xs text-soot-soft">{label}</p>
+        <p className={`break-all ${emphasis ? "font-display numerals text-3xl leading-tight text-wine" : "font-body text-lg text-soot"}`}>
           {value}
         </p>
       </div>
@@ -32,7 +33,7 @@ function CopyRow({ label, value, emphasis = false }: { label: string; value: str
         type="button"
         onClick={copy}
         aria-label={`${label} kopyala`}
-        className="shrink-0 font-body text-xs text-ink-soft border border-gold/50 rounded-full px-3 py-1.5 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+        className={`shrink-0 ${BUTTON_SECONDARY_SM}`}
       >
         {copied ? "Kopyalandı" : "Kopyala"}
       </button>
@@ -65,25 +66,25 @@ export function PaymentInstructionsPanel({ token, invitationId }: { token: strin
 
   if (error) {
     return (
-      <p role="alert" className="border border-gold-deep/50 bg-parchment-deep px-4 py-3 font-body text-sm text-ink">
+      <p role="alert" className="border border-wine/60 px-4 py-3 font-body text-base text-wine">
         {error}
       </p>
     );
   }
 
   if (!info) {
-    return <p className="font-body text-sm text-ink-soft">Ödeme bilgileri yükleniyor…</p>;
+    return <p className="font-body text-lg text-soot-soft" role="status">Ödeme bilgileri yükleniyor…</p>;
   }
 
   return (
     <div className="text-left">
-      <p className="font-body text-sm text-ink-soft mb-5 text-center">
+      <p className="mb-6 font-body text-lg leading-relaxed text-soot-soft">
         Davetiyeniz hazır ve ödeme bekliyor. Aşağıdaki hesaba havale/EFT yapın;
-        açıklama kısmına <strong className="text-ink">referans kodunu</strong> mutlaka yazın.
+        açıklama kısmına <strong className="font-semibold text-soot">referans kodunu</strong> mutlaka yazın.
         Ödemeniz onaylandığında davetiyeniz yayına alınır ve linkiniz misafirlerinize açılır.
       </p>
 
-      <div className="border border-gold/50 px-5 divide-y divide-gold/30">
+      <div className="divide-y divide-soot/20 border-y border-soot">
         <CopyRow label="Tutar" value={TRY.format(info.amountTry)} emphasis />
         <CopyRow label="IBAN" value={info.iban} />
         <CopyRow label="Alıcı" value={info.accountHolder} />
@@ -91,7 +92,7 @@ export function PaymentInstructionsPanel({ token, invitationId }: { token: strin
         <CopyRow label="Açıklamaya yazılacak referans kodu" value={info.reference} emphasis />
       </div>
 
-      <p className="font-body text-xs text-ink-soft mt-4 text-center">
+      <p className="mt-4 font-body text-sm text-soot-soft">
         Onay genellikle aynı gün içinde yapılır. Bu sayfaya Davetiyelerim panelinizden
         her zaman geri dönebilirsiniz.
       </p>

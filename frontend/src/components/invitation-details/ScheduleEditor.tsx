@@ -1,10 +1,10 @@
 import type { ScheduleRow } from "@/lib/invitationForm";
+import { BUTTON_SECONDARY_SM, FIELD_LABEL, LINE_INPUT, TEXT_LINK } from "@/lib/ui";
 
 // Mirrors InvitationFieldsRequest.MaxScheduleItems on the API.
 const MAX_ROWS = 12;
 
-const INPUT =
-  "border-b border-gold/50 bg-transparent py-1.5 font-body text-ink outline-none focus:border-gold-deep placeholder:text-ink-soft/50";
+const INPUT = LINE_INPUT;
 
 /** The day's programme as editable rows. Zero rows is valid (and the
  * default) — the programme section then simply doesn't appear. */
@@ -21,18 +21,18 @@ export function ScheduleEditor({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-body text-xs tracking-[0.15em] uppercase text-ink-soft mb-1">
+      <legend className={`${FIELD_LABEL} mb-2`}>
         Günün Programı
       </legend>
 
       {rows.length === 0 && (
-        <p className="font-body text-sm text-ink-soft/80">
+        <p className="font-body text-base italic text-soot-soft">
           Program eklemezseniz bu bölüm davetiyede görünmez.
         </p>
       )}
 
       {rows.map((row, index) => (
-        <div key={index} className="flex flex-col gap-2 border-l border-gold/40 pl-3">
+        <div key={index} className="flex flex-col gap-2 border-t border-soot/20 pt-3">
           <div className="flex items-end gap-3">
             <input
               type="time"
@@ -40,7 +40,7 @@ export function ScheduleEditor({
               required
               value={row.time}
               onChange={(e) => update(index, { time: e.target.value })}
-              className={`${INPUT} w-24 shrink-0`}
+              className={`${INPUT} numerals w-28 shrink-0 font-display text-wine`}
             />
             <input
               type="text"
@@ -56,7 +56,7 @@ export function ScheduleEditor({
               type="button"
               onClick={() => onChange(rows.filter((_, i) => i !== index))}
               aria-label={`${index + 1}. satırı kaldır`}
-              className="shrink-0 font-body text-xs text-ink-soft hover:text-ink underline decoration-gold/50 underline-offset-4"
+              className={`apparatus shrink-0 text-sm ${TEXT_LINK}`}
             >
               Kaldır
             </button>
@@ -68,7 +68,7 @@ export function ScheduleEditor({
             maxLength={300}
             value={row.description}
             onChange={(e) => update(index, { description: e.target.value })}
-            className={`${INPUT} text-sm`}
+            className={`${INPUT} text-base`}
           />
         </div>
       ))}
@@ -77,7 +77,7 @@ export function ScheduleEditor({
         <button
           type="button"
           onClick={() => onChange([...rows, { time: "", title: "", description: "" }])}
-          className="self-start font-body text-sm text-ink-soft border border-gold/50 rounded-full px-4 py-1.5 transition-[color,border-color,transform] duration-150 hover:border-gold hover:text-ink active:scale-[0.97]"
+          className={`self-start ${BUTTON_SECONDARY_SM}`}
         >
           + Program satırı ekle
         </button>
