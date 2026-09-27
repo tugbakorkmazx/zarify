@@ -1,94 +1,346 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-20T00:00:00Z",
-  "title": "Design System: Nikâh Tezhibi",
+  "generatedAt": "2026-09-26T00:00:00Z",
+  "title": "Design System: Herbaryum",
   "extensions": {
     "colorMeta": {
-      "gold": { "role": "primary", "displayName": "Old Gold", "canonical": "#a97a2f", "tonalRamp": ["#241a0c", "#3d2c14", "#5c421d", "#7c5720", "#a97a2f", "#c69c53", "#d9bb78", "#ecdca3"] },
-      "gold-light": { "role": "primary", "displayName": "Pale Gold", "canonical": "#d9bb78", "tonalRamp": ["#241a0c", "#3d2c14", "#5c421d", "#7c5720", "#a97a2f", "#c69c53", "#d9bb78", "#ecdca3"] },
-      "gold-deep": { "role": "primary", "displayName": "Deep Antique Gold", "canonical": "#7c5720", "tonalRamp": ["#241a0c", "#3d2c14", "#5c421d", "#7c5720", "#a97a2f", "#c69c53", "#d9bb78", "#ecdca3"] },
-      "parchment": { "role": "neutral", "displayName": "Aged Parchment", "canonical": "#f6efdd", "tonalRamp": ["#2b2416", "#4a3f26", "#6e5f39", "#948052", "#bda875", "#d9c894", "#ecdfba", "#f6efdd"] },
-      "parchment-deep": { "role": "neutral", "displayName": "Deeper Parchment", "canonical": "#ecdfba", "tonalRamp": ["#2b2416", "#4a3f26", "#6e5f39", "#948052", "#bda875", "#d9c894", "#ecdfba", "#f6efdd"] },
-      "ink": { "role": "neutral", "displayName": "Burgundy Ink", "canonical": "#3a1420", "tonalRamp": ["#140609", "#2a0e14", "#3a1420", "#5c2130", "#6b3242", "#8a4d5c", "#b07d89", "#d8bcc3"] },
-      "ink-soft": { "role": "neutral", "displayName": "Soft Burgundy", "canonical": "#6b3242", "tonalRamp": ["#140609", "#2a0e14", "#3a1420", "#5c2130", "#6b3242", "#8a4d5c", "#b07d89", "#d8bcc3"] }
+      "olive": {
+        "role": "primary",
+        "displayName": "Olive",
+        "canonical": "#4a5433",
+        "tonalRamp": [
+          "#151910",
+          "#232918",
+          "#2e3520",
+          "#4a5433",
+          "#626c45",
+          "#7b8459",
+          "#a3a87c",
+          "#c9c9a3"
+        ]
+      },
+      "olive-deep": {
+        "role": "primary",
+        "displayName": "Olive Deep",
+        "canonical": "#2e3520",
+        "tonalRamp": [
+          "#151910",
+          "#232918",
+          "#2e3520",
+          "#4a5433",
+          "#626c45",
+          "#7b8459",
+          "#a3a87c",
+          "#c9c9a3"
+        ]
+      },
+      "olive-soft": {
+        "role": "primary",
+        "displayName": "Olive Soft",
+        "canonical": "#7b8459",
+        "tonalRamp": [
+          "#151910",
+          "#232918",
+          "#2e3520",
+          "#4a5433",
+          "#626c45",
+          "#7b8459",
+          "#a3a87c",
+          "#c9c9a3"
+        ]
+      },
+      "olive-pale": {
+        "role": "primary",
+        "displayName": "Olive Pale",
+        "canonical": "#c9c9a3",
+        "tonalRamp": [
+          "#151910",
+          "#232918",
+          "#2e3520",
+          "#4a5433",
+          "#626c45",
+          "#7b8459",
+          "#a3a87c",
+          "#c9c9a3"
+        ]
+      },
+      "wine": {
+        "role": "secondary",
+        "displayName": "Wine",
+        "canonical": "#6d1d28",
+        "tonalRamp": [
+          "#1f070b",
+          "#33090f",
+          "#4b111a",
+          "#6d1d28",
+          "#8c3441",
+          "#b06470",
+          "#d9a7a4",
+          "#eed6d3"
+        ]
+      },
+      "wine-deep": {
+        "role": "secondary",
+        "displayName": "Wine Deep",
+        "canonical": "#4b111a",
+        "tonalRamp": [
+          "#1f070b",
+          "#33090f",
+          "#4b111a",
+          "#6d1d28",
+          "#8c3441",
+          "#b06470",
+          "#d9a7a4",
+          "#eed6d3"
+        ]
+      },
+      "wine-pale": {
+        "role": "secondary",
+        "displayName": "Wine Pale",
+        "canonical": "#d9a7a4",
+        "tonalRamp": [
+          "#1f070b",
+          "#33090f",
+          "#4b111a",
+          "#6d1d28",
+          "#8c3441",
+          "#b06470",
+          "#d9a7a4",
+          "#eed6d3"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "canonical": "#efe8d6",
+        "tonalRamp": [
+          "#1f1c17",
+          "#4c463b",
+          "#8a7f69",
+          "#b5a684",
+          "#cfc09e",
+          "#e4d9bf",
+          "#efe8d6",
+          "#f7f3e8"
+        ]
+      },
+      "paper-deep": {
+        "role": "neutral",
+        "displayName": "Deep Ivory",
+        "canonical": "#e4d9bf",
+        "tonalRamp": [
+          "#1f1c17",
+          "#4c463b",
+          "#8a7f69",
+          "#b5a684",
+          "#cfc09e",
+          "#e4d9bf",
+          "#efe8d6",
+          "#f7f3e8"
+        ]
+      },
+      "paper-shade": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "#cfc09e",
+        "tonalRamp": [
+          "#1f1c17",
+          "#4c463b",
+          "#8a7f69",
+          "#b5a684",
+          "#cfc09e",
+          "#e4d9bf",
+          "#efe8d6",
+          "#f7f3e8"
+        ]
+      },
+      "soot": {
+        "role": "neutral",
+        "displayName": "Soot",
+        "canonical": "#1f1c17",
+        "tonalRamp": [
+          "#1f1c17",
+          "#4c463b",
+          "#8a7f69",
+          "#b5a684",
+          "#cfc09e",
+          "#e4d9bf",
+          "#efe8d6",
+          "#f7f3e8"
+        ]
+      },
+      "soot-soft": {
+        "role": "neutral",
+        "displayName": "Soot Soft",
+        "canonical": "#4c463b",
+        "tonalRamp": [
+          "#1f1c17",
+          "#4c463b",
+          "#8a7f69",
+          "#b5a684",
+          "#cfc09e",
+          "#e4d9bf",
+          "#efe8d6",
+          "#f7f3e8"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Couple's names and section headings only." },
-      "body": { "displayName": "Body", "purpose": "Reading text, form fields, info-block copy." },
-      "label": { "displayName": "Label", "purpose": "Form field labels and the language toggle — the only place wide tracking is allowed." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Couple's names and the landing headline — the masthead voice (Gloock)."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "Section heads, never with an eyebrow above."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, form fields, notes (EB Garamond)."
+      },
+      "apparatus": {
+        "displayName": "Apparatus",
+        "purpose": "Small-caps folios, captions, labels, nav and buttons."
+      },
+      "script": {
+        "displayName": "Script",
+        "purpose": "One signature per page (Pinyon Script)."
+      }
     },
     "shadows": [
-      { "name": "seal-raised", "value": "0 2px 6px rgba(0,0,0,0.35)", "purpose": "RSVP submit button only — a physical wax-seal object, not container elevation." },
-      { "name": "flap-bevel", "value": "0 1px 0 rgba(217,187,120,0.5) inset", "purpose": "Flip-card countdown units — a beveled metal-edge highlight, not elevation." }
+      {
+        "name": "tipped-in",
+        "value": "0 1px 1px rgba(31,28,23,.12), 0 10px 24px -8px rgba(31,28,23,.35)",
+        "purpose": "Paper cards and photographs laid onto a field."
+      },
+      {
+        "name": "seal-raised",
+        "value": "0 2px 6px rgba(31,28,23,.4)",
+        "purpose": "RSVP wax-seal button only."
+      },
+      {
+        "name": "plate-cutout",
+        "value": "drop-shadow(0 6px 10px rgba(31,28,23,.25))",
+        "purpose": "Transparent illustration cutouts sitting on paper."
+      }
     ],
     "motion": [
-      { "name": "flap-out", "value": "rotateX(0deg)->rotateX(-90deg), 220ms ease-in, transform-origin top", "purpose": "Outgoing countdown digit on tick." },
-      { "name": "flap-in", "value": "rotateX(90deg)->rotateX(0deg), 240ms ease-out 200ms, transform-origin bottom", "purpose": "Incoming countdown digit on tick." }
-    ],
-    "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "lg", "value": "1024px" }
+      {
+        "name": "tip-in",
+        "value": "translateY(-1.5rem) scale(1.06) rotate(r-6deg) -> rest, 900ms cubic-bezier(0.23,1,0.32,1), staggered 140ms",
+        "purpose": "The collage lays down on the cover, piece by piece."
+      },
+      {
+        "name": "hero-rise",
+        "value": "translateY(1.75rem)+opacity -> rest, 850ms ease-out-strong, staggered 90ms",
+        "purpose": "Cover type entrance."
+      },
+      {
+        "name": "flap-out / flap-in",
+        "value": "rotateX flaps, 220ms / 240ms",
+        "purpose": "Flip countdown digits."
+      }
     ]
   },
   "components": [
     {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Square wine button with small-caps ivory label.",
+      "html": "<a class=\"ds-btn-primary\">Davetiye Oluşturmaya Başla</a>",
+      "css": ".ds-btn-primary{display:inline-block;background:#6d1d28;color:#efe8d6;padding:14px 28px;font-family:'EB Garamond',Georgia,serif;font-variant-caps:all-small-caps;letter-spacing:.14em;font-weight:500;transition:background-color .15s,transform .15s}.ds-btn-primary:hover{background:#4b111a}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #6d1d28;outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Soot hairline square button; fills olive on hover.",
+      "html": "<a class=\"ds-btn-secondary\">Şablonları İncele</a>",
+      "css": ".ds-btn-secondary{display:inline-block;border:1px solid #1f1c17;color:#1f1c17;padding:13px 27px;font-family:'EB Garamond',Georgia,serif;font-variant-caps:all-small-caps;letter-spacing:.14em;font-weight:500;transition:background-color .15s,color .15s}.ds-btn-secondary:hover{background:#4a5433;border-color:#4a5433;color:#efe8d6}"
+    },
+    {
       "name": "RSVP Seal Button",
       "kind": "button",
       "refersTo": "button-seal",
-      "description": "Circular primary action button styled as a raised wax seal; carries the couple's monogram.",
+      "description": "Wine wax-seal circle carrying the couple's initials.",
       "html": "<button class=\"ds-btn-seal\">E. &amp; K.</button>",
-      "css": ".ds-btn-seal { width: 64px; height: 64px; border-radius: 9999px; background: #d9bb78; color: #3a1420; border: 1px solid rgba(124,87,32,0.5); font-family: 'Bodoni Moda', Didot, Georgia, serif; font-size: 0.875rem; box-shadow: 0 2px 6px rgba(0,0,0,0.35); transition: filter 0.15s; } .ds-btn-seal:hover { filter: brightness(1.05); } .ds-btn-seal:active { filter: brightness(0.95); } .ds-btn-seal:focus-visible { outline: 2px solid #d9bb78; outline-offset: 2px; }"
-    },
-    {
-      "name": "Language Toggle",
-      "kind": "button",
-      "refersTo": "button-ghost",
-      "description": "Ghost pill that swaps the whole page between Turkish and English.",
-      "html": "<button class=\"ds-btn-ghost\">EN</button>",
-      "css": ".ds-btn-ghost { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: #6b3242; border: 1px solid rgba(169,122,47,0.5); border-radius: 9999px; padding: 6px 12px; background: transparent; transition: color 0.15s, border-color 0.15s; } .ds-btn-ghost:hover { color: #3a1420; border-color: #a97a2f; } .ds-btn-ghost:focus-visible { outline: 2px solid #7c5720; outline-offset: 2px; }"
+      "css": ".ds-btn-seal{width:72px;height:72px;border-radius:9999px;background:#6d1d28;color:#efe8d6;font-family:Gloock,Georgia,serif;font-size:1.125rem;box-shadow:0 2px 6px rgba(31,28,23,.4)}.ds-btn-seal:hover{background:#4b111a}.ds-btn-seal:active{transform:scale(.97)}"
     },
     {
       "name": "Underline Input",
       "kind": "input",
       "refersTo": "input-underline",
-      "description": "Text/number field with only a bottom gold rule, no box.",
-      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Ad Soyad</span><input class=\"ds-input\" type=\"text\" /></label>",
-      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: 'EB Garamond', Garamond, Georgia, serif; } .ds-label { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: #6b3242; } .ds-input { background: transparent; border: none; border-bottom: 1px solid rgba(169,122,47,0.5); padding: 6px 0; color: #3a1420; font-family: inherit; font-size: 1rem; outline: none; } .ds-input:focus-visible { border-bottom-color: #7c5720; }"
+      "description": "Underline-only field; wine underline on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Ad Soyad\">",
+      "css": ".ds-input{border:0;border-bottom:1px solid rgba(76,70,59,.6);background:transparent;padding:8px 0;font-family:'EB Garamond',Georgia,serif;font-size:1.0625rem;color:#1f1c17;outline:none}.ds-input:focus{border-bottom-color:#6d1d28;box-shadow:0 1px 0 #6d1d28}"
     },
     {
-      "name": "Illuminated Rule",
-      "kind": "custom",
-      "description": "Signature divider: two gold hairlines fading toward a small diamond-and-dot centerpiece. Placed under every heading and the couple's names; never a filled border.",
-      "html": "<svg viewBox=\"0 0 240 16\" class=\"ds-rule\" aria-hidden=\"true\"><line x1=\"0\" y1=\"8\" x2=\"102\" y2=\"8\" stroke=\"#a97a2f\" stroke-width=\"1\" /><line x1=\"138\" y1=\"8\" x2=\"240\" y2=\"8\" stroke=\"#a97a2f\" stroke-width=\"1\" /><path d=\"M120 2 L126 8 L120 14 L114 8 Z\" fill=\"none\" stroke=\"#a97a2f\" stroke-width=\"1\" /><circle cx=\"120\" cy=\"8\" r=\"1.4\" fill=\"#a97a2f\" /></svg>",
-      "css": ".ds-rule { width: 160px; height: 16px; }"
+      "name": "Plate Caption",
+      "kind": "text",
+      "refersTo": "apparatus",
+      "description": "Small-caps caption under an illustration: wine plate number + title.",
+      "html": "<figcaption class=\"ds-caption\"><span>Lv. II</span> · Nar ile natürmort</figcaption>",
+      "css": ".ds-caption{font-family:'EB Garamond',Georgia,serif;font-variant-caps:all-small-caps;letter-spacing:.14em;font-size:.8125rem;color:#4c463b}.ds-caption span{color:#6d1d28}"
     }
   ],
   "narrative": {
-    "northStar": "The Nikâh Illumination",
-    "overview": "The page behaves like an Ottoman nikâh (marriage-certificate) record made luminous for a screen: a legal-ceremonial document, not a greeting card. Every wedding-invitation site defaults to the same move — a full-bleed couple photo under a cursive script overlay, on a pastel wash, corners crowded with generic floral ornament. This world refuses all three. Ground stays pale parchment; the only ornament is a single disciplined gold rule marking names and section breaks, never a filled border or corner flourish; asymmetric negative space is held deliberately rather than centering everything card-on-photo. The world commits to two donated disciplines from outside the wedding-invitation category: restraint in negative space and confinement of all accent color to hairline rules rather than washes. One deliberate contrast beat — a deep-ink, gold-on-parchment section — breaks the otherwise all-parchment scroll at the page's single most important action (RSVP).",
+    "northStar": "An issue of a botanical periodical, dedicated to one couple",
+    "overview": "Every page is set like a page of an antique botanical magazine — cover, spreads, contents page, captioned plates. Aged ivory paper, olive fields owning whole regions, wine as the single hot accent, soot type and double hairlines. Imagery is raster vintage botanical illustration, collaged with slight rotations and paper shadows; never code-drawn.",
     "keyCharacteristics": [
-      "Pale parchment ground, disciplined thin gold rule as the only recurring ornament",
-      "One deep-ink action beat per page, reserved for the primary call to action",
-      "Ceremonial display serif (Bodoni Moda) for names/headlines, warm old-style body serif (EB Garamond) for reading text",
-      "Signature interaction: a mechanical flip-card countdown, gold-on-parchment"
+      "Olive fields carry 30–60% of each page (Committed strategy)",
+      "Wine owns one damask field per page and marks drop caps, numerals, the primary action and the seal",
+      "Gloock masthead display, EB Garamond small-caps apparatus, one Pinyon Script signature",
+      "Collage of raster herbarium plates with small-caps captions",
+      "Square corners; frames as CSS double hairlines",
+      "Cover collage lays down piece by piece on load"
     ],
     "rules": [
-      { "name": "The Hairline Gold Rule", "body": "Gold never fills a region or forms a closed decorative border. It appears only as a 1px rule, a divider, small structural marks, or text.", "section": "colors" },
-      { "name": "The One Dark Beat Rule", "body": "Exactly one section per page reverses to the ink ground — the primary call to action — marking the single moment the reader is asked to act.", "section": "colors" },
-      { "name": "The Short-Label-Only Tracking Rule", "body": "Wide letter-spacing (≥0.1em) is reserved for short uppercase labels; sentence-length or italic lines use normal tracking.", "section": "typography" },
-      { "name": "The Flat Paper Rule", "body": "Nothing gets a card shadow for being a container. Depth is reserved for the two objects meant to feel physical: the seal button and the flip cards.", "section": "elevation" }
+      {
+        "name": "The Olive Field Rule",
+        "body": "Olive appears as whole regions, not scattered accents.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Wine Field Rule",
+        "body": "Wine fills at most one section per page; elsewhere it marks numerals, drop caps and the primary action.",
+        "section": "colors"
+      },
+      {
+        "name": "No Pastel Rule",
+        "body": "No pink, baby blue or mint — in UI or chosen art.",
+        "section": "colors"
+      },
+      {
+        "name": "The Apparatus Rule",
+        "body": "Small caps are for folios, captions, labels, nav, buttons — never an eyebrow above a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Single Script Rule",
+        "body": "Script appears once per page, as a signature.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Shadow Rule",
+        "body": "Only paper objects and the seal cast shadows.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "Do keep gold confined to rules, borders, and small marks (The Hairline Gold Rule).",
-      "Do reserve the ink-dark ground for exactly one action beat per page (The One Dark Beat Rule).",
-      "Do self-host display and body faces via next/font/google with latin-ext for full Turkish glyph coverage.",
-      "Do theme browser-native surfaces (selection, focus ring, caret, scrollbar) from this palette."
+      "Give olive whole regions and wine one field per page",
+      "Caption every illustration as a plate",
+      "Use licensed raster illustration, collaged",
+      "Keep corners square",
+      "Theme selection, caret, focus and scrollbar from the palette"
     ],
     "donts": [
-      "Don't add floral corner ornaments, pastel washes, or a full decorative border.",
-      "Don't use a script/cursive display font.",
-      "Don't apply wide letter-spacing (≥0.1em) to anything longer than a short uppercase label.",
-      "Don't give a content container its own drop shadow."
+      "Draw illustration in SVG/CSS",
+      "Put an eyebrow above a heading",
+      "Use script for names or headings",
+      "Use pastels",
+      "Round cards or use pills beyond the toggle and seal",
+      "Shadow a non-paper container"
     ]
   }
 }

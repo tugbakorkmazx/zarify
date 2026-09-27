@@ -2,42 +2,42 @@
 version: 1
 slug: "guest-invitation"
 primary_target: "guest-invitation"
-related_targets: []
+related_targets: ["frontend/src/components/templates/HerbaryumTemplate.tsx"]
 ---
 
 ## Scope & Mode
 
-Persuade. Public, guest-facing wedding invitation page — the first of what will become a family of purchasable templates on the platform. No login. This brief covers only this surface; it does not set the platform-wide DESIGN.md (dashboard/admin are separate worlds).
+Persuade. Public, guest-facing wedding invitation page — the platform's live template (slug `nikah-tezhibi`, kept for existing invitations; display name "Herbaryum"). No login. This brief covers only this surface.
 
 ## Audience, Job, Action, Proof, Constraints
 
 - **Audience:** a wedding guest opening a link shared over WhatsApp/SMS, often mid-day on a phone, briefly.
 - **Job:** understand who is getting married, when, where, and what the day involves; feel the couple's story; decide whether/how to attend.
-- **Action:** RSVP (owner can disable this per invitation — must degrade gracefully to an informational-only page), optionally note the venue/date, optionally read custom info blocks.
-- **Proof/content:** event details (date, time, venue as plain text — map link/embed is an optional add-on, never required), couple/story photos (placeholder imagery for now), countdown to the event, free-text info blocks (dress code, gift list, directions, accommodation).
-- **Constraints:** bilingual TR/EN (both first-class); guest never authenticates; content is placeholder until the real couple supplies details — nothing fabricated must read as a real claim; must remain legible and usable as a template across different couples' content (not hand-tuned prose, since this ships as a reusable template).
+- **Action:** RSVP (owner can disable it — must degrade to an informational page), note date/venue, read info blocks.
+- **Proof/content:** event details (venue as plain text; map link optional), countdown, story text, schedule, free-text info blocks. Couple photo upload does not exist yet — photo plates appear only in the gallery showcase.
+- **Constraints:** bilingual TR/EN; every optional section renders only when filled; template art (botanical plates, frame, still life) is template ornament and may appear on real invitations; interim art in `public/images/botanical/` is unlicensed placeholder and must be replaced with licensed assets before launch.
 
 ## Chosen Direction & Memorable Moment
 
-**Nikâh Tezhibi** (Marriage-Certificate Illumination) — selected by the user from the direction round (seed `c940406c`, assigned index 5 of 7 grounded candidates). Memorable moment: the couple's names set in illuminated capitals inside a single disciplined gold rule (not a decorative border), and the countdown rendered as small mechanical flip-cards in gold-on-parchment.
+**Herbaryum — vintage editorial botanical**, pinned by the user's brief (2026-09-26), replacing Nikâh Tezhibi. Memorable moment: the couple's names set as a magazine-cover masthead, enormous, with a collaged herbarium plate (antique frame, specimen, a swallow) tipped in beside them on an olive field.
 
 ## Unresolved Decisions
 
-- Exact hex values for parchment ground, ink (burgundy), and gold accent — set during build against real contrast/legibility checks.
-- Whether an envelope/seal-opening entrance motion is included, or the illuminated rule reveal alone carries the entrance.
-- Final RSVP field set (attendee count, meal choice, message) — deferred to the owner-dashboard/RSVP-builder work, this surface renders whatever fields the invitation is configured with.
-- Turkish-glyph completeness of the chosen display face at production weight — verify before shipping.
+- Licensed asset pack choice (Creative Market / Envato) — interim placeholders until then.
+- Paper texture and torn-edge assets not yet bought; CSS slots are wired and no-op until files exist.
 
 ## Direction contract
 
-THESIS: The page behaves like an illuminated Ottoman nikâh record made luminous for the screen — a legal-ceremonial document, not a greeting card — refusing the pastel-photo-hero-plus-script-font default every wedding site ships.
+THESIS: The invitation is an issue of a botanical periodical dedicated to one couple — a cover, a feature spread, a contents page — refusing the pastel photo-hero with script names every wedding site ships.
 
-OWN-WORLD: Parchment/ivory ground; one disciplined thin gold-leaf rule (never a filled decorative border) framing the page edge and marking section divisions; deep burgundy ink for body and structural text; illuminated capitals for the couple's names; asymmetric negative space held deliberately on one side of the opening view rather than centered symmetry; a display serif (Bodoni Moda) for ceremonial headlines/names, a quiet old-style serif (EB Garamond) for body copy and info blocks.
+OWN-WORLD: Aged ivory paper, olive fields carrying a third or more of the page, wine as the single hot accent (numerals, drop cap, the seal button), soot near-black for type and rules. Gloock masthead display, EB Garamond body with small-caps apparatus, Pinyon Script once (signature). Collage: tipped-in paper cards at slight rotation with real paper shadow, antique frames, herbarium plates with small-caps captions.
 
-STORY: A guest opens the link and within one glance knows whose wedding this is, when, and where; scrolling reveals the couple's story through placeholder photographs framed like keepsake album plates, then practical information (schedule, venue, dress code, gift list, directions, accommodation) each introduced by the same thin gold rule, ending at an RSVP affordance styled as a wax-seal tap target (or, when RSVP is disabled by the owner, the same section renders as a quiet closing note instead).
+STORY: Cover tells who/when/where in one glance; the feature spread tells their story with a wine drop cap; a contents-page schedule; a venue plate; notes in columns; RSVP on an olive damask field; a script signature closes.
 
-FIRST VIEWPORT: Couple's names set large in illuminated capitals, off-center within generous parchment negative space (not centered card-on-photo); event date and venue in quiet Garamond beneath; a slender gold rule beneath the names rather than a full ornamental frame; the flip-card countdown sits low in the viewport, ticking in gold-on-parchment; no full-bleed photo in the hero.
+FIRST VIEWPORT: Folio strip on top (issue line in small caps, language toggle). Names in Gloock at up to 6rem spanning the left seven columns; date and venue in small caps under a double hairline. Right: olive field with the oval frame, a flower plate inside, a swallow crossing its edge. Countdown sits along the cover's bottom as a folio row.
 
-FORM: Nikâh Tezhibi — 5th of 7 grounded directions ordered by resonance (engraved letterpress davetiye ranked 1st, offered and declined as IMPECCABLE'S PICK); seed key `c940406c`. Raised with donated discipline from two declined catalog challengers: asymmetric restraint in negative space (from an ikebana/tokonoma form) and confinement of all accent color to hairline rules rather than filled washes (from an iridescent-cloud-edge form); the countdown's flip-card motion is donated from a split-flap concourse-board challenger.
+FORM: brief-pinned vintage editorial botanical (user-pinned; roll assignment index 5 overridden per "brief-pinned direction beats the roll"); seed key `8123077a`. Raise from declined challenger rw-centre-rail-reference-setting: the margin apparatus — every plate carries a small-caps caption and plate number, set like annotation. Raise from declined raygun-layout-desk: the grid is allowed to break at the cover only — names overlap the collage edge.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+
+> **Superseded (2026-09-27):** the visual language and layout are now defined in DESIGN.md — full-bleed oil paintings, paper objects, gilded frames, wine/olive/ivory bands, every section centred on one axis. Where this file disagrees, DESIGN.md wins.
