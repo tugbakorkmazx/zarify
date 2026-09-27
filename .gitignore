@@ -58,3 +58,13 @@ desktop.ini
 .agents/
 .claude/skills/
 .claude/settings.local.json
+
+# ---------------------------------------------------------------------------
+# Unlicensed art — never commit
+# ---------------------------------------------------------------------------
+# Raw downloads used while exploring the design, and the retired gravure /
+# herbarium set. None of it is licensed and the site no longer uses any of
+# it (every image the site shows is registered in frontend/src/lib/art.ts
+# and lives in frontend/public/images/art/). Kept on disk only.
+/gorseller/
+/frontend/public/images/_arsiv/
