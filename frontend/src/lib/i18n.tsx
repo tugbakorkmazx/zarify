@@ -65,6 +65,7 @@ export interface Strings {
     messagePlaceholder: string;
     submit: string;
     submitError: string;
+    rateLimited: string;
     disabledNote: string;
     /** Shown under the form — the point where guest data is collected, so
      * KVKK wants the notice (and a link to the full text) right here. */
@@ -217,6 +218,7 @@ export const strings: Record<Lang, Strings> = {
       messagePlaceholder: "Dileğinizi buraya yazabilirsiniz…",
       submit: "Gönder",
       submitError: "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
+      rateLimited: "Çok fazla deneme yaptınız. Lütfen biraz bekleyip tekrar deneyin.",
       disabledNote:
         "Bu davetiye için katılım bildirimi kapatılmış. Sorularınız için çifte doğrudan ulaşabilirsiniz.",
       privacyNote:
@@ -378,6 +380,7 @@ export const strings: Record<Lang, Strings> = {
       messagePlaceholder: "Write your wishes here…",
       submit: "Send",
       submitError: "Couldn't reach the server. Please try again.",
+      rateLimited: "Too many attempts. Please wait a moment and try again.",
       disabledNote:
         "RSVP has been turned off for this invitation. Please reach out to the couple directly with any questions.",
       privacyNote:

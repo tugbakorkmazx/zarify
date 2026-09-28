@@ -65,7 +65,7 @@ export function RsvpSection({
     try {
       const res = await fetch(`${API_URL}/api/rsvp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept-Language": lang },
         body: JSON.stringify({
           invitationSlug,
           name: data.get("name"),
@@ -78,7 +78,7 @@ export function RsvpSection({
         // The API explains rejections it expects a guest to hit (too many
         // attempts, RSVP closed) in its own message — show that rather
         // than the generic "couldn't reach the server".
-        let message = t.rsvp.submitError;
+        let message = res.status === 429 ? t.rsvp.rateLimited : t.rsvp.submitError;
         try {
           const body = await res.json();
           if (typeof body?.message === "string") message = body.message;
