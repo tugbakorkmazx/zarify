@@ -1,4 +1,4 @@
-namespace Zarify.Api.Models;
+﻿namespace Zarify.Api.Models;
 
 /// Draft → PendingPayment → Published. Only Published invitations are
 /// visible to guests (and accept RSVPs); the owner can always see and edit
@@ -53,6 +53,13 @@ public class Invitation
 
     /// When an admin confirmed the bank transfer and the invitation went live.
     public DateTime? PublishedAtUtc { get; set; }
+
+    /// When the owner ticked "I've read the Pre-Contract Information Form and
+    /// the Distance Sales Contract" before publishing — the server's clock,
+    /// not the browser's — and which version of those texts they saw. Null
+    /// only on invitations created before the checkbox existed.
+    public DateTime? DistanceSalesAcceptedAtUtc { get; set; }
+    public string? DistanceSalesVersion { get; set; }
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }

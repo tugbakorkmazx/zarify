@@ -10,6 +10,8 @@ import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromValues, toApiFields } from "@/lib/invitationForm";
 import { describeError } from "@/lib/apiErrors";
+import { legalSettings } from "@/lib/legal";
+import { PublishConfirmDialog } from "@/components/payment/PublishConfirmDialog";
 
 // Fallback placeholder content for the "Herbaryum" template — used when
 // no invitation-details draft exists yet (e.g. someone browsing the gallery
@@ -23,6 +25,7 @@ export default function HerbaryumPreviewPage() {
   const { draft, clearDraft } = useInvitationDraft();
   const router = useRouter();
   const [publishing, setPublishing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -41,6 +44,8 @@ export default function HerbaryumPreviewPage() {
 
   // The draft is only ever staged locally up to this point — this is where
   // the form + chosen template actually become a real, shareable invitation.
+  // Runs only from the confirmation dialog, after the owner has accepted
+  // the pre-contract information and the distance sales contract.
   async function handlePublish() {
     if (!draft || !token) return;
     setPublishError(null);
@@ -50,6 +55,8 @@ export default function HerbaryumPreviewPage() {
       const invitation = await createInvitation(token, {
         templateSlug: "nikah-tezhibi",
         ...toApiFields(draft),
+        acceptDistanceSales: true,
+        distanceSalesVersion: legalSettings.version,
       });
       clearDraft();
       router.push(`/davetiyem/${invitation.slug}`);
@@ -64,6 +71,7 @@ export default function HerbaryumPreviewPage() {
       } else {
         setPublishError(describeError(err));
       }
+      setConfirmOpen(false);
       setPublishing(false);
     }
   }
@@ -96,7 +104,7 @@ export default function HerbaryumPreviewPage() {
           {draft && user && (
             <button
               type="button"
-              onClick={handlePublish}
+              onClick={() => setConfirmOpen(true)}
               disabled={publishing}
               className="apparatus text-sm text-paper bg-wine px-4 py-1.5 transition-[background-color,transform] duration-150 hover:bg-wine-deep active:scale-[0.97] disabled:opacity-60"
             >
@@ -122,6 +130,13 @@ export default function HerbaryumPreviewPage() {
           )}
         </div>
       )}
+
+      <PublishConfirmDialog
+        open={confirmOpen}
+        busy={publishing}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handlePublish}
+      />
 
       <HerbaryumTemplate
         eventDate={eventDate}

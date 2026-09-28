@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Zarify.Api.Models;
@@ -29,6 +29,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.HasIndex(i => i.Slug).IsUnique();
             entity.HasIndex(i => i.PaymentReference).IsUnique();
             entity.Property(i => i.PaymentReference).HasMaxLength(16);
+            entity.Property(i => i.DistanceSalesVersion).HasMaxLength(32);
             entity.Property(i => i.Slug).HasMaxLength(160);
             entity.Property(i => i.TemplateSlug).HasMaxLength(100);
             entity.Property(i => i.BrideName).HasMaxLength(100);

@@ -43,6 +43,17 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
             return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
+        // Publishing starts a paid, distance contract — the owner must have
+        // confirmed the pre-contract information and the contract first.
+        if (!request.AcceptDistanceSales)
+        {
+            return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.DistanceSalesNotAccepted);
+        }
+        var acceptedAtUtc = DateTime.UtcNow;
+        var acceptedVersion = string.IsNullOrWhiteSpace(request.DistanceSalesVersion)
+            ? null
+            : request.DistanceSalesVersion.Trim();
+
         var baseSlug = SlugGenerator.Slugify($"{request.BrideName}-{request.GroomName}");
         var slug = baseSlug;
 
@@ -60,6 +71,8 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 WeddingTime = request.WeddingTime,
                 VenueName = "",
                 VenueAddress = "",
+                DistanceSalesAcceptedAtUtc = acceptedAtUtc,
+                DistanceSalesVersion = acceptedVersion,
             };
             ApplyFields(invitation, request);
 

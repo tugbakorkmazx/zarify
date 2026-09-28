@@ -60,6 +60,12 @@ export interface InvitationFieldsInput {
 
 export interface CreateInvitationInput extends InvitationFieldsInput {
   templateSlug: string;
+  /** The owner ticked the Pre-Contract Information Form / Distance Sales
+   * Contract box. The API refuses to create an invitation without it and
+   * records the acceptance time itself. */
+  acceptDistanceSales: boolean;
+  /** legalSettings.version — which texts were shown. */
+  distanceSalesVersion: string;
 }
 
 /** Persists a filled-in draft + chosen template as a real invitation owned

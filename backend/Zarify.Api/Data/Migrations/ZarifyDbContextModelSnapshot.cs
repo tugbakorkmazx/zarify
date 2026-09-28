@@ -40,6 +40,13 @@ namespace Zarify.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("DistanceSalesAcceptedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DistanceSalesVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
                     b.Property<string>("DressCode")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
