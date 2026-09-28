@@ -64,19 +64,23 @@ Not yet established.
 
 ## Gelecek Fikirler / Roadmap
 
-Henüz kapsam dışı, sadece not düşülüyor — planlanmadı, tasarlanmadı, uygulanmadı:
+Yayına hazırlık listesi işaretli ([x] yapıldı, [ ] açık); diğer başlıklar henüz kapsam dışı fikirlerdir:
 
 ### Yayına çıkmak için gerekenler
 
-- **Ödeme akışı:** paket satın alma ve ödeme adımı (ödeme sağlayıcısı henüz seçilmedi — iyzico/PayTR adayları).
-- **Yayından sonra düzenleme:** davetiye sahibinin yayındaki davetiyesinin bilgilerini panelden güncelleyebilmesi.
-- **Hukuki sayfalar:** Gizlilik Politikası, Kullanım Şartları, İade Politikası.
-- **Production hosting, domain ve veritabanı planı:** uygulamanın ve MySQL veritabanının nerede barındırılacağı, alan adı, yedekleme.
-- **Güvenilen proxy adresi (hosting'e karar verilince):** API'nin önündeki reverse proxy'nin IP'si veya ağı `appsettings.Production.json` → `ForwardedHeaders:KnownProxies` / `KnownNetworks` içine yazılmalı. Boş kalırsa yalnızca aynı makinedeki proxy'ye güvenilir; proxy başka bir makinedeyse rate limit'ler tüm ziyaretçileri tek IP gibi sayar.
-- **Production sırları ortam değişkeni olarak:** `Jwt__Key` (en az 32 bayt, rastgele), `ConnectionStrings__Default` ve `Payment__*` (IBAN vb.) sunucuda ortam değişkeni olarak tanımlanmalı; repoda yer almazlar. `Jwt__Key` yoksa API başlamaz.
-- **Şifre sıfırlama akışı:** "şifremi unuttum" ile e-posta üzerinden yeni şifre belirleme.
-- **E-posta gönderimi:** şifre sıfırlama, hesap ve ödeme bildirimleri gibi işlemsel e-postalar için altyapı.
-- **Admin paneli:** operatörün kullanıcıları, şablonları ve ödemeleri yönettiği ayrı panel.
+- [x] **Ödeme akışı (IBAN):** "Davetiyemi Yayınla" → IBAN ve davetiyeye özel ödeme referansı → yönetici havaleyi onaylayınca yayın.
+- [ ] **Online ödeme:** kartla ödeme için sağlayıcı entegrasyonu (iyzico/PayTR adayları) — henüz yok.
+- [x] **Yayından sonra düzenleme:** davetiye sahibi yayındaki davetiyesinin bilgilerini panelden güncelleyebiliyor.
+- [ ] **Hukuki sayfalar:** KVKK Aydınlatma Metni, Gizlilik Politikası, Çerez Politikası, Kullanım Şartları, Ön Bilgilendirme Formu, Mesafeli Satış Sözleşmesi ve İptal ve İade Politikası TR/EN **taslak** olarak yazıldı. Açık kalanlar: avukat ve mali müşavir kontrolü; işletme bilgilerinin (`frontend/src/lib/legal.ts`) doldurulması; sonra `showDraftNotice: false`.
+- [ ] **Production hosting, domain ve veritabanı planı:** uygulamanın ve MySQL veritabanının nerede barındırılacağı, alan adı, yedekleme.
+- [ ] **Güvenilen proxy adresi (hosting'e karar verilince):** API'nin önündeki reverse proxy'nin IP'si veya ağı `appsettings.Production.json` → `ForwardedHeaders:KnownProxies` / `KnownNetworks` içine yazılmalı. Boş kalırsa yalnızca aynı makinedeki proxy'ye güvenilir; proxy başka bir makinedeyse rate limit'ler tüm ziyaretçileri tek IP gibi sayar.
+- [ ] **Production sırları ortam değişkeni olarak:** `Jwt__Key` (en az 32 bayt, rastgele), `ConnectionStrings__Default` ve `Payment__*` (IBAN vb.) sunucuda ortam değişkeni olarak tanımlanmalı; repoda yer almazlar. `Jwt__Key` yoksa API başlamaz.
+- [ ] **Şifre sıfırlama akışı:** "şifremi unuttum" ile e-posta üzerinden yeni şifre belirleme.
+- [ ] **E-posta gönderimi:** şifre sıfırlama, hesap ve ödeme bildirimleri gibi işlemsel e-postalar için altyapı.
+- [x] **Ödeme onay kuyruğu:** yönetici `/yonetim` sayfasında bekleyen havaleleri görüp onaylıyor.
+- [ ] **Admin paneli (geri kalanı):** kullanıcıların ve şablonların yönetimi.
+- [ ] **Saklama süresi uygulaması:** KVKK metni, davetiye ve misafir yanıtlarının yayın süresinden en fazla 6 ay sonra silineceğini veya anonimleştirileceğini söylüyor; bu henüz otomatik değil (zamanlanmış temizlik işi gerekiyor).
+- [ ] **Hesap kapatma / veri silme talebi:** metinler e-postayla talep edilebileceğini söylüyor; talebi karşılayacak yönetici aracı veya prosedür henüz yok.
 
 ### Davetiye özellikleri
 
