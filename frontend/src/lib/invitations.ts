@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/auth";
+import { apiErrorFrom } from "@/lib/apiErrors";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
 
@@ -62,20 +62,6 @@ export interface CreateInvitationInput extends InvitationFieldsInput {
   templateSlug: string;
 }
 
-async function parseErrorMessage(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = await res.json();
-    if (typeof data?.message === "string") return data.message;
-    if (data?.errors && typeof data.errors === "object") {
-      const first = Object.values(data.errors).flat()[0];
-      if (typeof first === "string") return first;
-    }
-  } catch {
-    // response wasn't JSON — fall through to the generic message
-  }
-  return fallback;
-}
-
 /** Persists a filled-in draft + chosen template as a real invitation owned
  * by the signed-in user and returns it, slug included. */
 export async function createInvitation(
@@ -91,7 +77,7 @@ export async function createInvitation(
     body: JSON.stringify(input),
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye oluşturulamadı."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }
@@ -112,7 +98,7 @@ export async function updateInvitation(
     body: JSON.stringify(input),
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye güncellenemedi."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }
@@ -134,10 +120,10 @@ export async function getInvitationBySlug(slug: string, token?: string | null): 
   });
   if (res.status === 404) {
     const body = await res.json().catch(() => null);
-    return body?.code === "not_published" ? { kind: "not-published" } : { kind: "not-found" };
+    return body?.code === "INVITATION_NOT_PUBLISHED" ? { kind: "not-published" } : { kind: "not-found" };
   }
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Davetiye yüklenemedi."));
+    throw await apiErrorFrom(res);
   }
   return { kind: "found", invitation: await res.json() };
 }
@@ -159,7 +145,7 @@ export async function getPaymentInstructions(token: string, invitationId: string
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Ödeme bilgileri yüklenemedi."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }
@@ -198,7 +184,7 @@ export async function getMyInvitations(token: string): Promise<MyInvitation[]> {
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Davetiyeler yüklenemedi."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }
@@ -210,7 +196,7 @@ export async function getInvitationRsvps(token: string, invitationId: string): P
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await parseErrorMessage(res, "Yanıtlar yüklenemedi."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }

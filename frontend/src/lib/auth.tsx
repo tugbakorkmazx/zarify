@@ -1,5 +1,6 @@
 "use client";
 
+import { apiErrorFrom, pageLanguage } from "@/lib/apiErrors";
 import { useCallback, useSyncExternalStore } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
@@ -21,46 +22,13 @@ interface StoredAuth {
   user: AuthUser;
 }
 
-export class ApiError extends Error {
-  status: number;
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-  }
-}
-
-/** The page's current language (kept on <html lang> by the language
- * toggle), sent as Accept-Language so the API answers errors — e.g. the
- * rate-limit message — in the same language. */
-export function pageLanguage(): string {
-  if (typeof document === "undefined") return "tr";
-  return document.documentElement.lang === "en" ? "en" : "tr";
-}
+// Errors are defined in lib/apiErrors (code → message in the page's
+// language); re-exported here because most callers already import from
+// this module.
+export { ApiError, pageLanguage } from "@/lib/apiErrors";
 
 export function jsonHeaders(extra?: Record<string, string>): Record<string, string> {
   return { "Content-Type": "application/json", "Accept-Language": pageLanguage(), ...extra };
-}
-
-const TOO_MANY: Record<string, string> = {
-  tr: "Çok fazla deneme yaptınız. Lütfen biraz bekleyip tekrar deneyin.",
-  en: "Too many attempts. Please wait a moment and try again.",
-};
-
-async function parseErrorMessage(res: Response, fallback: string): Promise<string> {
-  // 429 from a proxy or the limiter itself may not carry our JSON body —
-  // never show the generic "couldn't log in" for it.
-  const rateLimited = res.status === 429 ? TOO_MANY[pageLanguage()] : null;
-  try {
-    const data = await res.json();
-    if (typeof data?.message === "string") return data.message;
-    if (data?.errors && typeof data.errors === "object") {
-      const first = Object.values(data.errors).flat()[0];
-      if (typeof first === "string") return first;
-    }
-  } catch {
-    // response wasn't JSON — fall through to the generic message
-  }
-  return rateLimited ?? fallback;
 }
 
 function isExpired(expiresAtUtc: string): boolean {
@@ -146,7 +114,7 @@ export function useAuth() {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      throw new ApiError(res.status, await parseErrorMessage(res, "Giriş yapılamadı."));
+      throw await apiErrorFrom(res);
     }
     writeAuth((await res.json()) as StoredAuth);
   }, []);
@@ -159,7 +127,7 @@ export function useAuth() {
         body: JSON.stringify(input),
       });
       if (!res.ok) {
-        throw new ApiError(res.status, await parseErrorMessage(res, "Hesap oluşturulamadı."));
+        throw await apiErrorFrom(res);
       }
       writeAuth((await res.json()) as StoredAuth);
     },

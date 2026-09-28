@@ -3,11 +3,12 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, ApiError } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { FormField } from "@/components/auth/FormField";
 import { FormError } from "@/components/auth/FormError";
 import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
+import { describeError } from "@/lib/apiErrors";
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -25,11 +26,7 @@ export function LoginForm() {
       await login(email, password);
       router.push("/davetiyelerim");
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
-      );
+      setError(describeError(err));
       setSubmitting(false);
     }
   }

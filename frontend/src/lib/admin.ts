@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/auth";
+import { apiErrorFrom } from "@/lib/apiErrors";
 import type { InvitationDto } from "@/lib/invitations";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
@@ -11,16 +11,6 @@ export interface AdminInvitation {
   paymentReference: string | null;
 }
 
-async function errorMessage(res: Response, fallback: string) {
-  try {
-    const body = await res.json();
-    if (typeof body?.message === "string") return body.message;
-  } catch {
-    // not JSON
-  }
-  return fallback;
-}
-
 /** Invitations whose bank transfer hasn't been confirmed yet, oldest first. */
 export async function getPendingPayments(token: string): Promise<AdminInvitation[]> {
   const res = await fetch(`${API_URL}/api/admin/invitations/pending-payment`, {
@@ -28,7 +18,7 @@ export async function getPendingPayments(token: string): Promise<AdminInvitation
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await errorMessage(res, "Liste yüklenemedi."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }
@@ -40,7 +30,7 @@ export async function approvePayment(token: string, invitationId: string): Promi
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    throw new ApiError(res.status, await errorMessage(res, "Ödeme onaylanamadı."));
+    throw await apiErrorFrom(res);
   }
   return res.json();
 }

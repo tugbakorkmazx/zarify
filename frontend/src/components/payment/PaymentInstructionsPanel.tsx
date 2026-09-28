@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ApiError } from "@/lib/auth";
 import { getPaymentInstructions, type PaymentInstructions } from "@/lib/invitations";
 import { BUTTON_SECONDARY_SM } from "@/lib/ui";
+import { describeError } from "@/lib/apiErrors";
 
 const TRY = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" });
 
@@ -56,7 +56,7 @@ export function PaymentInstructionsPanel({ token, invitationId }: { token: strin
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err instanceof ApiError ? err.message : "Ödeme bilgileri yüklenemedi.");
+          setError(describeError(err));
         }
       });
     return () => {

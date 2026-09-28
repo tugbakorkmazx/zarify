@@ -69,7 +69,7 @@ export default function MyInvitationsPage() {
 
       {status === "error" && (
         <p role="alert" className="border border-wine/50 px-5 py-4 font-body text-lg text-wine">
-          Davetiyeler yüklenemedi. Sunucuya ulaşılamadı; lütfen daha sonra tekrar deneyin.
+          Davetiyeler şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin.
         </p>
       )}
 

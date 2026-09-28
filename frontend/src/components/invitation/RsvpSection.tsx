@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { SectionHeading } from "@/components/art/SectionHeading";
 import { BUTTON_PRIMARY } from "@/lib/ui";
+import { apiErrorFrom } from "@/lib/apiErrors";
 import { coupleInitials } from "@/lib/coupleInitials";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
@@ -75,17 +76,9 @@ export function RsvpSection({
         }),
       });
       if (!res.ok) {
-        // The API explains rejections it expects a guest to hit (too many
-        // attempts, RSVP closed) in its own message — show that rather
-        // than the generic "couldn't reach the server".
-        let message = res.status === 429 ? t.rsvp.rateLimited : t.rsvp.submitError;
-        try {
-          const body = await res.json();
-          if (typeof body?.message === "string") message = body.message;
-        } catch {
-          // not JSON — keep the generic message
-        }
-        setError(message);
+        // The API names what went wrong with a code (RSVP closed, too many
+        // attempts, a server error…); show it in the page's language.
+        setError((await apiErrorFrom(res)).message);
         return;
       }
       setSubmitted(true);

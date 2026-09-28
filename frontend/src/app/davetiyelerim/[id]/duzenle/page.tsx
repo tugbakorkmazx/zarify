@@ -13,6 +13,7 @@ import {
 } from "@/lib/invitations";
 import { fromInvitation, toApiFields } from "@/lib/invitationForm";
 import { TEXT_LINK } from "@/lib/ui";
+import { describeError } from "@/lib/apiErrors";
 
 type Status = "loading" | "ready" | "not-found" | "error";
 
@@ -64,7 +65,7 @@ export default function EditInvitationPage() {
         <p className="font-body text-lg text-soot-soft" role="status">
           {status === "loading" && "Davetiye yükleniyor…"}
           {status === "not-found" && "Bu davetiye bulunamadı ya da size ait değil."}
-          {status === "error" && "Davetiye yüklenemedi. Lütfen daha sonra tekrar deneyin."}
+          {status === "error" && "Davetiye şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin."}
         </p>
         {status !== "loading" && (
           <p className="mt-8">
@@ -123,7 +124,7 @@ function EditForm({
         onSessionExpired();
         return;
       }
-      setError(err instanceof ApiError ? err.message : "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.");
+      setError(describeError(err));
     } finally {
       setSaving(false);
     }

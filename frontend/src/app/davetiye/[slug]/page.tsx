@@ -22,8 +22,8 @@ const MESSAGES: Record<"not-found" | "not-published" | "error", { title: string;
     body: "Davetiye sahibi yayına aldığında bu link çalışmaya başlayacak. Lütfen daha sonra tekrar deneyin.",
   },
   error: {
-    title: "Davetiye yüklenemedi.",
-    body: "Sunucuya ulaşılamadı. Lütfen daha sonra tekrar deneyin.",
+    title: "Davetiye şu anda yüklenemedi.",
+    body: "Bir sorun oluştu. Lütfen biraz sonra tekrar deneyin.",
   },
 };
 

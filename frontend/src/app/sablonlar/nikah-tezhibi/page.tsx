@@ -9,6 +9,7 @@ import { useInvitationDraft } from "@/lib/invitationDraft";
 import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromValues, toApiFields } from "@/lib/invitationForm";
+import { describeError } from "@/lib/apiErrors";
 
 // Fallback placeholder content for the "Herbaryum" template — used when
 // no invitation-details draft exists yet (e.g. someone browsing the gallery
@@ -61,9 +62,7 @@ export default function HerbaryumPreviewPage() {
         setSessionExpired(true);
         setPublishError("Oturumunuz sona ermiş. Devam etmek için tekrar giriş yapın.");
       } else {
-        setPublishError(
-          err instanceof ApiError ? err.message : "Davetiye oluşturulamadı. Lütfen tekrar deneyin.",
-        );
+        setPublishError(describeError(err));
       }
       setPublishing(false);
     }

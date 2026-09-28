@@ -9,6 +9,7 @@ import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { BUTTON_PRIMARY_SM, TEXT_LINK } from "@/lib/ui";
 import { approvePayment, getPendingPayments, type AdminInvitation } from "@/lib/admin";
 import { formatDateLine } from "@/lib/formatDateLine";
+import { describeError } from "@/lib/apiErrors";
 
 type Status = "loading" | "ready" | "forbidden" | "error";
 
@@ -83,7 +84,7 @@ export default function AdminPage() {
 
       {status === "error" && (
         <p role="alert" className="border border-wine/50 px-5 py-4 font-body text-lg text-wine">
-          Liste yüklenemedi. Lütfen daha sonra tekrar deneyin.
+          Liste şu anda yüklenemedi. Lütfen biraz sonra tekrar deneyin.
         </p>
       )}
 
@@ -143,7 +144,7 @@ function PendingRow({
       await approvePayment(token, inv.id);
       onApproved();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Sunucuya ulaşılamadı.");
+      setError(describeError(err));
       setApproving(false);
       setConfirming(false);
     }

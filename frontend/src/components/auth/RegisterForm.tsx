@@ -3,11 +3,12 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, ApiError } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { FormField } from "@/components/auth/FormField";
 import { FormError } from "@/components/auth/FormError";
 import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
+import { describeError } from "@/lib/apiErrors";
 
 export function RegisterForm() {
   const { register } = useAuth();
@@ -27,11 +28,7 @@ export function RegisterForm() {
       await register({ email, password, firstName, lastName });
       router.push("/davetiye-bilgileri");
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
-      );
+      setError(describeError(err));
       setSubmitting(false);
     }
   }
