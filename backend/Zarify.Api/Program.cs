@@ -160,6 +160,16 @@ var app = builder.Build();
 // sees the real client address and scheme.
 app.UseForwardedHeaders();
 
+// Any unhandled exception becomes a JSON 500 in the usual { code, message }
+// shape — never a stack trace. The exception is still logged. CORS runs
+// further in, and its headers are added as the response starts, so the
+// browser can read this body too.
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+{
+    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    await context.Response.WriteAsJsonAsync(ApiErrors.Body(ErrorCodes.InternalError, context));
+}));
+
 // A JSON API: nothing it returns should be sniffed, framed or leak a referrer.
 app.Use(async (context, next) =>
 {
