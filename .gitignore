@@ -63,8 +63,8 @@ desktop.ini
 # Unlicensed art — never commit
 # ---------------------------------------------------------------------------
 # Raw downloads used while exploring the design, and the retired gravure /
-# herbarium set. None of it is licensed and the site no longer uses any of
-# it (every image the site shows is registered in frontend/src/lib/art.ts
-# and lives in frontend/public/images/art/). Kept on disk only.
+# herbarium set in gorseller/_arsiv/. None of it is licensed and the site
+# no longer uses any of it (every image the site shows is registered in
+# frontend/src/lib/art.ts and lives in frontend/public/images/art/). Kept
+# on disk only, outside public/ so no build can ever serve it.
 /gorseller/
-/frontend/public/images/_arsiv/
