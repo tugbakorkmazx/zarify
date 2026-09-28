@@ -63,13 +63,18 @@ const SHARD_START: Record<string, number> = { a: 0.05, b: 0.08, c: 0.11, d: 0.07
 export function EnvelopeIntro({
   invitationId,
   names,
+  remember = true,
   children,
 }: {
   invitationId: string;
   names: string;
+  /** false for the owner's preview: always plays, and isn't recorded as
+   * seen (remount with a new key to replay it). */
+  remember?: boolean;
   children: ReactNode;
 }) {
   const [alreadySeen] = useState(() => {
+    if (!remember) return false;
     try {
       return sessionStorage.getItem(STORAGE_PREFIX + invitationId) === "1";
     } catch {
@@ -108,7 +113,7 @@ export function EnvelopeIntro({
 
   function finish() {
     setVisible(false);
-    markSeen(invitationId);
+    if (remember) markSeen(invitationId);
   }
 
   async function handleTap() {

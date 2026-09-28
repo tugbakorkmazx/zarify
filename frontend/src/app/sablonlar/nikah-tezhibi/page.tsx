@@ -12,6 +12,7 @@ import { contentFromValues, toApiFields } from "@/lib/invitationForm";
 import { describeError } from "@/lib/apiErrors";
 import { legalSettings } from "@/lib/legal";
 import { PublishConfirmDialog } from "@/components/payment/PublishConfirmDialog";
+import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
 
 // Fallback placeholder content for the "Herbaryum" template — used when
 // no invitation-details draft exists yet (e.g. someone browsing the gallery
@@ -21,11 +22,16 @@ const PLACEHOLDER_MAP_URL =
   "https://www.google.com/maps/search/?api=1&query=Bo%C4%9Fazi%C3%A7i+Yal%C4%B1s%C4%B1+%C3%9Csk%C3%BCdar";
 
 export default function HerbaryumPreviewPage() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, ready } = useAuth();
   const { draft, clearDraft } = useInvitationDraft();
   const router = useRouter();
   const [publishing, setPublishing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // The envelope guests see first — shown here too so the owner can watch
+  // it before publishing. Mounted only once running in the browser (it
+  // reads sessionStorage and the reduced-motion setting; `ready` is false
+  // during server rendering); bumping the key replays it.
+  const [envelopeKey, setEnvelopeKey] = useState(0);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -76,6 +82,20 @@ export default function HerbaryumPreviewPage() {
     }
   }
 
+  const template = (
+    <HerbaryumTemplate
+      eventDate={eventDate}
+      names={names}
+      dateLine={dateLine}
+      venueLine={venueLine}
+      venueName={draft?.venueName}
+      venueAddress={draft?.venueAddress}
+      mapUrl={draft ? undefined : PLACEHOLDER_MAP_URL}
+      content={content}
+      rsvpEnabled={rsvpEnabled}
+    />
+  );
+
   const editCta = draft
     ? { href: "/davetiye-bilgileri", label: "Bilgileri Düzenle" }
     : user
@@ -94,7 +114,17 @@ export default function HerbaryumPreviewPage() {
         <span className="apparatus text-sm text-olive-pale">
           {draft ? "Davetiyeniz — Herbaryum" : "Şablon Önizlemesi — Herbaryum"}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              window.scrollTo({ top: 0 });
+              setEnvelopeKey((k) => k + 1);
+            }}
+            className="apparatus text-sm text-paper/80 underline decoration-paper/40 underline-offset-4 transition-colors hover:text-paper"
+          >
+            Zarf açılışını izle
+          </button>
           <Link
             href={editCta.href}
             className="apparatus text-sm text-paper border border-paper/50 px-4 py-1.5 transition-[background-color,color,border-color,transform] duration-150 hover:border-paper hover:bg-paper hover:text-soot active:scale-[0.97]"
@@ -138,17 +168,13 @@ export default function HerbaryumPreviewPage() {
         onConfirm={handlePublish}
       />
 
-      <HerbaryumTemplate
-        eventDate={eventDate}
-        names={names}
-        dateLine={dateLine}
-        venueLine={venueLine}
-        venueName={draft?.venueName}
-        venueAddress={draft?.venueAddress}
-        mapUrl={draft ? undefined : PLACEHOLDER_MAP_URL}
-        content={content}
-        rsvpEnabled={rsvpEnabled}
-      />
+      {ready ? (
+        <EnvelopeIntro key={envelopeKey} invitationId="onizleme" names={names ?? "Elif & Kerem"} remember={false}>
+          {template}
+        </EnvelopeIntro>
+      ) : (
+        template
+      )}
     </main>
   );
 }
