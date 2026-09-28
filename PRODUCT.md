@@ -79,8 +79,8 @@ Yayına hazırlık listesi işaretli ([x] yapıldı, [ ] açık); diğer başlı
 - [ ] **E-posta gönderimi:** şifre sıfırlama, hesap ve ödeme bildirimleri gibi işlemsel e-postalar için altyapı.
 - [x] **Ödeme onay kuyruğu:** yönetici `/yonetim` sayfasında bekleyen havaleleri görüp onaylıyor.
 - [ ] **Admin paneli (geri kalanı):** kullanıcıların ve şablonların yönetimi.
-- [ ] **Saklama süresi uygulaması:** KVKK metni, davetiye ve misafir yanıtlarının yayın süresinden en fazla 6 ay sonra silineceğini veya anonimleştirileceğini söylüyor; bu henüz otomatik değil (zamanlanmış temizlik işi gerekiyor).
-- [ ] **Hesap kapatma / veri silme talebi:** metinler e-postayla talep edilebileceğini söylüyor; talebi karşılayacak yönetici aracı veya prosedür henüz yok.
+- [ ] **Saklama süresi uygulaması — YAYINDAN ÖNCE ZORUNLU:** KVKK metni, davetiye ve misafir yanıtlarının yayın süresinden en fazla 6 ay sonra silineceğini veya anonimleştirileceğini söylüyor; bu henüz otomatik değil (zamanlanmış temizlik işi gerekiyor).
+- [ ] **Hesap kapatma / veri silme talebi — YAYINDAN ÖNCE ZORUNLU:** metinler e-postayla talep edilebileceğini söylüyor; talebi karşılayacak yönetici aracı veya prosedür henüz yok.
 
 ### Davetiye özellikleri
 
