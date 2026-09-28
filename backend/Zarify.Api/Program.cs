@@ -36,8 +36,21 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 // tooling don't need a live database connection just to read its version.
 var mySqlServerVersion = new MySqlServerVersion(new Version(8, 0, 44));
 
+// Transient MySQL failures (a dropped pooled connection, the server waking
+// up) are retried twice with a short back-off instead of reaching the guest
+// as an error. Each attempt waits at most the connect timeout, so unless
+// the connection string sets one, it's lowered from MySqlConnector's 15 s
+// to 5 s: a real outage then answers (with a clean 500) in about 15 s
+// rather than a minute. No code opens its own transactions, so the
+// retrying strategy needs no changes elsewhere.
+var mySqlConnection = new MySqlConnector.MySqlConnectionStringBuilder(connectionString);
+if (!connectionString.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+{
+    mySqlConnection.ConnectionTimeout = 5;
+}
 builder.Services.AddDbContext<ZarifyDbContext>(options =>
-    options.UseMySql(connectionString, mySqlServerVersion));
+    options.UseMySql(mySqlConnection.ConnectionString, mySqlServerVersion, mySql =>
+        mySql.EnableRetryOnFailure(maxRetryCount: 2, maxRetryDelay: TimeSpan.FromSeconds(2), errorNumbersToAdd: null)));
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
