@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -175,7 +175,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     /// the invitation only once it's Published. The owner (if their token
     /// comes along) can see their own invitation in any status, e.g. to
     /// preview it while the payment is pending — and so can an admin.
-    [HttpGet("{slug}")]
+    [HttpGet("{slug:maxlength(160)}")]
     public async Task<ActionResult<InvitationDto>> GetBySlug(string slug, CancellationToken ct)
     {
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Slug == slug, ct);

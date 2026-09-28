@@ -1,6 +1,7 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Zarify.Api.Data;
 using Zarify.Api.Dtos;
@@ -11,12 +12,20 @@ namespace Zarify.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(ZarifyDbContext db, ITokenService tokenService) : ControllerBase
+public class AuthController(ZarifyDbContext db, ITokenService tokenService, AuthThrottle throttle) : ControllerBase
 {
+    /// Throttled per IP (policy) and per email (AuthThrottle) — see
+    /// RateLimitPolicies for the numbers.
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitPolicies.Register)]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken ct)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        if (throttle.TryRegister(normalizedEmail) is { } registerWait)
+        {
+            await RateLimitPolicies.WriteTooManyRequests(HttpContext, registerWait, ct);
+            return new EmptyResult();
+        }
 
         var emailTaken = await db.Users.AnyAsync(u => u.Email == normalizedEmail, ct);
         if (emailTaken)
@@ -40,9 +49,15 @@ public class AuthController(ZarifyDbContext db, ITokenService tokenService) : Co
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitPolicies.Login)]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken ct)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        if (throttle.TryLogin(normalizedEmail) is { } loginWait)
+        {
+            await RateLimitPolicies.WriteTooManyRequests(HttpContext, loginWait, ct);
+            return new EmptyResult();
+        }
         var user = await db.Users.SingleOrDefaultAsync(u => u.Email == normalizedEmail, ct);
 
         // Same generic message whether the email doesn't exist or the password

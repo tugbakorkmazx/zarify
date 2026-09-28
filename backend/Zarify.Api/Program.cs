@@ -1,6 +1,8 @@
+﻿using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +13,11 @@ using Zarify.Api.Services;
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
+
+// The API only ever receives small JSON bodies (the largest is an
+// invitation with its story and schedule, a few KB), so cap requests far
+// below Kestrel's 30 MB default.
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 64 * 1024);
 
 // Add services to the container.
 
@@ -33,8 +40,23 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException(
         "Jwt configuration is missing. Set Jwt:Key via `dotnet user-secrets set \"Jwt:Key\" \"...\"`.");
+// The signing key never lives in the repo: user-secrets in development, the
+// Jwt__Key environment variable in production. Fail at startup, loudly,
+// rather than on the first request that needs a token — and refuse a key
+// too short for HMAC-SHA256.
+if (string.IsNullOrWhiteSpace(jwtOptions.Key))
+{
+    throw new InvalidOperationException(
+        "Jwt:Key is not configured. Development: `dotnet user-secrets set \"Jwt:Key\" \"<random 64+ chars>\"`. " +
+        "Production: set the Jwt__Key environment variable.");
+}
+if (Encoding.UTF8.GetByteCount(jwtOptions.Key) < 32)
+{
+    throw new InvalidOperationException("Jwt:Key is too short: HMAC-SHA256 needs at least 32 bytes (use 64+ random characters).");
+}
 
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddSingleton<AuthThrottle>();
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
 
 builder.Services
@@ -57,47 +79,93 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Origins come from configuration per environment: appsettings.Development
+// (localhost) and appsettings.Production.json (the live domains).
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+if (allowedOrigins.Length == 0 && !builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException(
+        "Cors:AllowedOrigins is empty — the frontend could not call the API. Set it in appsettings.Production.json.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
     {
+        // Only what the frontend actually sends.
         policy.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+            .WithMethods("GET", "POST", "PUT")
+            .WithHeaders("Content-Type", "Authorization", "Accept-Language")
+            .WithExposedHeaders("Retry-After")
+            .SetPreflightMaxAge(TimeSpan.FromHours(1));
     });
 });
 
-// The guest RSVP endpoint is public and unauthenticated, so it's throttled
-// per client IP: a handful of replies a minute covers a household sharing
-// one connection, while bulk/scripted submissions get 429s.
-// NOTE: behind a reverse proxy RemoteIpAddress is the proxy's address —
-// configure ForwardedHeaders before deploying, or every guest shares one
-// bucket.
+// Behind the reverse proxy, the client's address arrives in
+// X-Forwarded-For. It is only believed when the request came from a proxy
+// listed in configuration (ForwardedHeaders:KnownProxies — single IPs —
+// and ForwardedHeaders:KnownNetworks — CIDR ranges); from anyone else the
+// header is ignored, so a client can't forge its way into a fresh rate-limit
+// bucket. With nothing configured only loopback is trusted (the ASP.NET
+// Core default), which suits a proxy on the same machine.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+
+    var proxies = builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [];
+    var networks = builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [];
+    if (proxies.Length > 0 || networks.Length > 0)
+    {
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Clear();
+        foreach (var proxy in proxies)
+        {
+            options.KnownProxies.Add(IPAddress.Parse(proxy));
+        }
+        foreach (var network in networks)
+        {
+            var parsed = System.Net.IPNetwork.Parse(network);
+            options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(parsed.BaseAddress, parsed.PrefixLength));
+        }
+    }
+});
+
+// Public and auth endpoints are throttled per client IP (the real one, via
+// ForwardedHeaders above); login and register are additionally limited per
+// email inside AuthController. Numbers live in RateLimitPolicies.
+static string ClientIp(HttpContext context) => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy(RateLimitPolicies.Rsvp, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-            }));
-    options.OnRejected = async (context, ct) =>
+    options.AddPolicy(RateLimitPolicies.Rsvp, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.RsvpPerIp));
+    options.AddPolicy(RateLimitPolicies.Login, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.LoginPerIp));
+    options.AddPolicy(RateLimitPolicies.Register, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.RegisterPerIp));
+    options.OnRejected = (context, ct) =>
     {
-        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-        {
-            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
-        }
-        await context.HttpContext.Response.WriteAsJsonAsync(
-            new { message = "Çok fazla deneme yaptınız. Lütfen bir dakika sonra tekrar deneyin." }, ct);
+        TimeSpan? retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : null;
+        return new ValueTask(RateLimitPolicies.WriteTooManyRequests(context.HttpContext, retryAfter, ct));
     };
 });
 
 var app = builder.Build();
+
+// First, so everything after it — HTTPS redirection, HSTS, the rate limiter —
+// sees the real client address and scheme.
+app.UseForwardedHeaders();
+
+// A JSON API: nothing it returns should be sniffed, framed or leak a referrer.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.XContentTypeOptions = "nosniff";
+    headers.XFrameOptions = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    await next();
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
