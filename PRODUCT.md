@@ -72,6 +72,8 @@ Henüz kapsam dışı, sadece not düşülüyor — planlanmadı, tasarlanmadı,
 - **Yayından sonra düzenleme:** davetiye sahibinin yayındaki davetiyesinin bilgilerini panelden güncelleyebilmesi.
 - **Hukuki sayfalar:** Gizlilik Politikası, Kullanım Şartları, İade Politikası.
 - **Production hosting, domain ve veritabanı planı:** uygulamanın ve MySQL veritabanının nerede barındırılacağı, alan adı, yedekleme.
+- **Güvenilen proxy adresi (hosting'e karar verilince):** API'nin önündeki reverse proxy'nin IP'si veya ağı `appsettings.Production.json` → `ForwardedHeaders:KnownProxies` / `KnownNetworks` içine yazılmalı. Boş kalırsa yalnızca aynı makinedeki proxy'ye güvenilir; proxy başka bir makinedeyse rate limit'ler tüm ziyaretçileri tek IP gibi sayar.
+- **Production sırları ortam değişkeni olarak:** `Jwt__Key` (en az 32 bayt, rastgele), `ConnectionStrings__Default` ve `Payment__*` (IBAN vb.) sunucuda ortam değişkeni olarak tanımlanmalı; repoda yer almazlar. `Jwt__Key` yoksa API başlamaz.
 - **Şifre sıfırlama akışı:** "şifremi unuttum" ile e-posta üzerinden yeni şifre belirleme.
 - **E-posta gönderimi:** şifre sıfırlama, hesap ve ödeme bildirimleri gibi işlemsel e-postalar için altyapı.
 - **Admin paneli:** operatörün kullanıcıları, şablonları ve ödemeleri yönettiği ayrı panel.
