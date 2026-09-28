@@ -194,6 +194,13 @@ export function RsvpSection({
                     <p className="max-w-[40ch] font-body text-sm text-soot-soft">
                       {t.rsvp.privacyNote}{" "}
                       <Link
+                        href="/kvkk-aydinlatma-metni"
+                        className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
+                      >
+                        {t.rsvp.kvkkLink}
+                      </Link>
+                      {" · "}
+                      <Link
                         href="/gizlilik"
                         className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
                       >

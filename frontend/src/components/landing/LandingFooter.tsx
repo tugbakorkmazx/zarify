@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
+import { legalPages } from "@/lib/legal";
 
 const LINK = "apparatus text-sm text-soot-soft transition-colors hover:text-wine";
 
-/** The colophon on the centre axis, with the page's one script line. */
+/** The colophon on the centre axis, with the page's one script line, the
+ * site links, and every legal page in the current language. */
 export function LandingFooter() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const l = t.landing.footer;
 
   return (
@@ -27,12 +29,13 @@ export function LandingFooter() {
           <Link href="/kayit" className={LINK}>
             {l.register}
           </Link>
-          <Link href="/gizlilik" className={LINK}>
-            {l.privacy}
-          </Link>
-          <Link href="/kullanim-sartlari" className={LINK}>
-            {l.terms}
-          </Link>
+        </nav>
+        <nav aria-label={l.legalHeading} className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-3">
+          {legalPages.map((page) => (
+            <Link key={page.href} href={page.href} className={LINK}>
+              {page.title[lang]}
+            </Link>
+          ))}
         </nav>
         <p className="apparatus mt-10 text-xs text-soot-soft">© {new Date().getFullYear()} Zarify</p>
       </div>

@@ -109,14 +109,14 @@ export function RegisterForm() {
           >
             Kullanım Şartları
           </Link>
-          &apos;nı kabul etmiş olursunuz. Verilerinizin nasıl işlendiğini{" "}
+          &apos;nı kabul etmiş olursunuz. Ad, soyad ve e-posta adresinizin nasıl işlendiğini{" "}
           <Link
-            href="/gizlilik"
+            href="/kvkk-aydinlatma-metni"
             className={TEXT_LINK}
           >
-            Gizlilik Politikası
+            KVKK Aydınlatma Metni
           </Link>
-          &apos;nda bulabilirsiniz.
+          &apos;nde okuyabilirsiniz.
         </p>
       </form>
     </AuthLayout>

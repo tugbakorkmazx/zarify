@@ -70,6 +70,7 @@ export interface Strings {
      * KVKK wants the notice (and a link to the full text) right here. */
     privacyNote: string;
     privacyLink: string;
+    kvkkLink: string;
   };
   footer: { closing: string; signature: string };
   envelope: {
@@ -126,8 +127,7 @@ export interface Strings {
       templates: string;
       login: string;
       register: string;
-      privacy: string;
-      terms: string;
+      legalHeading: string;
     };
     gallery: {
       back: string;
@@ -222,6 +222,7 @@ export const strings: Record<Lang, Strings> = {
       privacyNote:
         "Adınız, katılım durumunuz ve notunuz yalnızca davetiye sahibiyle paylaşılır.",
       privacyLink: "Gizlilik Politikası",
+      kvkkLink: "KVKK Aydınlatma Metni",
     },
     footer: {
       closing: "Sevgiyle bekliyoruz.",
@@ -289,8 +290,7 @@ export const strings: Record<Lang, Strings> = {
         templates: "Şablonlar",
         login: "Giriş Yap",
         register: "Kayıt Ol",
-        privacy: "Gizlilik Politikası",
-        terms: "Kullanım Şartları",
+        legalHeading: "Hukuki metinler",
       },
       gallery: {
         back: "← Zarify",
@@ -382,7 +382,8 @@ export const strings: Record<Lang, Strings> = {
         "RSVP has been turned off for this invitation. Please reach out to the couple directly with any questions.",
       privacyNote:
         "Your name, reply, and note are shared only with the invitation's owner.",
-      privacyLink: "Privacy Policy (Turkish)",
+      privacyLink: "Privacy Policy",
+      kvkkLink: "Personal Data Notice",
     },
     footer: {
       closing: "With love, we look forward to seeing you.",
@@ -450,8 +451,7 @@ export const strings: Record<Lang, Strings> = {
         templates: "Templates",
         login: "Log In",
         register: "Sign Up",
-        privacy: "Privacy Policy",
-        terms: "Terms of Use",
+        legalHeading: "Legal",
       },
       gallery: {
         back: "← Zarify",
