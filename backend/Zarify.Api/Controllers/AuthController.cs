@@ -30,7 +30,7 @@ public class AuthController(ZarifyDbContext db, ITokenService tokenService, Auth
         var emailTaken = await db.Users.AnyAsync(u => u.Email == normalizedEmail, ct);
         if (emailTaken)
         {
-            return Conflict(new { message = "Bu e-posta adresi zaten kayıtlı." });
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.EmailTaken);
         }
 
         var user = new User
@@ -64,7 +64,7 @@ public class AuthController(ZarifyDbContext db, ITokenService tokenService, Auth
         // is wrong, so a caller can't use this endpoint to enumerate accounts.
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            return Unauthorized(new { message = "E-posta veya şifre hatalı." });
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.InvalidCredentials);
         }
 
         var (token, expiresAtUtc) = tokenService.CreateToken(user);
@@ -78,10 +78,12 @@ public class AuthController(ZarifyDbContext db, ITokenService tokenService, Auth
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
         if (userId is null || !Guid.TryParse(userId, out var id))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var user = await db.Users.FindAsync([id], ct);
-        return user is null ? NotFound() : Ok(UserDto.FromEntity(user));
+        return user is null
+            ? this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired)
+            : Ok(UserDto.FromEntity(user));
     }
 }

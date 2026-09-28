@@ -1,4 +1,4 @@
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 
 namespace Zarify.Api.Services;
 
@@ -46,8 +46,7 @@ public static class RateLimitPolicies
         context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.Response.Headers.RetryAfter = seconds.ToString();
 
-        var english = context.Request.Headers.AcceptLanguage.ToString()
-            .TrimStart().StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        var english = ApiErrors.PrefersEnglish(context);
         var wait = seconds >= 90
             ? english ? $"{(seconds + 59) / 60} minutes" : $"{(seconds + 59) / 60} dakika"
             : english ? "a minute" : "bir dakika";
@@ -55,6 +54,6 @@ public static class RateLimitPolicies
             ? $"Too many attempts. Please wait {wait} and try again."
             : $"Çok fazla deneme yaptınız. Lütfen {wait} sonra tekrar deneyin.";
 
-        await context.Response.WriteAsJsonAsync(new { code = "rate_limited", message, retryAfterSeconds = seconds }, ct);
+        await context.Response.WriteAsJsonAsync(new { code = ErrorCodes.RateLimited, message, retryAfterSeconds = seconds }, ct);
     }
 }

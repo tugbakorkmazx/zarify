@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
@@ -31,21 +31,21 @@ public class RsvpController(ZarifyDbContext db) : ControllerBase
         // guest — the page itself isn't visible to them either.
         if (invitation is null || invitation.Status != InvitationStatus.Published)
         {
-            return NotFound(new { message = "Davetiye bulunamadı." });
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
 
         // The page hides the form when RSVP is off, but the endpoint is
         // public, so the owner's setting has to be enforced here too.
         if (!invitation.RsvpEnabled)
         {
-            return Conflict(new { message = "Bu davetiye için katılım bildirimi kapatılmış." });
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.RsvpClosed);
         }
 
         var guestName = GuestNameKey.NormalizeDisplay(request.Name);
         var nameKey = GuestNameKey.From(guestName);
         if (nameKey.Length == 0)
         {
-            return BadRequest(new { message = "Lütfen adınızı yazın." });
+            return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.GuestNameRequired);
         }
 
         var attendance = RsvpDto.AttendanceFromWire(request.Attendance);

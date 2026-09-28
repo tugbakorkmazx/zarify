@@ -1,10 +1,11 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zarify.Api.Data;
 using Zarify.Api.Dtos;
 using Zarify.Api.Models;
+using Zarify.Api.Services;
 
 namespace Zarify.Api.Controllers;
 
@@ -40,11 +41,11 @@ public class AdminController(ZarifyDbContext db, ILogger<AdminController> logger
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id, ct);
         if (invitation is null)
         {
-            return NotFound();
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
         if (invitation.Status != InvitationStatus.PendingPayment)
         {
-            return Conflict(new { message = "Bu davetiye ödeme beklemiyor." });
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.NotAwaitingPayment);
         }
 
         invitation.Status = InvitationStatus.Published;

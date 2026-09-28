@@ -30,7 +30,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     {
         if (!TryGetUserId(out var userId))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         // The JWT can outlive the account it names (e.g. the account was
@@ -40,7 +40,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         var userExists = await db.Users.AnyAsync(u => u.Id == userId, ct);
         if (!userExists)
         {
-            return Unauthorized(new { message = "Oturumunuz artık geçerli değil. Lütfen tekrar giriş yapın." });
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var baseSlug = SlugGenerator.Slugify($"{request.BrideName}-{request.GroomName}");
@@ -87,7 +87,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
             }
         }
 
-        return Conflict(new { message = "Davetiye linki oluşturulamadı. Lütfen tekrar deneyin." });
+        return this.Error(StatusCodes.Status409Conflict, ErrorCodes.InvitationLinkFailed);
     }
 
     /// Updates one of the signed-in owner's invitations in place. The slug
@@ -100,13 +100,13 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     {
         if (!TryGetUserId(out var userId))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
         if (invitation is null)
         {
-            return NotFound();
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
 
         ApplyFields(invitation, request);
@@ -181,7 +181,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Slug == slug, ct);
         if (invitation is null)
         {
-            return NotFound();
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
 
         var isOwner = TryGetUserId(out var userId) && invitation.UserId == userId;
@@ -191,7 +191,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         {
             // Distinguishable from an unknown slug so the page can say
             // "not published yet" rather than "this link is wrong".
-            return NotFound(new { code = "not_published", message = "Bu davetiye henüz yayında değil." });
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotPublished);
         }
 
         return Ok(InvitationDto.FromEntity(invitation));
@@ -207,24 +207,23 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     {
         if (!TryGetUserId(out var userId))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
         if (invitation is null)
         {
-            return NotFound();
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
         if (invitation.Status == InvitationStatus.Published)
         {
-            return Conflict(new { message = "Bu davetiyenin ödemesi zaten onaylandı." });
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.PaymentAlreadyApproved);
         }
 
         var payment = paymentOptions.Value;
         if (!payment.IsConfigured)
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable,
-                new { message = "Ödeme bilgileri henüz tanımlanmadı. Lütfen bizimle iletişime geçin." });
+            return this.Error(StatusCodes.Status503ServiceUnavailable, ErrorCodes.PaymentNotConfigured);
         }
 
         if (invitation.PaymentReference is null)
@@ -246,7 +245,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     {
         if (!TryGetUserId(out var userId))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var invitations = await db.Invitations
@@ -287,13 +286,13 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     {
         if (!TryGetUserId(out var userId))
         {
-            return Unauthorized();
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
 
         var owns = await db.Invitations.AnyAsync(i => i.Id == id && i.UserId == userId, ct);
         if (!owns)
         {
-            return NotFound();
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
 
         var rsvps = await db.Rsvps
