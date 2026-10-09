@@ -111,7 +111,7 @@ builder.Services.AddCors(options =>
     {
         // Only what the frontend actually sends.
         policy.WithOrigins(allowedOrigins)
-            .WithMethods("GET", "POST", "PUT")
+            .WithMethods("GET", "POST", "PUT", "DELETE")
             .WithHeaders("Content-Type", "Authorization", "Accept-Language")
             .WithExposedHeaders("Retry-After")
             .SetPreflightMaxAge(TimeSpan.FromHours(1));

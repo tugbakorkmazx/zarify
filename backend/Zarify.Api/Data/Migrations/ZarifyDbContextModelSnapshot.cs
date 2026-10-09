@@ -32,6 +32,10 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
+                    b.Property<decimal?>("AmountTry")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<string>("BrideName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -147,6 +151,10 @@ namespace Zarify.Api.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("EditTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<int>("GuestCount")
                         .HasColumnType("int");
 
@@ -172,12 +180,80 @@ namespace Zarify.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvitationId");
-
-                    b.HasIndex("InvitationId", "GuestNameKey")
+                    b.HasIndex("EditTokenHash")
                         .IsUnique();
 
+                    b.HasIndex("InvitationId");
+
+                    b.HasIndex("InvitationId", "GuestNameKey");
+
                     b.ToTable("Rsvps");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.SalesAgreement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("AcceptedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("AmountTry")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CoupleNames")
+                        .IsRequired()
+                        .HasMaxLength(210)
+                        .HasColumnType("varchar(210)");
+
+                    b.Property<Guid?>("InvitationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("InvitationSlug")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("UserFirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("UserLastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CancelledAtUtc");
+
+                    b.HasIndex("InvitationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SalesAgreements");
                 });
 
             modelBuilder.Entity("Zarify.Api.Models.User", b =>
@@ -241,6 +317,23 @@ namespace Zarify.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Invitation");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.SalesAgreement", b =>
+                {
+                    b.HasOne("Zarify.Api.Models.Invitation", "Invitation")
+                        .WithMany()
+                        .HasForeignKey("InvitationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Zarify.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Invitation");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

@@ -25,6 +25,7 @@ public static class ErrorCodes
     public const string PaymentNotConfigured = "PAYMENT_NOT_CONFIGURED";
     public const string NotAwaitingPayment = "NOT_AWAITING_PAYMENT";
     public const string DistanceSalesNotAccepted = "DISTANCE_SALES_NOT_ACCEPTED";
+    public const string CannotCancelPublished = "CANNOT_CANCEL_PUBLISHED";
 
     // RSVP
     public const string RsvpClosed = "RSVP_CLOSED";
@@ -60,6 +61,7 @@ public static class ApiErrors
         [ErrorCodes.PaymentAlreadyApproved] = ("Bu davetiyenin ödemesi zaten onaylandı.", "Payment for this invitation is already approved."),
         [ErrorCodes.PaymentNotConfigured] = ("Ödeme bilgileri henüz tanımlanmadı. Lütfen bizimle iletişime geçin.", "Payment details aren't set up yet. Please contact us."),
         [ErrorCodes.NotAwaitingPayment] = ("Bu davetiye ödeme beklemiyor.", "This invitation isn't awaiting payment."),
+        [ErrorCodes.CannotCancelPublished] = ("Yayındaki bir davetiye iptal edilemez.", "A published invitation can't be cancelled."),
         [ErrorCodes.DistanceSalesNotAccepted] = ("Devam etmek için Ön Bilgilendirme Formu'nu ve Mesafeli Satış Sözleşmesi'ni onaylamanız gerekir.", "To continue, please confirm the Pre-Contract Information Form and the Distance Sales Contract."),
         [ErrorCodes.RsvpClosed] = ("Bu davetiye için katılım bildirimi kapatılmış.", "RSVPs are closed for this invitation."),
         [ErrorCodes.GuestNameRequired] = ("Lütfen adınızı yazın.", "Please enter your name."),

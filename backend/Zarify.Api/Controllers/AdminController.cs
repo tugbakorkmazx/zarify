@@ -30,7 +30,23 @@ public class AdminController(ZarifyDbContext db, ILogger<AdminController> logger
         return Ok(rows.Select(r => new AdminInvitationDto(
             InvitationDto.FromEntity(r.Invitation),
             new InvitationOwnerDto(r.Email, r.FirstName, r.LastName),
-            r.Invitation.PaymentReference)));
+            r.Invitation.PaymentReference,
+            r.Invitation.AmountTry)));
+    }
+
+    /// Orders their owners cancelled before publishing, newest first — the
+    /// invitations themselves are gone; their agreement records remain, with
+    /// the reference and amount needed to refund a transfer that already
+    /// arrived.
+    [HttpGet("orders/cancelled")]
+    public async Task<ActionResult<List<SalesAgreementDto>>> CancelledOrders(CancellationToken ct)
+    {
+        var rows = await db.SalesAgreements
+            .Where(a => a.CancelledAtUtc != null)
+            .OrderByDescending(a => a.CancelledAtUtc)
+            .Take(200)
+            .ToListAsync(ct);
+        return Ok(rows.Select(SalesAgreementDto.FromEntity));
     }
 
     /// Marks the bank transfer as received: the invitation becomes

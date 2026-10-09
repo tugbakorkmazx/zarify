@@ -30,6 +30,11 @@ public class Invitation
     /// that were already live before payments existed.
     public string? PaymentReference { get; set; }
 
+    /// The price at the moment the order was placed (PendingPayment). What
+    /// the payment screen, the admin queue and the accepted contract show —
+    /// later changes to Payment:AmountTry never reach an existing order.
+    public decimal? AmountTry { get; set; }
+
     public required string BrideName { get; set; }
     public required string GroomName { get; set; }
     public required DateOnly WeddingDate { get; set; }
@@ -57,7 +62,8 @@ public class Invitation
     /// When the owner ticked "I've read the Pre-Contract Information Form and
     /// the Distance Sales Contract" before publishing — the server's clock,
     /// not the browser's — and which version of those texts they saw. Null
-    /// only on invitations created before the checkbox existed.
+    /// only on invitations created before the checkbox existed. The durable
+    /// copy that survives deletion is the SalesAgreement row.
     public DateTime? DistanceSalesAcceptedAtUtc { get; set; }
     public string? DistanceSalesVersion { get; set; }
 

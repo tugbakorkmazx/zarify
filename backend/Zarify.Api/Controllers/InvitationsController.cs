@@ -14,7 +14,7 @@ namespace Zarify.Api.Controllers;
 
 [ApiController]
 [Route("api/invitations")]
-public class InvitationsController(ZarifyDbContext db) : ControllerBase
+public class InvitationsController(ZarifyDbContext db, ILogger<InvitationsController> logger) : ControllerBase
 {
     private const int MaxCreateAttempts = 5;
     private const string SlugIndex = "IX_Invitations_Slug";
@@ -23,10 +23,13 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
     /// Creates the signed-in user's invitation and returns it with the slug
     /// its public page (and share link) will be addressed by. It starts as
     /// PendingPayment: the link goes live once an admin confirms the bank
-    /// transfer (see AdminController).
+    /// transfer (see AdminController). The current price is fixed onto the
+    /// order here, and the accepted contract is recorded in its own
+    /// SalesAgreement row, which outlives the invitation.
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<InvitationDto>> Create(CreateInvitationRequest request, CancellationToken ct)
+    public async Task<ActionResult<InvitationDto>> Create(
+        CreateInvitationRequest request, [FromServices] IOptions<PaymentOptions> paymentOptions, CancellationToken ct)
     {
         if (!TryGetUserId(out var userId))
         {
@@ -36,11 +39,19 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         // The JWT can outlive the account it names (e.g. the account was
         // removed after the token was issued) — check up front rather than
         // letting that surface as an opaque foreign-key failure from
-        // SaveChangesAsync below.
-        var userExists = await db.Users.AnyAsync(u => u.Id == userId, ct);
-        if (!userExists)
+        // SaveChangesAsync below. The buyer's details are copied onto the
+        // agreement record.
+        var buyer = await db.Users.SingleOrDefaultAsync(u => u.Id == userId, ct);
+        if (buyer is null)
         {
             return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+
+        // No order without a price: the amount accepted in the contract is
+        // the one stored on it.
+        if (paymentOptions.Value.AmountTry is not { } price || price <= 0)
+        {
+            return this.Error(StatusCodes.Status503ServiceUnavailable, ErrorCodes.PaymentNotConfigured);
         }
 
         // Publishing starts a paid, distance contract — the owner must have
@@ -65,6 +76,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 Slug = slug,
                 TemplateSlug = request.TemplateSlug.Trim(),
                 PaymentReference = PaymentReferenceGenerator.New(),
+                AmountTry = price,
                 BrideName = "",
                 GroomName = "",
                 WeddingDate = request.WeddingDate,
@@ -77,6 +89,21 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
             ApplyFields(invitation, request);
 
             db.Invitations.Add(invitation);
+            var agreement = new SalesAgreement
+            {
+                Invitation = invitation,
+                UserId = buyer.Id,
+                UserEmail = buyer.Email,
+                UserFirstName = buyer.FirstName,
+                UserLastName = buyer.LastName,
+                InvitationSlug = invitation.Slug,
+                CoupleNames = $"{invitation.BrideName} & {invitation.GroomName}",
+                PaymentReference = invitation.PaymentReference,
+                AmountTry = price,
+                AcceptedAtUtc = acceptedAtUtc,
+                Version = acceptedVersion,
+            };
+            db.SalesAgreements.Add(agreement);
             try
             {
                 await db.SaveChangesAsync(ct);
@@ -92,6 +119,7 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 // and every attempt draws a fresh reference anyway. Any other
                 // DbUpdateException (e.g. a foreign-key failure) is a problem
                 // a retry won't fix, so it propagates.
+                db.Entry(agreement).State = EntityState.Detached;
                 db.Entry(invitation).State = EntityState.Detached;
                 if (IsUniqueViolation(ex, SlugIndex))
                 {
@@ -234,7 +262,10 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         }
 
         var payment = paymentOptions.Value;
-        if (!payment.IsConfigured)
+        // The amount is the one fixed on the order; only the account details
+        // come from current configuration.
+        var amount = invitation.AmountTry ?? payment.AmountTry;
+        if (string.IsNullOrWhiteSpace(payment.Iban) || string.IsNullOrWhiteSpace(payment.AccountHolder) || amount is not > 0)
         {
             return this.Error(StatusCodes.Status503ServiceUnavailable, ErrorCodes.PaymentNotConfigured);
         }
@@ -247,7 +278,67 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
         }
 
         return Ok(new PaymentInstructionsDto(
-            invitation.PaymentReference!, payment.BankName, payment.AccountHolder!, payment.Iban!, payment.AmountTry!.Value));
+            invitation.PaymentReference!, payment.BankName, payment.AccountHolder!, payment.Iban!, amount!.Value));
+    }
+
+    /// The accepted-contract record for one of the owner's invitations: when
+    /// they accepted, which version, at what price.
+    [Authorize]
+    [HttpGet("{id:guid}/agreement")]
+    public async Task<ActionResult<SalesAgreementDto>> Agreement(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+
+        var agreement = await db.SalesAgreements
+            .Where(a => a.InvitationId == id && a.Invitation!.UserId == userId)
+            .OrderByDescending(a => a.AcceptedAtUtc)
+            .FirstOrDefaultAsync(ct);
+        return agreement is null
+            ? this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound)
+            : Ok(SalesAgreementDto.FromEntity(agreement));
+    }
+
+    /// Cancels an order that hasn't been published yet: the invitation (and
+    /// anything hanging off it) is deleted, while its SalesAgreement row is
+    /// kept and marked cancelled, for the admin's records and the legal
+    /// retention period. A published invitation can't be cancelled here.
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+
+        var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
+        if (invitation is null)
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
+        }
+        if (invitation.Status == InvitationStatus.Published)
+        {
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.CannotCancelPublished);
+        }
+
+        var now = DateTime.UtcNow;
+        var agreements = await db.SalesAgreements.Where(a => a.InvitationId == id).ToListAsync(ct);
+        foreach (var agreement in agreements)
+        {
+            agreement.CancelledAtUtc = now;
+        }
+        // SetNull: EF clears the agreements' InvitationId as it deletes.
+        db.Invitations.Remove(invitation);
+        await db.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Invitation {InvitationId} ({Slug}, ref {Reference}) cancelled by its owner {UserId}",
+            invitation.Id, invitation.Slug, invitation.PaymentReference, userId);
+
+        return NoContent();
     }
 
     /// The signed-in owner's own invitations, newest first, each with its
@@ -267,6 +358,13 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
             .ToListAsync(ct);
 
         var ids = invitations.Select(i => i.Id).ToList();
+        var sameName = await db.Rsvps
+            .Where(r => ids.Contains(r.InvitationId))
+            .GroupBy(r => new { r.InvitationId, r.GuestNameKey })
+            .Where(g => g.Count() > 1)
+            .Select(g => new { g.Key.InvitationId, Replies = g.Count() })
+            .ToListAsync(ct);
+
         var tallies = await db.Rsvps
             .Where(r => ids.Contains(r.InvitationId))
             .GroupBy(r => new { r.InvitationId, r.Attendance })
@@ -284,14 +382,16 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
                 yes?.Guests ?? 0,
                 maybe?.Responses ?? 0,
                 maybe?.Guests ?? 0,
-                no?.Responses ?? 0);
+                no?.Responses ?? 0,
+                sameName.Where(s => s.InvitationId == invitationId).Sum(s => s.Replies));
         }
 
         return Ok(invitations.Select(i => new MyInvitationDto(InvitationDto.FromEntity(i), SummaryFor(i.Id))));
     }
 
     /// Every reply to one of the signed-in owner's invitations, most
-    /// recently created or updated first. Guest names and notes are private to the couple, so another
+    /// recently created or updated first, with replies that share a name
+    /// flagged. Guest names and notes are private to the couple, so another
     /// user's invitation id gets the same 404 as a nonexistent one.
     [Authorize]
     [HttpGet("{id:guid}/rsvps")]
@@ -313,7 +413,12 @@ public class InvitationsController(ZarifyDbContext db) : ControllerBase
             .OrderByDescending(r => r.UpdatedAtUtc ?? r.CreatedAtUtc)
             .ToListAsync(ct);
 
-        return Ok(rsvps.Select(RsvpDto.FromEntity));
+        var sharedKeys = rsvps
+            .GroupBy(r => r.GuestNameKey)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet();
+        return Ok(rsvps.Select(r => RsvpDto.FromEntity(r, sharedKeys.Contains(r.GuestNameKey))));
     }
 
     private bool TryGetUserId(out Guid userId)

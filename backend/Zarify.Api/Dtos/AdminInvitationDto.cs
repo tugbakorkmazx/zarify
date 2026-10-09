@@ -6,4 +6,4 @@ public record InvitationOwnerDto(string Email, string FirstName, string LastName
 /// the operator can match it against the incoming bank transfer.
 /// PaymentReference is kept out of InvitationDto (which guests also get) —
 /// only the owner's payment screen and this admin row carry it.
-public record AdminInvitationDto(InvitationDto Invitation, InvitationOwnerDto Owner, string? PaymentReference);
+public record AdminInvitationDto(InvitationDto Invitation, InvitationOwnerDto Owner, string? PaymentReference, decimal? AmountTry);

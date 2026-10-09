@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 using Zarify.Api.Data;
 using Zarify.Api.Dtos;
 using Zarify.Api.Models;
@@ -14,10 +15,12 @@ namespace Zarify.Api.Controllers;
 public class RsvpController(ZarifyDbContext db) : ControllerBase
 {
     /// Public — guests reply straight from the shared link, no account.
-    /// A guest replying again under the same name (compared by its folded
-    /// GuestNameKey — case, Turkish letters and extra spaces ignored)
-    /// updates their earlier reply instead of adding a second one: 201 for a
-    /// new reply, 200 for an update.
+    /// A new reply gets a random edit token, returned once and kept only as
+    /// a hash; the guest's browser stores it, and a later submission carrying
+    /// it updates that reply (200). Without a matching token the submission
+    /// is a new reply (201) — even under a name that has already replied, so
+    /// nobody can overwrite someone else's answer by typing their name. The
+    /// owner's list flags replies that share a name.
     [HttpPost]
     [EnableRateLimiting(RateLimitPolicies.Rsvp)]
     public async Task<IActionResult> Create(CreateRsvpRequest request, CancellationToken ct)
@@ -52,65 +55,59 @@ public class RsvpController(ZarifyDbContext db) : ControllerBase
         var guestCount = attendance == RsvpAttendance.No ? 0 : request.Guests;
         var message = string.IsNullOrWhiteSpace(request.Message) ? null : request.Message.Trim();
 
-        var existing = await FindExisting(invitation.Id, nameKey, ct);
-        if (existing is not null)
+        if (!string.IsNullOrWhiteSpace(request.EditToken))
         {
-            ApplyUpdate(existing, guestName, attendance, guestCount, message);
-            await db.SaveChangesAsync(ct);
-            return Ok(RsvpDto.FromEntity(existing));
+            var tokenHash = HashToken(request.EditToken);
+            var existing = await db.Rsvps.SingleOrDefaultAsync(
+                r => r.InvitationId == invitation.Id && r.EditTokenHash == tokenHash, ct);
+            if (existing is not null)
+            {
+                ApplyUpdate(existing, guestName, nameKey, attendance, guestCount, message);
+                await db.SaveChangesAsync(ct);
+                return Ok(new GuestRsvpResponse(existing.Id, RsvpDto.AttendanceToWire(attendance), request.EditToken));
+            }
+            // An unknown token (the reply was deleted, or it belongs to
+            // another invitation) falls through to a fresh reply.
         }
 
+        var editToken = NewToken();
         var rsvp = new Rsvp
         {
             InvitationId = invitation.Id,
             GuestName = guestName,
             GuestNameKey = nameKey,
+            EditTokenHash = HashToken(editToken),
             Attendance = attendance,
             GuestCount = guestCount,
             Message = message,
         };
         db.Rsvps.Add(rsvp);
-
-        try
-        {
-            await db.SaveChangesAsync(ct);
-            return StatusCode(StatusCodes.Status201Created, RsvpDto.FromEntity(rsvp));
-        }
-        catch (DbUpdateException ex) when (IsDuplicateGuest(ex))
-        {
-            // The same guest submitted twice at once (double tap, two
-            // tabs) and the other request inserted first — the unique index
-            // caught it. Fall back to updating that row.
-            db.Entry(rsvp).State = EntityState.Detached;
-            existing = await FindExisting(invitation.Id, nameKey, ct);
-            if (existing is null)
-            {
-                throw;
-            }
-            ApplyUpdate(existing, guestName, attendance, guestCount, message);
-            await db.SaveChangesAsync(ct);
-            return Ok(RsvpDto.FromEntity(existing));
-        }
+        await db.SaveChangesAsync(ct);
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new GuestRsvpResponse(rsvp.Id, RsvpDto.AttendanceToWire(attendance), editToken));
     }
-
-    private Task<Rsvp?> FindExisting(Guid invitationId, string nameKey, CancellationToken ct) =>
-        db.Rsvps.SingleOrDefaultAsync(r => r.InvitationId == invitationId && r.GuestNameKey == nameKey, ct);
 
     /// The latest submission replaces the earlier one wholesale — name
     /// spelling and note included. The form never shows a guest their
     /// previous reply, so keeping any part of it (e.g. an old "Geliyoruz!"
     /// note on a reply that's now "No") would leave the couple reading
     /// something the guest can't see and didn't just say.
-    private static void ApplyUpdate(Rsvp rsvp, string guestName, RsvpAttendance attendance, int guestCount, string? message)
+    private static void ApplyUpdate(Rsvp rsvp, string guestName, string nameKey, RsvpAttendance attendance, int guestCount, string? message)
     {
         rsvp.GuestName = guestName;
+        rsvp.GuestNameKey = nameKey;
         rsvp.Attendance = attendance;
         rsvp.GuestCount = guestCount;
         rsvp.Message = message;
         rsvp.UpdatedAtUtc = DateTime.UtcNow;
     }
 
-    private static bool IsDuplicateGuest(DbUpdateException ex) =>
-        ex.InnerException is MySqlException { Number: 1062 } mysqlEx
-        && mysqlEx.Message.Contains("IX_Rsvps_InvitationId_GuestNameKey", StringComparison.Ordinal);
+    /// 32 random bytes, URL-safe base64 (43 characters).
+    private static string NewToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+    private static string HashToken(string token) =>
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(token.Trim())));
 }

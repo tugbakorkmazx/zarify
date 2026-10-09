@@ -12,6 +12,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
     public DbSet<User> Users => Set<User>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
+    public DbSet<SalesAgreement> SalesAgreements => Set<SalesAgreement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.HasIndex(i => i.Slug).IsUnique();
             entity.HasIndex(i => i.PaymentReference).IsUnique();
             entity.Property(i => i.PaymentReference).HasMaxLength(16);
+            entity.Property(i => i.AmountTry).HasPrecision(10, 2);
             entity.Property(i => i.DistanceSalesVersion).HasMaxLength(32);
             entity.Property(i => i.Slug).HasMaxLength(160);
             entity.Property(i => i.TemplateSlug).HasMaxLength(100);
@@ -71,16 +73,42 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             // Stored as text so the column stays readable in the database
             // and reordering the enum can never silently remap old rows.
             entity.Property(r => r.Attendance).HasConversion<string>().HasMaxLength(10);
+            entity.Property(r => r.EditTokenHash).HasMaxLength(64);
             entity.HasIndex(r => r.InvitationId);
-            // One reply per guest per invitation, where "same guest" means
-            // same folded name — also what catches two simultaneous
-            // submissions that both miss the upsert lookup.
-            entity.HasIndex(r => new { r.InvitationId, r.GuestNameKey }).IsUnique();
+            // Not unique: two guests may share a name. Kept for the owner
+            // list's "same name, several replies" flag.
+            entity.HasIndex(r => new { r.InvitationId, r.GuestNameKey });
+            entity.HasIndex(r => r.EditTokenHash).IsUnique();
 
             entity.HasOne(r => r.Invitation)
                 .WithMany()
                 .HasForeignKey(r => r.InvitationId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SalesAgreement>(entity =>
+        {
+            entity.Property(a => a.UserEmail).HasMaxLength(256);
+            entity.Property(a => a.UserFirstName).HasMaxLength(100);
+            entity.Property(a => a.UserLastName).HasMaxLength(100);
+            entity.Property(a => a.InvitationSlug).HasMaxLength(160);
+            entity.Property(a => a.CoupleNames).HasMaxLength(210);
+            entity.Property(a => a.PaymentReference).HasMaxLength(16);
+            entity.Property(a => a.AmountTry).HasPrecision(10, 2);
+            entity.Property(a => a.Version).HasMaxLength(32);
+            // The admin's cancelled-orders list.
+            entity.HasIndex(a => a.CancelledAtUtc);
+
+            // Deleting the invitation or the account must never take the
+            // agreement record with it — only the link is cleared.
+            entity.HasOne(a => a.Invitation)
+                .WithMany()
+                .HasForeignKey(a => a.InvitationId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

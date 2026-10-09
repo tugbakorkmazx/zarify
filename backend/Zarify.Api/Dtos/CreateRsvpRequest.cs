@@ -19,4 +19,10 @@ public class CreateRsvpRequest
 
     [MaxLength(1000)]
     public string? Message { get; set; }
+
+    /// The token this browser got back with its first reply. With it, the
+    /// reply is updated; without it (or with an unknown one) a new reply is
+    /// added — a name alone never overwrites anyone's answer.
+    [MaxLength(100)]
+    public string? EditToken { get; set; }
 }

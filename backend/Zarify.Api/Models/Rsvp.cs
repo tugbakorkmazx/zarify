@@ -19,9 +19,15 @@ public class Rsvp
     /// As the guest last typed it (whitespace tidied) — what the couple sees.
     public required string GuestName { get; set; }
 
-    /// Folded form of GuestName (see GuestNameKey) — how a repeat reply from
-    /// the same guest is recognised and updated instead of duplicated.
+    /// Folded form of GuestName (see GuestNameKey). No longer identifies the
+    /// guest — two people can share a name — it only lets the owner's list
+    /// flag several replies under the same name.
     public required string GuestNameKey { get; set; }
+
+    /// SHA-256 (hex) of the random edit token handed to the guest's browser
+    /// with their first reply. Only a request carrying that token may change
+    /// this reply. Null on replies made before tokens existed.
+    public string? EditTokenHash { get; set; }
     public required RsvpAttendance Attendance { get; set; }
 
     /// Headcount including the guest themselves. Always 0 for a "No" reply,
@@ -32,7 +38,6 @@ public class Rsvp
 
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-    /// Set when the same guest (same name, same invitation) replies again
-    /// and their earlier reply is overwritten rather than duplicated.
+    /// Set when the guest changed their reply with its edit token.
     public DateTime? UpdatedAtUtc { get; set; }
 }
