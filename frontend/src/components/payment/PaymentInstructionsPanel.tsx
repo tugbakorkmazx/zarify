@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getPaymentInstructions, type PaymentInstructions } from "@/lib/invitations";
 import { BUTTON_SECONDARY_SM } from "@/lib/ui";
 import { describeError } from "@/lib/apiErrors";
+import { paymentApprovalNote } from "@/lib/legal";
 
 const TRY = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" });
 
@@ -93,8 +94,8 @@ export function PaymentInstructionsPanel({ token, invitationId }: { token: strin
       </div>
 
       <p className="mt-4 font-body text-sm text-soot-soft">
-        Onay genellikle aynı gün içinde yapılır. Bu sayfaya Davetiyelerim panelinizden
-        her zaman geri dönebilirsiniz.
+        {paymentApprovalNote.tr} Bu sayfaya Davetiyelerim panelinizden her zaman geri
+        dönebilirsiniz.
       </p>
     </div>
   );

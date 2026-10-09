@@ -6,6 +6,7 @@ import { formatDateLine } from "@/lib/formatDateLine";
 import { CoverMiniature } from "@/components/art/CoverMiniature";
 import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, TEXT_LINK } from "@/lib/ui";
+import { paymentApprovalNote } from "@/lib/legal";
 import {
   getInvitationRsvps,
   type MyInvitation,
@@ -139,6 +140,7 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
             <p className="mx-auto max-w-2xl bg-paper-deep px-5 py-4 font-body text-lg leading-relaxed text-soot">
               Davetiyeniz hazır. Ödemeniz onaylanınca yayına alınır ve linkiniz misafirlerinize
               açılır — IBAN ve referans kodu için <strong className="font-semibold">Ödeme Bilgileri</strong>&apos;ne tıklayın.
+              {" "}{paymentApprovalNote.tr}
             </p>
           ) : !inv.rsvpEnabled ? (
             <p className="font-body text-lg italic text-soot-soft">

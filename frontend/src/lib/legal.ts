@@ -64,8 +64,16 @@ export const legalSettings = {
   /** Bump whenever the substance of any legal text changes. Also stored
    * with each invitation when the owner accepts the distance-sales texts,
    * so we know which version they agreed to. */
-  version: "2026-09-28",
-  lastUpdated: { tr: "28 Eylül 2026", en: "28 September 2026" },
+  version: "2026-10-08",
+  lastUpdated: { tr: "8 Ekim 2026", en: "8 October 2026" },
+};
+
+/** How long payment approval takes — the one wording used everywhere it's
+ * promised (payment screen, pre-contract form, contract). Change it here
+ * only, and bump legalSettings.version when you do. */
+export const paymentApprovalNote = {
+  tr: "Ödemeniz genellikle aynı gün, en geç 2 iş günü içinde onaylanır.",
+  en: "Your payment is usually approved the same day, and within 2 business days at the latest.",
 };
 
 export interface LegalPageLink {

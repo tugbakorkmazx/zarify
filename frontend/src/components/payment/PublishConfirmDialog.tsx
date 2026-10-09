@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { Price } from "@/components/legal/Placeholder";
+import { paymentApprovalNote } from "@/lib/legal";
 import { BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/lib/ui";
 
 /** The last step before an invitation is created and the payment screen
@@ -64,12 +65,12 @@ export function PublishConfirmDialog({
           {tr ? (
             <>
               Davetiye bedeli <Price />. Bir sonraki adımda havale bilgilerini ve size özel ödeme kodunu
-              göreceksiniz; ödemeniz onaylanınca davetiyeniz yayına alınır.
+              göreceksiniz; ödemeniz onaylanınca davetiyeniz yayına alınır. {paymentApprovalNote.tr}
             </>
           ) : (
             <>
               The invitation costs <Price />. Next you&apos;ll see the bank-transfer details and your own
-              payment reference; your invitation goes live once the payment is confirmed.
+              payment reference; your invitation goes live once the payment is confirmed. {paymentApprovalNote.en}
             </>
           )}
         </p>

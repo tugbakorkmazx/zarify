@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LegalLayout } from "@/components/legal/LegalLayout";
 import { Biz, Price } from "@/components/legal/Placeholder";
+import { paymentApprovalNote } from "@/lib/legal";
 
 /* The three texts behind a purchase — Ön Bilgilendirme Formu, Mesafeli
  * Satış Sözleşmesi and İptal ve İade Politikası — written against the
@@ -76,8 +77,7 @@ function PaymentTr() {
       </p>
       <p>
         Hizmetin ifasına, havalenin hesabımıza ulaştığı tarafımızca doğrulandığında başlanır: davetiyeniz
-        yayına alınır ve bağlantısı misafirlere açılır. Doğrulama, havalenin hesaba geçmesinden itibaren
-        en geç 2 iş günü içinde yapılır.
+        yayına alınır ve bağlantısı misafirlere açılır. {paymentApprovalNote.tr}
       </p>
     </>
   );
@@ -94,8 +94,7 @@ function PaymentEn() {
       </p>
       <p>
         Performance begins once we confirm that the transfer has reached our account: your invitation is
-        published and its link opens to guests. We confirm within 2 business days at the latest of the
-        transfer arriving.
+        published and its link opens to guests. {paymentApprovalNote.en}
       </p>
     </>
   );
