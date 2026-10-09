@@ -95,7 +95,13 @@ export default function MyInvitationsPage() {
         <ul className="flex flex-col divide-y divide-soot/40 [&>li]:py-12 [&>li:first-child]:pt-0">
           {items.map((item) => (
             <li key={item.invitation.id}>
-              <InvitationCard item={item} token={token} />
+              <InvitationCard
+                item={item}
+                token={token}
+                onCancelled={() =>
+                  setItems((current) => current.filter((i) => i.invitation.id !== item.invitation.id))
+                }
+              />
             </li>
           ))}
         </ul>

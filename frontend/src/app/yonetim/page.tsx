@@ -7,7 +7,9 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { OwnerShell } from "@/components/owner/OwnerShell";
 import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { BUTTON_PRIMARY_SM, TEXT_LINK } from "@/lib/ui";
-import { approvePayment, getPendingPayments, type AdminInvitation } from "@/lib/admin";
+import { approvePayment, getCancelledOrders, getPendingPayments, type AdminInvitation } from "@/lib/admin";
+import type { SalesAgreement } from "@/lib/invitations";
+import { formatPrice } from "@/lib/pricing";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { describeError } from "@/lib/apiErrors";
 
@@ -22,6 +24,7 @@ export default function AdminPage() {
   const { ready, user, token, logout } = useAuth();
   const router = useRouter();
   const [items, setItems] = useState<AdminInvitation[]>([]);
+  const [cancelledOrders, setCancelledOrders] = useState<SalesAgreement[]>([]);
   const [status, setStatus] = useState<Status>("loading");
 
   useEffect(() => {
@@ -31,10 +34,11 @@ export default function AdminPage() {
       return;
     }
     let cancelled = false;
-    getPendingPayments(token)
-      .then((result) => {
+    Promise.all([getPendingPayments(token), getCancelledOrders(token)])
+      .then(([pending, cancelledList]) => {
         if (cancelled) return;
-        setItems(result);
+        setItems(pending);
+        setCancelledOrders(cancelledList);
         setStatus("ready");
       })
       .catch((err) => {
@@ -119,6 +123,45 @@ export default function AdminPage() {
           </ul>
         </>
       )}
+
+      {status === "ready" && (
+        <section aria-labelledby="cancelled-orders" className="mt-16 text-center">
+          <h2 id="cancelled-orders" className="font-display text-3xl leading-tight text-soot">
+            İptal Edilen Siparişler
+          </h2>
+          <p className="mx-auto mt-2 max-w-[52ch] font-body text-base italic text-soot-soft">
+            Sahibi tarafından yayından önce iptal edilen siparişler. Davetiye silinmiştir; sözleşme kaydı
+            saklanır. Bu referansla havale geldiyse iade edin.
+          </p>
+          {cancelledOrders.length === 0 ? (
+            <p className="mt-6 bg-paper-deep px-6 py-6 font-body text-lg text-soot-soft">
+              İptal edilen sipariş yok.
+            </p>
+          ) : (
+            <ul className="mx-auto mt-6 max-w-3xl divide-y divide-soot/20 border-y border-soot">
+              {cancelledOrders.map((order) => (
+                <li key={order.id} className="flex flex-col items-center gap-1 py-5">
+                  <p className="font-display numerals text-2xl leading-none text-wine">
+                    {order.paymentReference ?? "—"}
+                    <span className="ml-3 font-body text-lg text-soot">{formatPrice(order.amountTry, "tr")}</span>
+                  </p>
+                  <p className="font-body text-lg text-soot">
+                    <CoupleNames names={order.coupleNames} />
+                  </p>
+                  <p className="font-body text-base text-soot-soft">
+                    {order.userFirstName} {order.userLastName} ·{" "}
+                    <span className="break-all">{order.userEmail}</span>
+                  </p>
+                  <p className="font-body text-sm text-soot-soft">
+                    Sipariş: {DATE_TIME.format(new Date(order.acceptedAtUtc))} · İptal:{" "}
+                    {order.cancelledAtUtc ? DATE_TIME.format(new Date(order.cancelledAtUtc)) : "—"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </OwnerShell>
   );
 }
@@ -157,6 +200,9 @@ function PendingRow({
         <p className="font-display numerals text-3xl leading-none tracking-wide text-wine">
           {paymentReference ?? "—"}
         </p>
+        {item.amountTry != null && (
+          <p className="mt-2 font-body text-lg text-soot">{formatPrice(item.amountTry, "tr")}</p>
+        )}
         <p className="mt-2 break-all font-body text-sm text-soot-soft">/{inv.slug}</p>
       </div>
 

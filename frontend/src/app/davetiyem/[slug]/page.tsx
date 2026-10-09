@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { BUTTON_PRIMARY, BUTTON_PRIMARY_SM, BUTTON_SECONDARY, TEXT_LINK } from "@/lib/ui";
 import { PaymentInstructionsPanel } from "@/components/payment/PaymentInstructionsPanel";
+import { OrderSummary } from "@/components/payment/OrderSummary";
 import { useAuth } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 
@@ -115,6 +116,8 @@ export default function InvitationReadyPage() {
           </div>
         </>
       )}
+
+      {invitation && token && <OrderSummary token={token} invitationId={invitation.id} />}
 
       {invitation && (
         <div className="flex flex-wrap items-center gap-4">

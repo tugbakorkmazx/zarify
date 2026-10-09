@@ -7,7 +7,10 @@ import { CoverMiniature } from "@/components/art/CoverMiniature";
 import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, TEXT_LINK } from "@/lib/ui";
 import { paymentApprovalNote } from "@/lib/legal";
+import { describeError } from "@/lib/apiErrors";
+import { CancelOrderDialog } from "@/components/payment/CancelOrderDialog";
 import {
+  cancelInvitation,
   getInvitationRsvps,
   type MyInvitation,
   type RsvpAttendance,
@@ -42,15 +45,40 @@ function Tally({
   );
 }
 
-/** One published invitation on the owner's dashboard: its details, share
- * link, RSVP tallies, and the guest replies behind them (loaded on demand,
- * since most visits only need the numbers). */
-export function InvitationCard({ item, token }: { item: MyInvitation; token: string }) {
+/** One invitation on the owner's dashboard: its details, share link, RSVP
+ * tallies, and the guest replies behind them (loaded on demand, since most
+ * visits only need the numbers). An order that isn't published yet can be
+ * cancelled from here; a published one can't. */
+export function InvitationCard({
+  item,
+  token,
+  onCancelled,
+}: {
+  item: MyInvitation;
+  token: string;
+  onCancelled: () => void;
+}) {
   const { invitation: inv, rsvp } = item;
   const [open, setOpen] = useState(false);
   const [replies, setReplies] = useState<RsvpDto[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  async function handleCancel() {
+    setCancelError(null);
+    setCancelling(true);
+    try {
+      await cancelInvitation(token, inv.id);
+      setCancelOpen(false);
+      onCancelled();
+    } catch (err) {
+      setCancelError(describeError(err));
+      setCancelling(false);
+    }
+  }
 
   const totalResponses = rsvp.attendingResponses + rsvp.maybeResponses + rsvp.notAttendingResponses;
   const isLive = inv.status === "published";
@@ -126,6 +154,19 @@ export function InvitationCard({ item, token }: { item: MyInvitation; token: str
             <Link href={`/davetiyelerim/${inv.id}/duzenle`} className={BUTTON_SECONDARY_SM}>
               Düzenle
             </Link>
+            {/* Only before publishing — a live invitation's link is already out. */}
+            {!isLive && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCancelError(null);
+                  setCancelOpen(true);
+                }}
+                className={BUTTON_SECONDARY_SM}
+              >
+                Siparişi İptal Et
+              </button>
+            )}
             {/* The share link only works for guests once the invitation is live. */}
             {isLive && (
               <button type="button" onClick={handleCopy} className={BUTTON_SECONDARY_SM}>

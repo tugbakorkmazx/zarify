@@ -206,3 +206,46 @@ export async function getInvitationRsvps(token: string, invitationId: string): P
   }
   return res.json();
 }
+
+/** The accepted-contract record of one order — it outlives the invitation
+ * (kept at least three years even after cancellation or account deletion). */
+export interface SalesAgreement {
+  id: string;
+  invitationId: string | null;
+  invitationSlug: string;
+  coupleNames: string;
+  paymentReference: string | null;
+  /** The price fixed on the order when it was placed. */
+  amountTry: number;
+  acceptedAtUtc: string;
+  /** legalSettings.version of the texts accepted. */
+  version: string | null;
+  userEmail: string;
+  userFirstName: string;
+  userLastName: string;
+  cancelledAtUtc: string | null;
+}
+
+/** The owner's accepted-contract record for one invitation. */
+export async function getInvitationAgreement(token: string, invitationId: string): Promise<SalesAgreement> {
+  const res = await fetch(`${API_URL}/api/invitations/${invitationId}/agreement`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+  return res.json();
+}
+
+/** Cancels an order that isn't published yet: the invitation is deleted,
+ * its contract record kept and marked cancelled. */
+export async function cancelInvitation(token: string, invitationId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/invitations/${invitationId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+}

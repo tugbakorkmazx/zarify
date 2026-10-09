@@ -31,6 +31,10 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
     en: "Payment details aren't set up yet. Please contact us.",
   },
   NOT_AWAITING_PAYMENT: { tr: "Bu davetiye ödeme beklemiyor.", en: "This invitation isn't awaiting payment." },
+  CANNOT_CANCEL_PUBLISHED: {
+    tr: "Yayındaki bir davetiye iptal edilemez.",
+    en: "A published invitation can't be cancelled.",
+  },
   DISTANCE_SALES_NOT_ACCEPTED: {
     tr: "Devam etmek için Ön Bilgilendirme Formu'nu ve Mesafeli Satış Sözleşmesi'ni onaylamanız gerekir.",
     en: "To continue, please confirm the Pre-Contract Information Form and the Distance Sales Contract.",
