@@ -1,7 +1,7 @@
 import { apiErrorFrom } from "@/lib/apiErrors";
 import type { InvitationDto } from "@/lib/invitations";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
+import { API_URL } from "@/lib/apiUrl";
 
 export interface AdminInvitation {
   invitation: InvitationDto;

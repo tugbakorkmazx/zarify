@@ -8,7 +8,7 @@ import { BUTTON_PRIMARY } from "@/lib/ui";
 import { apiErrorFrom } from "@/lib/apiErrors";
 import { coupleInitials } from "@/lib/coupleInitials";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
+import { API_URL } from "@/lib/apiUrl";
 
 type Attendance = "yes" | "maybe" | "no";
 

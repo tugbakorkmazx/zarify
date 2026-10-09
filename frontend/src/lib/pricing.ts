@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
+import { API_URL } from "@/lib/apiUrl";
 
 export interface Pricing {
   amountTry: number | null;

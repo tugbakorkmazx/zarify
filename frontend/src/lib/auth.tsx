@@ -3,7 +3,7 @@
 import { apiErrorFrom, pageLanguage } from "@/lib/apiErrors";
 import { useCallback, useSyncExternalStore } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5097";
+import { API_URL } from "@/lib/apiUrl";
 const STORAGE_KEY = "zarify.auth";
 
 export interface AuthUser {
