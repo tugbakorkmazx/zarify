@@ -22,6 +22,8 @@ builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 
 // Add services to the container.
 
 builder.Services.AddControllers()
+    // Stored times are UTC; say so on the wire (see UtcDateTimeConverter).
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new UtcDateTimeConverter()))
     // Invalid input answers with the same { code, message } shape as every
     // other error (see ApiErrors) instead of ASP.NET's ProblemDetails.
     .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = ApiErrors.InvalidModelState);
