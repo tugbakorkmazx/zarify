@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromInvitation } from "@/lib/invitationForm";
+import { venueMapUrl } from "@/lib/mapUrl";
 
 type Status = "loading" | "found" | "not-found" | "not-published" | "error";
 
@@ -117,6 +118,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
         venueLine={`${inv.venueName}, ${inv.venueAddress}`}
         venueName={inv.venueName}
         venueAddress={inv.venueAddress}
+        mapUrl={venueMapUrl(inv.venueName, inv.venueAddress)}
         content={contentFromInvitation(inv)}
         rsvpEnabled={inv.rsvpEnabled}
         // Not live yet → the RSVP form runs in preview mode (nothing saved).

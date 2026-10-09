@@ -8,6 +8,7 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { useInvitationDraft } from "@/lib/invitationDraft";
 import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
+import { venueMapUrl } from "@/lib/mapUrl";
 import { contentFromValues, toApiFields } from "@/lib/invitationForm";
 import { describeError } from "@/lib/apiErrors";
 import { legalSettings } from "@/lib/legal";
@@ -90,7 +91,7 @@ export default function HerbaryumPreviewPage() {
       venueLine={venueLine}
       venueName={draft?.venueName}
       venueAddress={draft?.venueAddress}
-      mapUrl={draft ? undefined : PLACEHOLDER_MAP_URL}
+      mapUrl={draft ? venueMapUrl(draft.venueName, draft.venueAddress) : PLACEHOLDER_MAP_URL}
       content={content}
       rsvpEnabled={rsvpEnabled}
     />
