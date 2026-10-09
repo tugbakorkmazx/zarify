@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { PHASE_PRODUCTION_BUILD } from "next/constants";
+import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -81,8 +81,25 @@ export default function config(phase: string): NextConfig {
   // crawlers could never see this header.)
   const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
 
+  // Dev only: DEV_API_PROXY=http://localhost:5097 makes the dev server
+  // forward /api/* to the API, so a phone on the network only needs to
+  // reach port 3000 and the API can stay bound to localhost. Pair it with
+  // NEXT_PUBLIC_API_URL set to the dev server's own LAN address.
+  const devApiProxy = phase === PHASE_DEVELOPMENT_SERVER ? process.env.DEV_API_PROXY?.trim() : undefined;
+
   return {
     poweredByHeader: false,
+    async rewrites() {
+      return devApiProxy ? [{ source: "/api/:path*", destination: `${devApiProxy}/api/:path*` }] : [];
+    },
+    // `next dev` only serves its dev assets to localhost. To open the dev
+    // server from a phone on the same network, list this machine's LAN
+    // address(es) — hostnames only, comma-separated — e.g.
+    // DEV_ALLOWED_ORIGINS=192.168.1.20. Ignored by production builds.
+    allowedDevOrigins: (process.env.DEV_ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((host) => host.trim())
+      .filter(Boolean),
     async headers() {
       return [
         { source: "/(.*)", headers: securityHeaders },
