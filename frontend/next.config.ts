@@ -32,7 +32,9 @@ function checkBuildEnv() {
 }
 
 export default function config(phase: string): NextConfig {
-  if (phase === PHASE_PRODUCTION_BUILD) {
+  // `next typegen` loads this config in the same phase but builds nothing,
+  // so the check is limited to an actual `next build`.
+  if (phase === PHASE_PRODUCTION_BUILD && process.argv.includes("build")) {
     checkBuildEnv();
   }
 
