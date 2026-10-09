@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { useInvitationDraft } from "@/lib/invitationDraft";
+import { useInvitationDraft, type InvitationDraft } from "@/lib/invitationDraft";
 import { EMPTY_FORM } from "@/lib/invitationForm";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { InvitationFields } from "./InvitationFields";
@@ -16,10 +16,6 @@ export function InvitationDetailsForm() {
   const { ready, user } = useAuth();
   const { draft, saveDraft } = useInvitationDraft();
   const router = useRouter();
-  // draft comes from useSyncExternalStore, already resolved to its real
-  // client value by the time this component's initializer runs — no effect
-  // needed to seed the form from it.
-  const [form, setForm] = useState(() => draft ?? EMPTY_FORM);
 
   // Guard the route: only signed-in users get here. Waits for `ready` —
   // during hydration `user` is still the server's logged-out snapshot.
@@ -29,14 +25,43 @@ export function InvitationDetailsForm() {
     }
   }, [ready, user, router]);
 
-  function handleSubmit() {
-    saveDraft(form);
-    router.push("/sablonlar");
+  // During SSR and the hydration render the stored draft reads as null (the
+  // server snapshot) even when one exists, so the form can't be seeded yet:
+  // seeding it then would show an empty form on a refresh, and submitting
+  // that would overwrite the saved draft. Nothing is rendered — so nothing
+  // can be submitted — until the first client render, where `draft` is the
+  // real stored value.
+  if (!ready || !user) {
+    return (
+      <AuthLayout eyebrow="Davetiye Bilgileri" title="Davetiyenizi anlatın." wide>
+        <p className="font-body text-lg text-soot-soft" role="status">
+          Bilgileriniz yükleniyor…
+        </p>
+      </AuthLayout>
+    );
   }
 
-  if (!user) {
-    return null;
-  }
+  return (
+    <DraftForm
+      initial={draft}
+      onSave={(values) => {
+        saveDraft(values);
+        router.push("/sablonlar");
+      }}
+    />
+  );
+}
+
+/** Mounted only once the stored draft is known, so its initial state is the
+ * real draft (or a blank form when there truly is none). */
+function DraftForm({
+  initial,
+  onSave,
+}: {
+  initial: InvitationDraft | null;
+  onSave: (values: InvitationDraft) => void;
+}) {
+  const [form, setForm] = useState(() => initial ?? EMPTY_FORM);
 
   return (
     <AuthLayout eyebrow="Davetiye Bilgileri" title="Davetiyenizi anlatın." wide>
@@ -48,7 +73,7 @@ export function InvitationDetailsForm() {
       <InvitationFields
         values={form}
         onChange={setForm}
-        onSubmit={handleSubmit}
+        onSubmit={() => onSave(form)}
         submitLabel="Davetiyemi Oluştur"
       />
     </AuthLayout>
