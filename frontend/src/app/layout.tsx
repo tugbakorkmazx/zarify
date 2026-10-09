@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Gloock, Pinyon_Script } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n";
+import { SITE_URL } from "@/lib/apiUrl";
 import "./globals.css";
 
 // Magazine-cover display voice (see DESIGN.md). Single weight that reads
@@ -28,6 +29,8 @@ const pinyonScript = Pinyon_Script({
 });
 
 export const metadata: Metadata = {
+  // Makes Open Graph image URLs absolute — share previews need that.
+  metadataBase: new URL(SITE_URL),
   title: "Zarify — Dijital Düğün Davetiyesi",
   description:
     "Şablon seçin, bilgilerinizi girin; düğün davetiyesi sayfanız dakikalar içinde hazır olsun.",

@@ -1,138 +1,57 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
-import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
-import { useAuth } from "@/lib/auth";
-import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
+import type { Metadata } from "next";
+import { PublicInvitationView } from "@/components/invitation/PublicInvitationView";
+import { getPublishedInvitation } from "@/lib/publicInvitation";
 import { formatDateLine } from "@/lib/formatDateLine";
-import { contentFromInvitation } from "@/lib/invitationForm";
 
-type Status = "loading" | "found" | "not-found" | "not-published" | "error";
-
-const MESSAGES: Record<"not-found" | "not-published" | "error", { title: string; body: string }> = {
-  "not-found": {
-    title: "Bu davetiyeyi bulamadık.",
-    body: "Link yanlış yazılmış ya da davetiye kaldırılmış olabilir.",
-  },
-  "not-published": {
-    title: "Bu davetiye henüz yayında değil.",
-    body: "Davetiye sahibi yayına aldığında bu link çalışmaya başlayacak. Lütfen daha sonra tekrar deneyin.",
-  },
-  error: {
-    title: "Davetiye şu anda yüklenemedi.",
-    body: "Bir sorun oluştu. Lütfen biraz sonra tekrar deneyin.",
-  },
+// Guests' pages carry a couple's names, date and venue: kept out of search
+// engines (next.config.ts also sends X-Robots-Tag for the whole path).
+const robots: Metadata["robots"] = {
+  index: false,
+  follow: false,
+  googleBot: { index: false, follow: false },
 };
 
-/** The public, guest-facing page a shared invitation link opens — no
- * account, no login, just the couple's actual saved details fetched by
- * slug. This is the real counterpart to the local-draft preview under
- * /sablonlar/[template].
- *
- * Guests only ever see a Published invitation. If the owner opens their own
- * link while the payment is still pending, their session token lets them
- * see it as a preview (banner on top, RSVP form in preview mode). */
-export default function PublicInvitationPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const { ready, token } = useAuth();
-  const [invitation, setInvitation] = useState<InvitationDto | null>(null);
-  const [status, setStatus] = useState<Status>("loading");
+/** What a shared link shows in WhatsApp, iMessage, X…: the couple's names,
+ * the date and the venue, with the cover image (./opengraph-image.tsx).
+ * Only for a Published invitation — anything else gets a generic preview
+ * that names nobody. */
+export async function generateMetadata({ params }: PageProps<"/davetiye/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const invitation = await getPublishedInvitation(slug);
 
-  useEffect(() => {
-    // Wait for the stored session to be read, so an owner's token goes
-    // along with the first request instead of racing it.
-    if (!ready) return;
-    let cancelled = false;
-    getInvitationBySlug(slug, token)
-      .then((result) => {
-        if (cancelled) return;
-        if (result.kind === "found") {
-          setInvitation(result.invitation);
-          setStatus("found");
-        } else {
-          setStatus(result.kind);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
-    return () => {
-      cancelled = true;
+  if (!invitation) {
+    return {
+      title: "Davetiye — Zarify",
+      description: "Bir düğün davetiyesi.",
+      robots,
     };
-  }, [slug, ready, token]);
-
-  if (status === "loading") {
-    return (
-      <main className="paper-ground min-h-svh flex items-center justify-center px-6">
-        <p className="font-body text-lg text-soot-soft" role="status">Davetiye yükleniyor…</p>
-      </main>
-    );
   }
 
-  if (status !== "found") {
-    const message = MESSAGES[status];
-    return (
-      <main className="paper-ground min-h-svh flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-display text-3xl text-soot">{message.title}</p>
-        <p className="max-w-sm font-body text-lg text-soot-soft">{message.body}</p>
-        <Link
-          href="/"
-          className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
-        >
-          ← Zarify anasayfasına dön
-        </Link>
-      </main>
-    );
-  }
+  const names = `${invitation.brideName} & ${invitation.groomName}`;
+  const title = `${names} — Düğün Davetiyesi`;
+  const description = `${formatDateLine(invitation.weddingDate)} · ${invitation.venueName}. Davetiyeyi açmak için dokunun.`;
 
-  const inv = invitation as InvitationDto;
-  const eventDate = new Date(`${inv.weddingDate}T${inv.weddingTime}+03:00`);
-  const names = `${inv.brideName} & ${inv.groomName}`;
-  const isLive = inv.status === "published";
+  return {
+    title,
+    description,
+    robots,
+    openGraph: {
+      type: "website",
+      locale: "tr_TR",
+      siteName: "Zarify",
+      url: `/davetiye/${slug}`,
+      title,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
-  const page = (
-    <main>
-      {!isLive && (
-        <div
-          role="status"
-          className="bg-paper-deep border-b border-wine/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
-        >
-          <p className="font-body text-base text-wine">
-            Önizleme — bu davetiye ödemeniz onaylandığında misafirlerinize açılacak.
-          </p>
-          <Link
-            href={`/davetiyem/${inv.slug}`}
-            className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
-          >
-            Ödeme bilgileri
-          </Link>
-        </div>
-      )}
-      <HerbaryumTemplate
-        eventDate={eventDate}
-        names={names}
-        dateLine={formatDateLine(inv.weddingDate)}
-        venueLine={`${inv.venueName}, ${inv.venueAddress}`}
-        venueName={inv.venueName}
-        venueAddress={inv.venueAddress}
-        content={contentFromInvitation(inv)}
-        rsvpEnabled={inv.rsvpEnabled}
-        // Not live yet → the RSVP form runs in preview mode (nothing saved).
-        invitationSlug={isLive ? inv.slug : undefined}
-      />
-    </main>
-  );
-
-  // The envelope ceremony is for guests; an owner previewing a pending
-  // invitation goes straight to the page.
-  return isLive ? (
-    <EnvelopeIntro invitationId={inv.slug} names={names}>
-      {page}
-    </EnvelopeIntro>
-  ) : (
-    page
-  );
+export default async function PublicInvitationPage({ params }: PageProps<"/davetiye/[slug]">) {
+  const { slug } = await params;
+  return <PublicInvitationView slug={slug} />;
 }

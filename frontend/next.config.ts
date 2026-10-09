@@ -74,10 +74,22 @@ export default function config(phase: string): NextConfig {
     },
   ];
 
+  // Couples' invitations and the owner's page carry names, dates and
+  // addresses: never indexed, whatever a crawler makes of the HTML. (Share
+  // previews still work — WhatsApp and the like read Open Graph tags
+  // regardless; robots.txt deliberately doesn't block these paths, or
+  // crawlers could never see this header.)
+  const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+
   return {
     poweredByHeader: false,
     async headers() {
-      return [{ source: "/(.*)", headers: securityHeaders }];
+      return [
+        { source: "/(.*)", headers: securityHeaders },
+        { source: "/davetiye/:path*", headers: noIndex },
+        { source: "/davetiyem/:path*", headers: noIndex },
+        { source: "/davetiyelerim/:path*", headers: noIndex },
+      ];
     },
   };
 }
