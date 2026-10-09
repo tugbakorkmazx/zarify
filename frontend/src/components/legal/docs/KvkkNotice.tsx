@@ -160,9 +160,10 @@ function Tr() {
         </ul>
         <p>haklarına sahipsiniz.</p>
         <p>
-          Misafir olarak katılım bildiriminizi düzeltmek için aynı davetiyede aynı adla formu yeniden
-          gönderebilirsiniz; önceki yanıtınız güncellenir. Silinmesini isterseniz davetiye sahibine veya
-          bize başvurabilirsiniz.
+          Misafir olarak katılım bildiriminizi düzeltmek için formu, ilk yanıtı gönderdiğiniz tarayıcıdan
+          yeniden gönderebilirsiniz; önceki yanıtınız güncellenir (bkz.{" "}
+          <Link href="/cerez-politikasi">Çerez Politikası</Link>). Başka bir cihazdan gönderilen yanıt yeni
+          bir yanıt olarak kaydedilir. Silinmesini isterseniz davetiye sahibine veya bize başvurabilirsiniz.
         </p>
       </section>
 
@@ -309,8 +310,10 @@ function En() {
           <li>claim compensation for damage caused by unlawful processing.</li>
         </ul>
         <p>
-          As a guest you can correct your RSVP by sending the form again under the same name on the same
-          invitation — your earlier reply is updated. To have it deleted, contact the invitation owner or us.
+          As a guest you can correct your RSVP by sending the form again from the browser you first replied
+          from — your earlier reply is updated (see the <Link href="/cerez-politikasi">Cookie Policy</Link>).
+          A reply sent from another device is saved as a new reply. To have it deleted, contact the
+          invitation owner or us.
         </p>
       </section>
 

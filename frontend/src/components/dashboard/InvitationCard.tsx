@@ -208,6 +208,13 @@ export function InvitationCard({
                 />
               </div>
 
+              {rsvp.duplicateNameResponses > 0 && (
+                <p className="mx-auto mt-6 max-w-xl bg-paper-deep px-5 py-3 font-body text-base text-soot">
+                  {rsvp.duplicateNameResponses} yanıt başka bir yanıtla aynı ismi taşıyor — aynı kişi farklı
+                  cihazdan yanıtlamış olabilir. Yanıtlarda işaretli olanları kontrol edin.
+                </p>
+              )}
+
               {totalResponses === 0 ? (
                 <p className="mt-6 font-body text-lg text-soot-soft">
                   Henüz yanıt yok. Linki paylaştıkça yanıtlar burada görünecek.
@@ -238,7 +245,14 @@ export function InvitationCard({
                           {replies.map((r) => (
                             <li key={r.id} className="flex flex-col gap-1 py-3">
                               <div className="flex items-baseline justify-between gap-3">
-                                <span className="truncate font-body text-lg text-soot">{r.guestName}</span>
+                                <span className="min-w-0 font-body text-lg text-soot">
+                                  <span className="break-words">{r.guestName}</span>
+                                  {r.duplicateName && (
+                                    <span className="apparatus ml-2 inline-block bg-wine/10 px-1.5 text-xs text-wine">
+                                      aynı isimde birden fazla yanıt
+                                    </span>
+                                  )}
+                                </span>
                                 <span className="apparatus shrink-0 text-sm text-soot-soft">
                                   <span
                                     className={
@@ -272,6 +286,17 @@ export function InvitationCard({
           )}
         </div>
       </div>
+
+      {!isLive && (
+        <CancelOrderDialog
+          open={cancelOpen}
+          busy={cancelling}
+          names={names}
+          error={cancelError}
+          onCancel={() => setCancelOpen(false)}
+          onConfirm={handleCancel}
+        />
+      )}
     </article>
   );
 }

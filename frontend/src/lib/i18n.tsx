@@ -60,6 +60,9 @@ export interface Strings {
     attendingNo: string;
     attendingMaybe: string;
     previewNote: string;
+    /** Shown above the form when this browser already replied: "{name}"
+     * is the name it replied under. */
+    returningNote: string;
     guestsLabel: string;
     messageLabel: string;
     messagePlaceholder: string;
@@ -212,6 +215,8 @@ export const strings: Record<Lang, Strings> = {
       attendingNo: "Maalesef katılamayacağım",
       attendingMaybe: "Henüz net değil",
       previewNote: "Önizleme — yanıtlar yayınlanan davetiyede kaydedilir.",
+      returningNote:
+        "Bu tarayıcıdan “{name}” adıyla yanıt verdiniz. Formu yeniden gönderirseniz önceki yanıtınız güncellenir.",
       guestsLabel: "Kişi sayısı (siz dahil)",
       messageLabel: "Çifte bir not bırakın",
       messagePlaceholder: "Dileğinizi buraya yazabilirsiniz…",
@@ -373,6 +378,8 @@ export const strings: Record<Lang, Strings> = {
       attendingNo: "Regretfully declining",
       attendingMaybe: "Not sure yet",
       previewNote: "Preview — replies are saved on the published invitation.",
+      returningNote:
+        "You already replied from this browser as “{name}”. Sending the form again updates that reply.",
       guestsLabel: "Party size (including you)",
       messageLabel: "Leave a note for the couple",
       messagePlaceholder: "Write your wishes here…",

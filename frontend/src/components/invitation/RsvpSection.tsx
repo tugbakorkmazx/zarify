@@ -12,6 +12,34 @@ import { API_URL } from "@/lib/apiUrl";
 
 type Attendance = "yes" | "maybe" | "no";
 
+/** What this browser keeps after replying to one invitation: the edit
+ * token the API returned (the only way to change that reply later) and the
+ * name it was sent under. See the Cookie Policy (zarify.rsvp.<slug>). */
+interface StoredReply {
+  token: string;
+  name: string;
+}
+
+const REPLY_PREFIX = "zarify.rsvp.";
+
+function readReply(slug: string | undefined): StoredReply | null {
+  if (!slug || typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REPLY_PREFIX + slug) ?? "null");
+    return typeof parsed?.token === "string" ? { token: parsed.token, name: String(parsed.name ?? "") } : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeReply(slug: string, reply: StoredReply) {
+  try {
+    localStorage.setItem(REPLY_PREFIX + slug, JSON.stringify(reply));
+  } catch {
+    // storage unavailable — a later reply from here just becomes a new one
+  }
+}
+
 /** enabled is owner-configurable: a couple can turn RSVP collection off for
  * their invitation, in which case this section renders a closing note
  * instead of a form.
@@ -51,6 +79,10 @@ export function RsvpSection({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attendance, setAttendance] = useState<Attendance>("yes");
+  // Only ever mounted in the browser with a slug (the published page loads
+  // the invitation client-side; the draft preview has no slug), so reading
+  // storage in the initializer is safe.
+  const [previous, setPrevious] = useState<StoredReply | null>(() => readReply(invitationSlug));
   const signature = names ? coupleInitials(names) : t.footer.signature;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,6 +105,7 @@ export function RsvpSection({
           attendance,
           guests: attendance === "no" ? 1 : Number(data.get("guests")) || 1,
           message: data.get("message") || null,
+          editToken: previous?.token ?? null,
         }),
       });
       if (!res.ok) {
@@ -80,6 +113,12 @@ export function RsvpSection({
         // attempts, a server error…); show it in the page's language.
         setError((await apiErrorFrom(res)).message);
         return;
+      }
+      const body = (await res.json().catch(() => null)) as { editToken?: string } | null;
+      if (body?.editToken) {
+        const reply = { token: body.editToken, name: String(data.get("name") ?? "").trim() };
+        writeReply(invitationSlug, reply);
+        setPrevious(reply);
       }
       setSubmitted(true);
     } catch {
@@ -125,10 +164,23 @@ export function RsvpSection({
                       {t.rsvp.previewNote}
                     </p>
                   )}
+                  {invitationSlug && previous && (
+                    <p className="font-body text-base italic leading-relaxed text-soot-soft" role="note">
+                      {t.rsvp.returningNote.replace("{name}", previous.name)}
+                    </p>
+                  )}
 
                   <label className="flex flex-col gap-1">
                     <span className={labelClass}>{t.rsvp.nameLabel}</span>
-                    <input required type="text" name="name" autoComplete="name" className={lineInput} />
+                    <input
+                      required
+                      type="text"
+                      name="name"
+                      autoComplete="name"
+                      maxLength={100}
+                      defaultValue={previous?.name ?? ""}
+                      className={lineInput}
+                    />
                   </label>
 
                   <fieldset className="flex flex-col gap-3">

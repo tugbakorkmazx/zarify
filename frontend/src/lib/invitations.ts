@@ -166,8 +166,10 @@ export interface RsvpDto {
   guestCount: number;
   message: string | null;
   createdAtUtc: string;
-  /** Set when the guest replied again and this reply was overwritten. */
+  /** Set when the guest changed their reply (with their browser's edit token). */
   updatedAtUtc: string | null;
+  /** Another reply to this invitation has the same name. */
+  duplicateName: boolean;
 }
 
 export interface RsvpSummary {
@@ -176,6 +178,8 @@ export interface RsvpSummary {
   maybeResponses: number;
   maybeGuests: number;
   notAttendingResponses: number;
+  /** Replies that share a name with another reply. */
+  duplicateNameResponses: number;
 }
 
 export interface MyInvitation {

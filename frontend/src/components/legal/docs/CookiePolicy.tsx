@@ -74,6 +74,12 @@ function Tr() {
               <td>Bir davetiyenin zarf açılış animasyonunun aynı sekmede yeniden oynamamasını sağlar (değeri yalnızca &quot;1&quot;).</td>
               <td>Sekmeyi kapatana kadar.</td>
             </tr>
+            <tr>
+              <td><code>zarify.rsvp.&lt;davetiye&gt;</code></td>
+              <td>localStorage</td>
+              <td>Bir davetiyeye katılım bildirimi gönderdiğinizde, yanıtınızı yalnızca bu tarayıcıdan güncelleyebilmeniz için rastgele bir düzenleme anahtarı ve yazdığınız adı saklar. Sunucuda anahtarın yalnızca geri döndürülemez özeti tutulur.</td>
+              <td>Tarayıcı verilerini temizleyene kadar.</td>
+            </tr>
           </tbody>
         </table>
         <p>Dil tercihiniz (TR/EN) hiçbir yerde saklanmaz; sayfa yenilendiğinde Türkçe açılır.</p>
@@ -152,6 +158,12 @@ function En() {
               <td>sessionStorage</td>
               <td>Stops an invitation&apos;s envelope animation from replaying in the same tab (the value is just &quot;1&quot;).</td>
               <td>Until you close the tab.</td>
+            </tr>
+            <tr>
+              <td><code>zarify.rsvp.&lt;invitation&gt;</code></td>
+              <td>localStorage</td>
+              <td>After you RSVP to an invitation, keeps a random edit key and the name you entered, so your reply can be updated from this browser only. The server keeps only an irreversible hash of the key.</td>
+              <td>Until you clear your browser data.</td>
             </tr>
           </tbody>
         </table>
