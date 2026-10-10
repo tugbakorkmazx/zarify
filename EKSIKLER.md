@@ -25,6 +25,14 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 | `GET /api/pricing` (`lib/pricing.ts`) | `PricingController` | ✅ |
 | `GET /api/admin/invitations/pending-payment`, `POST …/approve-payment` (`lib/admin.ts`) | `AdminController` | ✅ |
 
+### ✅ Oturum, sözleşme arşivi ve veri saklama turu (10 Ekim 2026)
+- **Yeni migration:** `20261010101454_SessionsContractsRetention` (bu turun tek migration'ı). Değişiklikleri:
+  - `RefreshTokens` tablosu.
+  - `SalesAgreements.ContractHtml` (longtext) ve `ContractSha256` kolonları.
+  - `Invitations.RetentionNoticeSentAtUtc` kolonu.
+- Kapanan maddeler: #11, #13, #14, #20, #21, #22, #28, #30, #31, #35, #37, #38, #40 ve #41.
+- **⚠️ Avukat onayı bekleyenler:** veri saklama süreleri (#21) ve sözleşme arşivinin yöntemi (#22).
+
 ### ✅ Yönetim paneli turunda eklenenler (10 Ekim 2026)
 - **Yeni migration:** `20261010092523_AdminPanelAuditSuspension` (bu turun tek migration'ı). Değişiklikleri:
   - `AdminAuditLogs` tablosu.
@@ -130,7 +138,17 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Dosya:** `components/invitation-details/InvitationDetailsForm.tsx:19-22`
 - **İş:** Küçük
 
-#### 11. Oturum 60 dakikada bitiyor ve yenilenmiyor; düzenleme sayfasında değişiklikler kayboluyor
+#### ✅ 11. Oturum 60 dakikada bitiyor ve yenilenmiyor; düzenleme sayfasında değişiklikler kayboluyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Refresh token:** `zarify_refresh` adlı çerez. HttpOnly, Secure, SameSite=Strict, `Path=/api/auth`, 14 gün. Her kullanımda yenisiyle değişiyor (rotation) ve DB'de SHA-256 özeti tutuluyor (`RefreshTokens` tablosu).
+  - **Kopya tespiti:** dönmüş bir token 60 saniyelik pay dolduktan sonra tekrar gelirse kullanıcının tüm token'ları iptal ediliyor.
+  - **Geçersiz kılma:** her token SecurityStamp'i de taşıyor; şifre sıfırlama, askıya alma ve hesap silme hepsini geçersiz kılıyor. Çıkış (`POST /api/auth/logout`) mevcut token'ı iptal ediyor.
+  - **Access token:** 15 dakikaya indi.
+  - **Frontend:** 401'de önce sessizce `/api/auth/refresh` deneniyor (sekme başına tek istek, sekmeler arası yarışa karşı korumalı), olmazsa `/giris?next=…`. Sayfa açılırken süresi dolmuş oturum da önce yenileniyor.
+  - **Düzenleme sayfası:** değişiklikler her tuşta yerelde saklanıyor (`zarify.edit.<id>`). Oturum düşerse girişten sonra "Kaydedilmemiş değişiklikleriniz geri yüklendi" bandıyla geri geliyor.
+  - **`?next=`:** yalnızca site içi yolları kabul ediyor (`lib/nextPath.ts`).
+  - **Yasal metinler:** Çerez Politikası, KVKK ve Gizlilik Politikası güncellendi; `legalSettings.version` → `2026-10-10`.
+  - **Not:** Secure çerez `http://localhost`'ta çalışıyor, ancak telefondan `http://192.168.x.x` ile açılan geliştirme sunucusunda çalışmaz. Orada sessiz yenileme olmaz, 15 dakikada bir giriş istenir. Canlıda (https) sorun yok.
 - **Sorun:** Refresh token yok. Düzenleme sayfasında kaydetme sırasında 401 dönerse kullanıcı hemen çıkış yaptırılıp `/giris`'e yönlendiriliyor ve formdaki değişiklikler kayboluyor. Girişten sonra kaldığı sayfaya dönmüyor; `?next=` desteği yok, her zaman `/davetiyelerim`'e gidiyor.
 - **Dosya:** `app/davetiyelerim/[id]/duzenle/page.tsx:122-126`, `components/auth/LoginForm.tsx:27`, `Services/TokenService.cs`, `appsettings.json` (`ExpiryMinutes: 60`)
 - **İş:** Orta
@@ -142,12 +160,19 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Not:** #3'teki e-posta altyapısına bağlı.
 - **İş:** Orta
 
-#### 13. RSVP son tarihi hiçbir yerde uygulanmıyor
+#### ✅ 13. RSVP son tarihi hiçbir yerde uygulanmıyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Kapanış zamanı:** RSVP, son tarih gününün sonunda kapanıyor (Türkiye saati); son tarih yoksa düğün gününün sonunda. API `RSVP_DEADLINE_PASSED` ile reddediyor (önceki yanıtı güncelleme dahil). `InvitationDto.rsvpClosesAtUtc` ile form "Katılım bildirimi süresi doldu" gösteriyor (TR/EN).
+  - **Uzatma:** sahip Davetiyelerim kartından son tarihi uzatabiliyor (`PUT /api/invitations/{id}/rsvp-deadline`, en geç düğün günü).
 - **Sorun:** `RsvpDeadline` yalnızca bilgi metni olarak gösteriliyor. Son tarih geçince, hatta düğün tarihi geçtikten sonra bile form ve API yanıt kabul etmeye devam ediyor.
 - **Dosya:** `Controllers/RsvpController.cs:37-42`, `components/invitation/RsvpSection.tsx`
 - **İş:** Küçük
 
-#### 14. Düğün tarihi geçmiş bir tarih olabiliyor
+#### ✅ 14. Düğün tarihi geçmiş bir tarih olabiliyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Yeni davetiye:** düğün tarihi bugünden (Türkiye) önce olamıyor (`WEDDING_DATE_PAST`; formda `min`).
+  - **Güncelleme:** tarih geçmişe taşınamıyor, ama tarihi zaten geçmiş bir davetiyenin diğer alanları düzenlenebiliyor.
+  - **RSVP son tarihi:** düğün tarihinden sonra olamıyor (form `max` + API).
 - **Sorun:** Tarih alanında `min` sınırı yok; backend'de de geçmiş tarih kontrolü yok. Geçmiş tarihli bir davetiye ödenip yayınlanabiliyor.
 - **Dosya:** `components/invitation-details/InvitationFields.tsx:69`, `Dtos/InvitationFieldsRequest.cs:301-313`
 - **İş:** Küçük
@@ -208,20 +233,37 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Yapılacak:** Hesabı silmek yerine anonimleştirmek veya kayıtları "soft delete" ile işaretlemek. Sözleşme kayıtları ayrı bir yerde tutulmalı.
 - **İş:** Orta
 
-#### 20. RSVP silinemiyor, dışa aktarılamıyor
+#### ✅ 20. RSVP silinemiyor, dışa aktarılamıyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Silme:** sahip yanıtları tek tek silebiliyor; onay penceresi var, sayılar hemen güncelleniyor.
+  - **CSV:** "Yanıtları indir (CSV)" ile indirilebiliyor.
+  - **Ortak CSV biçimi** (`Services/CsvFile.cs`): UTF-8 BOM, noktalı virgül, gg.aa.yyyy ss:dd, 199,90 ve formül enjeksiyonuna karşı koruma. Admin CSV'si de aynı yazıcıyı kullanıyor.
 - **Sorun:** KVKK metni misafirin yanıtının silinmesini "davetiye sahibinden" isteyebileceğini söylüyor ama sahibin yanıt silme imkânı yok. Yanıtlar panelde listelenebiliyor (`InvitationCard.tsx`), ancak CSV/Excel olarak indirilemiyor.
 - **Dosya:** `components/dashboard/InvitationCard.tsx`, `Controllers/InvitationsController.cs:296-317`, `components/legal/docs/KvkkNotice.tsx:163-165`
 - **İş:** Küçük–Orta
 
 ### Yasal metin ↔ kod
 
-#### 21. Veri saklama süreleri otomatik uygulanmıyor
+#### ✅ 21. Veri saklama süreleri otomatik uygulanmıyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Ayarlar:** `Retention` bölümü (`appsettings.json`). Varsayılanlar: misafire kapanış düğünden 3 ay sonra, silme 6 ay sonra, hatırlatma kapanıştan 7 gün önce.
+  - **Arka plan işi:** `RetentionWorker` (BackgroundService) günde bir çalışıyor. Kapanıştan 7 gün önce sahibine bir kez e-posta gidiyor (CSV indirme hatırlatması). 6 ayı dolan davetiyeler RSVP'leriyle siliniyor. SalesAgreements yalnızca bağlantısı kopartılarak korunuyor, audit log'a dokunulmuyor.
+  - **Misafire kapanış:** iş gerektirmiyor; API `INVITATION_EXPIRED` dönüyor, sayfa "yayın süresi doldu" gösteriyor. Sahip ve admin görmeye devam ediyor.
+  - **Elle çalıştırma:** `POST /api/admin/retention/run`.
+  - **Yasal metinlerle bağlantı:** `legal.ts`'teki sabit `servicePeriod` kaldırıldı; metinler süreleri `GET /api/pricing` → `retention`'dan okuyor (yedeği `retentionDefaults`).
+  - **⚠️ Avukat onayı:** süreler (3 ay / 6 ay / 7 gün) avukat onayına tabidir. Değişirse yalnızca `Retention` ayarı ve `retentionDefaults` güncellenmeli; metinler kendiliğinden uyar.
 - **Sorun:** "Yayın süresi + en fazla 6 ay sonra davetiye ve RSVP'ler silinir" deniyor; ama yayın süresi (`servicePeriod`) tanımsız ve süre dolunca yayından kaldıran ya da silen bir arka plan işi yok.
 - **Dosya:** `components/legal/docs/KvkkNotice.tsx:135-137`, `lib/legal.ts:785`
 - **Not:** İlk silme tarihi canlıya çıkıştan aylar sonraya düştüğü için bekleyebilir, ama takvime alınmalı.
 - **İş:** Orta
 
-#### 22. "Onayladığınız sözleşme sürümü e-postayla gönderilir" vaadi karşılanamıyor
+#### ✅ 22. "Onayladığınız sözleşme sürümü e-postayla gönderilir" vaadi karşılanamıyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Arşiv:** onay anında Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi doldurulmuş hâliyle `SalesAgreements.ContractHtml` alanına saklanıyor, SHA-256'sı `ContractSha256`'da.
+  - **Nasıl:** metin tek kaynakta (frontend yasal sayfaları) kalıyor. Yayınla penceresi aynı bileşenleri fiyatla doldurup gizlice render ediyor ve HTML olarak gönderiyor. Sunucu metni izinli etiketlere indiriyor (betik, stil, öznitelik ve dış kaynak yok); iki başlığın ve siparişin fiyatının metinde olduğunu doğruluyor; alıcı, ZRF, tutar, sürüm ve sunucu saatiyle onay zamanını içeren başlığı kendisi ekliyor.
+  - **E-posta:** sipariş e-postasına `zarify-sozlesme-ZRF-….html` eki olarak gidiyor.
+  - **Görüntüleme:** Davetiyelerim'deki ve sipariş sayfasındaki "Sözleşmemi görüntüle", saklanan metni korumalı bir çerçevede (sandbox) gösteriyor ve indirtiyor. Eski siparişlerde "arşivden önce" mesajı çıkıyor.
+  - **Not:** gövde metnini tarayıcı gönderdiği için, kurcalanmış bir istek ancak sunucu doğrulamasını geçecek kadar metni koruyabilir. Kritik bilgiler (fiyat, tarih, alıcı) sunucu başlığında. Avukat, metnin sunucuda üretilmesini isterse bu ayrı bir iş.
 - **Sorun:** Davetiyeye yalnızca sürüm etiketi (`"2026-09-28"`) kaydediliyor. Metnin o anki hâli arşivlenmiyor ve e-posta altyapısı da yok.
 - **Dosya:** `components/legal/docs/SalesDocs.tsx:306-308`
 - **Yapılacak:** Her sürüm PDF veya HTML olarak arşivlenmeli; en azından git etiketiyle eşlenmeli.
@@ -273,7 +315,8 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 
 Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, yönetim, form, düzenleme, ödeme, misafir sayfası ve yasal sayfalar `Painting`, `paper-ground`, `paper-card` ve Gloock/Garamond yapısını kullanıyor. Eski gravür görsellerine referans yok. `art.ts` kaydındaki 14 görselin hepsi `public/images/art/` altında mevcut; **kırık görsel bulunmadı.**
 
-#### 28. Özel 404 ve hata sayfası yok
+#### ✅ 28. Özel 404 ve hata sayfası yok
+- **✅ Çözüldü (10 Ekim 2026):** `app/not-found.tsx`, `app/error.tsx` (Tekrar Dene) ve `app/global-error.tsx`. DESIGN.md temasında (koyu çiçek tablosu + kâğıt kart), ana sayfaya dönüş linki ve TR/EN düğmesi var.
 - **Sorun:** `app/not-found.tsx` ve `app/error.tsx` yok. Bilinmeyen bir URL Next'in varsayılan siyah-beyaz 404 sayfasını açıyor.
 - **İş:** Küçük
 
@@ -284,11 +327,16 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 - **Yapılacak:** `generateMetadata` ile sunucu tarafında başlık ve `opengraph-image` üretilmeli.
 - **İş:** Orta
 
-#### 30. Favicon hâlâ Next.js'in varsayılanı
+#### ✅ 30. Favicon hâlâ Next.js'in varsayılanı
+- **✅ Çözüldü (10 Ekim 2026):** Gloock'ta bordo "Z" monogramı, fildişi zemin, çift çizgi çerçeve. Dosyalar: `favicon.ico` (16/32/48), `icon.png` (512), `apple-icon.png` (180), `public/icon-192.png`, `icon-512.png` ve maskable 512, `app/manifest.ts`. Kaynağı ASSETS.md'de.
 - **Dosya:** `app/favicon.ico` (25.931 bayt, create-next-app'ten gelen dosyanın aynısı)
 - **İş:** Küçük
 
-#### 31. İngilizce modda tarih Türkçe kalıyor
+#### ✅ 31. İngilizce modda tarih Türkçe kalıyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - `formatDateLine(date, lang)` misafirin seçtiği dile göre çalışıyor (tr-TR / en-GB) ve UTC'de biçimliyor; haftanın günü saat dilimine göre kaymıyor.
+  - Misafir sayfası, şablon önizlemesi ve düzenleme önizlemesi dili takip ediyor.
+  - Taranan diğer tarihler: RSVP son tarihi zaten dile göreydi. Sahip ve admin sayfaları yalnızca Türkçe; oradaki tarihlere Europe/Istanbul saat dilimi eklendi.
 - **Sorun:** Misafir dili EN'e çevirdiğinde kapaktaki tarih satırı "12 Haziran 2027 · Cumartesi" olarak kalıyor; `formatDateLine` her zaman `tr-TR` kullanıyor.
 - **Dosya:** `lib/formatDateLine.ts`, `app/davetiye/[slug]/page.tsx:117`
 - **İş:** Küçük
@@ -332,7 +380,8 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 
 ## ⚪ Güzel olur
 
-#### 35. Kullanılmayan dosyalar ve metinler
+#### ✅ 35. Kullanılmayan dosyalar ve metinler
+- **✅ Çözüldü (10 Ekim 2026):** 5 SVG silindi. Kullanılmayan i18n anahtarları (`mockupInvite/Date/Venue`, `greetingPrefix`, `meta.title`) kaldırıldı. `GET /api/auth/me` bilinçli olarak bırakıldı (API istemcileri ve ileride profil sayfası için).
 - `public/` altında create-next-app'ten kalan 5 SVG hiçbir yerde kullanılmıyor: `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`.
 - `lib/i18n.tsx` içinde kullanılmayan anahtarlar var: `landing.hero.mockupInvite / mockupDate / mockupVenue`, `landing.nav.greetingPrefix`, `meta.title`.
 - `GET /api/auth/me` backend'de var ama frontend hiç çağırmıyor.
@@ -341,11 +390,16 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 #### 36. Sahte/örnek veri bilinçli olarak kullanılıyor
 - "Elif & Kerem" örnek içeriği yalnızca şablon vitrininde ve boş panelde gösteriliyor (`lib/i18n.tsx`, `app/davetiyelerim/page.tsx:78`, `app/sablonlar/nikah-tezhibi/page.tsx:20-22`). Gerçek davetiyeye sızmıyor (`HerbaryumTemplate.tsx:49`); sorun yok, yalnızca not olarak düşüldü.
 
-#### 37. Accept-Language başlığı tutarsız gönderiliyor
+#### ✅ 37. Accept-Language başlığı tutarsız gönderiliyor
+- **✅ Çözüldü (10 Ekim 2026):** Bütün istekler `apiFetch` üzerinden `Accept-Language` gönderiyor (davetiye, admin, fiyat, hesap); sunucu tarafı önizleme istekleri `tr` gönderiyor.
 - `jsonHeaders()` yalnızca auth isteklerinde kullanılıyor. `lib/invitations.ts`, `lib/admin.ts` ve `lib/pricing.ts` bu başlığı göndermiyor. Frontend hata metnini kendi koduna göre çevirdiği için kullanıcıya etkisi yok.
 - **İş:** Küçük
 
-#### 38. Düzenleme sayfasında önizleme ve kaydedilmemiş değişiklik uyarısı yok
+#### ✅ 38. Düzenleme sayfasında önizleme ve kaydedilmemiş değişiklik uyarısı yok
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Önizle:** kaydedilmemiş değerleri yeni sekmede (`/davetiyelerim/[id]/onizleme`) şablonla gösteriyor.
+  - **Uyarı:** kaydedilmemiş değişiklik varken sayfadan çıkarken tarayıcı uyarısı (yenileme, sekme kapatma) ve site içi linklerde onay soruluyor.
+  - **Yerel kopya:** değişiklikler kaydedilene kadar yerelde de tutuluyor (#11).
 - Değişiklikler kaydedildiği anda canlıya çıkıyor; kaydetmeden önce önizleme yapılamıyor. Sayfadan çıkarken kaydedilmemiş değişiklik uyarısı da yok.
 - **Dosya:** `app/davetiyelerim/[id]/duzenle/page.tsx`
 - **İş:** Orta
@@ -360,13 +414,15 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 - **Dosya:** `Controllers/InvitationsController.cs:111-130`
 - **İş:** Küçük
 
-#### 40. Repo kökünde dağınık klasörler
+#### ✅ 40. Repo kökünde dağınık klasörler
+- **✅ Çözüldü (10 Ekim 2026):** `zarify-yeni-gorseller/` `.gitignore`'a eklendi. DESIGN.md'deki arşiv yolu `gorseller/_arsiv/` olarak düzeltildi. `zarify/` klasörüne dokunulmadı.
 - `zarify-yeni-gorseller/` (ChatGPT görselleri) git'te izlenmiyor ama `.gitignore`'da da yok; yanlışlıkla commit'lenebilir.
 - `zarify/` projenin ikinci bir klonu (`.git/info/exclude` ile gizlenmiş); karışıklık yaratabilir.
 - DESIGN.md arşivin yerini `public/images/_arsiv/` olarak gösteriyor, gerçek yeri `gorseller/_arsiv/`.
 - **İş:** Küçük
 
-#### 41. Görsellerin kaynak/lisans kaydı yok
+#### ✅ 41. Görsellerin kaynak/lisans kaydı yok
+- **✅ Çözüldü (10 Ekim 2026):** Proje kökünde `ASSETS.md` var: görsellerin yapay zekâ ile üretildiği, tarih (27–28 Eylül 2026), dosya listesi, favicon ve yazı tipi lisansları. Araç, model, istem ve kullanım koşulları "doldurulacak" olarak bırakıldı.
 - `lib/art.ts` içindeki tabloların nereden geldiği (AI üretimi mi, kamu malı eser mi) hiçbir yerde yazmıyor. Kullanım Şartları'ndaki "şablonların kopyalanamaz" maddesi açısından kaynağın belgelenmesi faydalı olur.
 - **İş:** Küçük
 

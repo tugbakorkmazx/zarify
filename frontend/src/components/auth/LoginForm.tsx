@@ -10,7 +10,7 @@ import { FormError } from "@/components/auth/FormError";
 import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
 import { describeError } from "@/lib/apiErrors";
 
-export function LoginForm({ passwordChanged = false }: { passwordChanged?: boolean }) {
+export function LoginForm({ passwordChanged = false, next = null }: { passwordChanged?: boolean; next?: string | null }) {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ export function LoginForm({ passwordChanged = false }: { passwordChanged?: boole
     setSubmitting(true);
     try {
       await login(email, password);
-      router.push("/davetiyelerim");
+      router.push(next ?? "/davetiyelerim");
     } catch (err) {
       setError(describeError(err));
       setSubmitting(false);
@@ -48,6 +48,11 @@ export function LoginForm({ passwordChanged = false }: { passwordChanged?: boole
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {next && !passwordChanged && (
+          <p role="status" className="bg-paper-deep px-5 py-4 font-body text-lg text-soot">
+            Oturumunuz sona erdi. Giriş yaptıktan sonra kaldığınız sayfaya döneceksiniz.
+          </p>
+        )}
         {passwordChanged && (
           <p role="status" className="bg-olive px-5 py-4 font-body text-lg text-paper">
             Şifreniz değiştirildi. Yeni şifrenizle giriş yapabilirsiniz.

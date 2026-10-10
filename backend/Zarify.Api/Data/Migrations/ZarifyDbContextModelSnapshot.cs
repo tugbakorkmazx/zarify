@@ -135,6 +135,9 @@ namespace Zarify.Api.Data.Migrations
                     b.Property<DateTime?>("RemovedAtUtc")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("RetentionNoticeSentAtUtc")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateOnly?>("RsvpDeadline")
                         .HasColumnType("date");
 
@@ -234,6 +237,47 @@ namespace Zarify.Api.Data.Migrations
                     b.ToTable("PasswordResetTokens");
                 });
 
+            modelBuilder.Entity("Zarify.Api.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("Rotated")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Zarify.Api.Models.Rsvp", b =>
                 {
                     b.Property<Guid>("Id")
@@ -302,6 +346,13 @@ namespace Zarify.Api.Data.Migrations
 
                     b.Property<DateTime?>("CancelledAtUtc")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ContractHtml")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ContractSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
 
                     b.Property<string>("CoupleNames")
                         .IsRequired()
@@ -433,6 +484,17 @@ namespace Zarify.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("Zarify.Api.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("Zarify.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.RefreshToken", b =>
                 {
                     b.HasOne("Zarify.Api.Models.User", "User")
                         .WithMany()

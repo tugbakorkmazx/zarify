@@ -21,6 +21,8 @@ public class InvitationsController(
     IEmailQueue emails,
     EmailComposer composer,
     InvitationThrottle throttle,
+    IOptions<RetentionOptions> retention,
+    IOptions<SiteOptions> site,
     ILogger<InvitationsController> logger) : ControllerBase
 {
     private const int MaxCreateAttempts = 5;
@@ -76,6 +78,12 @@ public class InvitationsController(
             return this.Error(StatusCodes.Status503ServiceUnavailable, ErrorCodes.PaymentNotConfigured);
         }
 
+        // A new invitation is for a wedding that hasn't happened yet.
+        if (request.WeddingDate < TurkeyTime.Today())
+        {
+            return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.WeddingDatePast);
+        }
+
         // Publishing starts a paid, distance contract — the owner must have
         // confirmed the pre-contract information and the contract first.
         if (!request.AcceptDistanceSales)
@@ -110,6 +118,13 @@ public class InvitationsController(
             };
             ApplyFields(invitation, request);
 
+            var contract = ContractArchive.Build(
+                request.ContractHtml, buyer, invitation, price, acceptedAtUtc, acceptedVersion, site.Value.Link("/"));
+            if (contract is null)
+            {
+                return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.ContractInvalid);
+            }
+
             db.Invitations.Add(invitation);
             var agreement = new SalesAgreement
             {
@@ -124,12 +139,14 @@ public class InvitationsController(
                 AmountTry = price,
                 AcceptedAtUtc = acceptedAtUtc,
                 Version = acceptedVersion,
+                ContractHtml = contract,
+                ContractSha256 = ContractArchive.Sha256(contract),
             };
             db.SalesAgreements.Add(agreement);
             try
             {
                 await db.SaveChangesAsync(ct);
-                emails.Enqueue(composer.OrderPlaced(buyer, invitation));
+                emails.Enqueue(composer.OrderPlaced(buyer, invitation, contract));
                 if (composer.AdminNewOrder(buyer, invitation) is { } adminNotice)
                 {
                     emails.Enqueue(adminNotice);
@@ -189,6 +206,13 @@ public class InvitationsController(
         if (invitation.IsPaid && namesChanged)
         {
             return this.Error(StatusCodes.Status409Conflict, ErrorCodes.NamesLocked);
+        }
+
+        // Moving the wedding into the past isn't allowed; an invitation whose
+        // (unchanged) date has already passed can still be edited.
+        if (request.WeddingDate != invitation.WeddingDate && request.WeddingDate < TurkeyTime.Today())
+        {
+            return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.WeddingDatePast);
         }
 
         ApplyFields(invitation, request);
@@ -281,6 +305,12 @@ public class InvitationsController(
                 ? this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationRemoved)
                 : this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
+        // Retention: GuestAccessMonths after the wedding the page closes to
+        // guests; the owner and admins can still open it.
+        if (!isOwner && !isAdmin && InvitationRules.GuestAccessEnded(invitation, retention.Value, DateTime.UtcNow))
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationExpired);
+        }
 
         return Ok(InvitationDto.FromEntity(invitation));
     }
@@ -342,10 +372,40 @@ public class InvitationsController(
         var agreement = await db.SalesAgreements
             .Where(a => a.InvitationId == id && a.Invitation!.UserId == userId)
             .OrderByDescending(a => a.AcceptedAtUtc)
+            .WithoutContract()
             .FirstOrDefaultAsync(ct);
         return agreement is null
             ? this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound)
             : Ok(SalesAgreementDto.FromEntity(agreement));
+    }
+
+    /// The archived, filled-in contract the owner accepted for this order —
+    /// the HTML document stored at acceptance (also emailed then). Returned
+    /// inside JSON so the page shows it in a sandboxed frame rather than the
+    /// browser rendering an API response as a page.
+    [Authorize]
+    [HttpGet("{id:guid}/agreement/document")]
+    public async Task<ActionResult<ContractDocumentDto>> AgreementDocument(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+
+        var agreement = await db.SalesAgreements
+            .Where(a => a.InvitationId == id && a.Invitation!.UserId == userId)
+            .OrderByDescending(a => a.AcceptedAtUtc)
+            .Select(a => new { a.ContractHtml, a.ContractSha256, a.PaymentReference, a.AcceptedAtUtc })
+            .FirstOrDefaultAsync(ct);
+        if (agreement is null)
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
+        }
+        if (agreement.ContractHtml is null)
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.ContractNotArchived);
+        }
+        return Ok(new ContractDocumentDto(agreement.ContractHtml, agreement.ContractSha256, agreement.PaymentReference, agreement.AcceptedAtUtc));
     }
 
     /// Cancels an order that hasn't been published yet: the invitation (and
@@ -466,6 +526,94 @@ public class InvitationsController(
             .Select(g => g.Key)
             .ToHashSet();
         return Ok(rsvps.Select(r => RsvpDto.FromEntity(r, sharedKeys.Contains(r.GuestNameKey))));
+    }
+
+    /// Removes one guest reply — e.g. a guest asked for it to be deleted
+    /// (KVKK notice), or it's a duplicate. Owner only; someone else's
+    /// invitation or reply gets the same 404 as a nonexistent one.
+    [Authorize]
+    [HttpDelete("{id:guid}/rsvps/{rsvpId:guid}")]
+    public async Task<IActionResult> DeleteRsvp(Guid id, Guid rsvpId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+        var deleted = await db.Rsvps
+            .Where(r => r.Id == rsvpId && r.InvitationId == id && r.Invitation!.UserId == userId)
+            .ExecuteDeleteAsync(ct);
+        return deleted == 0
+            ? this.Error(StatusCodes.Status404NotFound, ErrorCodes.RsvpNotFound)
+            : NoContent();
+    }
+
+    /// Every reply as a CSV file (see CsvFile for the dialect): name,
+    /// answer, headcount, note, when it arrived and when it last changed.
+    [Authorize]
+    [HttpGet("{id:guid}/rsvps.csv")]
+    public async Task<IActionResult> RsvpsCsv(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+        var invitation = await db.Invitations
+            .Where(i => i.Id == id && i.UserId == userId)
+            .Select(i => new { i.Slug })
+            .SingleOrDefaultAsync(ct);
+        if (invitation is null)
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
+        }
+
+        var rsvps = await db.Rsvps
+            .Where(r => r.InvitationId == id)
+            .OrderBy(r => r.CreatedAtUtc)
+            .ToListAsync(ct);
+        var csv = new CsvFile().Row("Ad soyad", "Katılım", "Kişi sayısı", "Not", "Yanıt tarihi", "Son güncelleme");
+        foreach (var r in rsvps)
+        {
+            csv.Row(
+                r.GuestName,
+                r.Attendance switch { RsvpAttendance.Yes => "Geliyor", RsvpAttendance.No => "Gelmiyor", _ => "Belirsiz" },
+                CsvFile.Number(r.GuestCount),
+                r.Message,
+                CsvFile.Moment(r.CreatedAtUtc),
+                CsvFile.Moment(r.UpdatedAtUtc));
+        }
+        return File(csv.ToBytes(), "text/csv; charset=utf-8", $"zarify-yanitlar-{invitation.Slug}.csv");
+    }
+
+    /// Changes only the RSVP deadline — e.g. to give late guests a few more
+    /// days. Same rule as the edit form: not after the wedding date. Null
+    /// clears it (RSVPs then close at the end of the wedding day).
+    [Authorize]
+    [HttpPut("{id:guid}/rsvp-deadline")]
+    public async Task<ActionResult<InvitationDto>> SetRsvpDeadline(Guid id, RsvpDeadlineRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+        if (throttle.TryUpdate(userId) is { } wait)
+        {
+            await RateLimitPolicies.WriteTooManyRequests(HttpContext, wait, ct);
+            return new EmptyResult();
+        }
+        var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
+        if (invitation is null)
+        {
+            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
+        }
+        if (request.RsvpDeadline is { } deadline && deadline > invitation.WeddingDate)
+        {
+            return this.Error(StatusCodes.Status400BadRequest, ErrorCodes.RsvpDeadlineAfterWedding);
+        }
+
+        invitation.RsvpDeadline = request.RsvpDeadline;
+        invitation.UpdatedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return Ok(InvitationDto.FromEntity(invitation));
     }
 
     private bool TryGetUserId(out Guid userId)

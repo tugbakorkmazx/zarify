@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { Biz, Price } from "@/components/legal/Placeholder";
+import { Biz, Price, ServicePeriod } from "@/components/legal/Placeholder";
 import { paymentApprovalNote } from "@/lib/legal";
 
 /* The three texts behind a purchase — Ön Bilgilendirme Formu, Mesafeli
@@ -47,7 +47,7 @@ function ServiceTr() {
       Zarify üzerinde seçilen şablonla hazırlanan, kişiye özel bir bağlantı (URL) üzerinden yayınlanan
       dijital düğün davetiyesi sayfası; misafirlerin davetiyeyi görüntülemesi ve (davetiye sahibi açık
       bıraktıysa) katılım bildirimi göndermesi; gelen yanıtların davetiye sahibinin panelinde
-      listelenmesi. Davetiye, yayında kaldığı süre boyunca (<Biz field="servicePeriod" />) davetiye sahibi
+      listelenmesi. Davetiye, yayında kaldığı süre boyunca (<ServicePeriod />) davetiye sahibi
       tarafından panelden güncellenebilir. Hizmet tamamen elektronik ortamda sunulur; fiziksel bir ürün
       teslim edilmez.
     </p>
@@ -59,7 +59,7 @@ function ServiceEn() {
     <p>
       A personalised digital wedding invitation page built from the chosen Zarify template and published
       at its own link (URL); guests can view it and, if the owner leaves it on, send an RSVP; the replies
-      are listed in the owner&apos;s dashboard. While it is online (<Biz field="servicePeriod" />) the owner
+      are listed in the owner&apos;s dashboard. While it is online (<ServicePeriod />) the owner
       can update the invitation from the dashboard. The service is delivered entirely online; no physical
       goods are delivered.
     </p>
@@ -150,47 +150,53 @@ function DisputesEn() {
 // Ön Bilgilendirme Formu
 // ---------------------------------------------------------------------------
 
+export function PreContractInfoTr() {
+  return (
+    <>
+      <section>
+        <p>
+          Bu form, Mesafeli Sözleşmeler Yönetmeliği md. 5 uyarınca, sözleşme kurulmadan önce sizi
+          bilgilendirmek için hazırlanmıştır. &quot;Davetiyemi Yayınla&quot; adımındaki onay kutusunu
+          işaretlemeniz, bu formu okuduğunuzu gösterir.
+        </p>
+      </section>
+      <section>
+        <h2>1. Satıcı / Hizmet Sağlayıcı</h2>
+        <SellerTr />
+      </section>
+      <section>
+        <h2>2. Hizmetin Temel Nitelikleri</h2>
+        <ServiceTr />
+      </section>
+      <section>
+        <h2>3. Toplam Bedel, Ödeme ve İfa</h2>
+        <PaymentTr />
+      </section>
+      <section>
+        <h2>4. Cayma Hakkı</h2>
+        <WithdrawalTr />
+      </section>
+      <section>
+        <h2>5. Şikâyet ve Uyuşmazlıklar</h2>
+        <DisputesTr />
+      </section>
+      <section>
+        <h2>6. Kişisel Veriler</h2>
+        <p>
+          Verilerinizin nasıl işlendiği <Link href="/kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</Link>
+          &apos;nde açıklanmıştır. Sözleşmenin tam metni:{" "}
+          <Link href="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</Link>.
+        </p>
+      </section>
+    </>
+  );
+}
+
 export function PreContractInfo() {
   return (
     <LegalLayout
       tr={
-        <>
-          <section>
-            <p>
-              Bu form, Mesafeli Sözleşmeler Yönetmeliği md. 5 uyarınca, sözleşme kurulmadan önce sizi
-              bilgilendirmek için hazırlanmıştır. &quot;Davetiyemi Yayınla&quot; adımındaki onay kutusunu
-              işaretlemeniz, bu formu okuduğunuzu gösterir.
-            </p>
-          </section>
-          <section>
-            <h2>1. Satıcı / Hizmet Sağlayıcı</h2>
-            <SellerTr />
-          </section>
-          <section>
-            <h2>2. Hizmetin Temel Nitelikleri</h2>
-            <ServiceTr />
-          </section>
-          <section>
-            <h2>3. Toplam Bedel, Ödeme ve İfa</h2>
-            <PaymentTr />
-          </section>
-          <section>
-            <h2>4. Cayma Hakkı</h2>
-            <WithdrawalTr />
-          </section>
-          <section>
-            <h2>5. Şikâyet ve Uyuşmazlıklar</h2>
-            <DisputesTr />
-          </section>
-          <section>
-            <h2>6. Kişisel Veriler</h2>
-            <p>
-              Verilerinizin nasıl işlendiği <Link href="/kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</Link>
-              &apos;nde açıklanmıştır. Sözleşmenin tam metni:{" "}
-              <Link href="/mesafeli-satis-sozlesmesi">Mesafeli Satış Sözleşmesi</Link>.
-            </p>
-          </section>
-        </>
+        <PreContractInfoTr />
       }
       en={
         <>
@@ -238,76 +244,84 @@ export function PreContractInfo() {
 // Mesafeli Satış Sözleşmesi
 // ---------------------------------------------------------------------------
 
+export function DistanceSalesContractTr() {
+  return (
+    <>
+      <section>
+        <h2>1. Taraflar</h2>
+        <p><strong>Satıcı:</strong></p>
+        <SellerTr />
+        <p>
+          <strong>Alıcı:</strong> Zarify&apos;da hesap açan ve &quot;Davetiyemi Yayınla&quot; adımında
+          bu sözleşmeyi onaylayan kullanıcı; kayıt sırasında verdiği ad, soyad ve e-posta adresiyle.
+        </p>
+      </section>
+      <section>
+        <h2>2. Konu</h2>
+        <p>
+          Bu sözleşme, Alıcı&apos;nın Zarify üzerinden elektronik ortamda satın aldığı dijital davetiye
+          hizmetine ilişkin tarafların hak ve yükümlülüklerini, 6502 sayılı Tüketicinin Korunması
+          Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine göre düzenler.
+        </p>
+      </section>
+      <section>
+        <h2>3. Hizmet</h2>
+        <ServiceTr />
+      </section>
+      <section>
+        <h2>4. Bedel, Ödeme ve İfa</h2>
+        <PaymentTr />
+      </section>
+      <section>
+        <h2>5. Cayma Hakkı, İptal ve İade</h2>
+        <WithdrawalTr />
+      </section>
+      <section>
+        <h2>6. Tarafların Yükümlülükleri</h2>
+        <ul>
+          <li>Satıcı, ödemesi onaylanan davetiyeyi yayına almak ve hizmet süresince erişilebilir tutmak için makul özeni gösterir.</li>
+          <li>Alıcı, davetiyeye eklediği içeriğin doğruluğundan ve hukuka uygunluğundan sorumludur; <Link href="/kullanim-sartlari">Kullanım Şartları</Link> bu sözleşmenin ayrılmaz parçasıdır.</li>
+          <li>Alıcı, misafirlerin katılım bildirimlerini yalnızca davetin organizasyonu için kullanır.</li>
+        </ul>
+      </section>
+      <section>
+        <h2>7. Mücbir Sebepler</h2>
+        <p>
+          Tarafların kontrolü dışındaki olaylar (doğal afet, salgın, altyapı veya enerji kesintisi, siber
+          saldırı, resmî makam kararları vb.) nedeniyle yükümlülüklerin geç veya hiç yerine
+          getirilememesinden taraflar sorumlu tutulamaz. Bu durum 30 günden uzun sürerse Alıcı, henüz
+          yararlanmadığı hizmet bedelinin iadesini isteyebilir.
+        </p>
+      </section>
+      <section>
+        <h2>8. Uyuşmazlıklar</h2>
+        <DisputesTr />
+        <p>
+          Tüketici sıfatı taşımayan Alıcılarla uyuşmazlıklarda <Biz field="courtCity" /> mahkemeleri ve
+          icra daireleri yetkilidir.
+        </p>
+      </section>
+      <section>
+        <h2>9. Yürürlük ve Kayıt</h2>
+        <p>
+          Sözleşme, Alıcı&apos;nın Ön Bilgilendirme Formu&apos;nu ve bu sözleşmeyi okuduğunu onaylayan
+          kutuyu işaretleyip &quot;Onayla ve Devam Et&quot; düğmesine bastığı anda elektronik ortamda
+          kurulur. Onay zamanı ve metinlerin sürümü, davetiyeyle birlikte Satıcı&apos;nın sistemlerinde
+          kaydedilir ve en az 3 yıl saklanır. Alıcı, sözleşmenin bu sayfadaki güncel metnine her zaman
+          ulaşabilir. Onayladığı metinler, onay anındaki hâliyle ve Alıcı&apos;nın bilgileriyle doldurulmuş olarak
+              arşivlenir, sipariş e-postasına eklenir ve Davetiyelerim sayfasındaki &quot;Sözleşmemi
+              görüntüle&quot; bağlantısından her zaman görüntülenebilir.
+        </p>
+      </section>
+    </>
+  );
+}
+
 export function DistanceSalesContract() {
   return (
     <LegalLayout
       tr={
-        <>
-          <section>
-            <h2>1. Taraflar</h2>
-            <p><strong>Satıcı:</strong></p>
-            <SellerTr />
-            <p>
-              <strong>Alıcı:</strong> Zarify&apos;da hesap açan ve &quot;Davetiyemi Yayınla&quot; adımında
-              bu sözleşmeyi onaylayan kullanıcı; kayıt sırasında verdiği ad, soyad ve e-posta adresiyle.
-            </p>
-          </section>
-          <section>
-            <h2>2. Konu</h2>
-            <p>
-              Bu sözleşme, Alıcı&apos;nın Zarify üzerinden elektronik ortamda satın aldığı dijital davetiye
-              hizmetine ilişkin tarafların hak ve yükümlülüklerini, 6502 sayılı Tüketicinin Korunması
-              Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine göre düzenler.
-            </p>
-          </section>
-          <section>
-            <h2>3. Hizmet</h2>
-            <ServiceTr />
-          </section>
-          <section>
-            <h2>4. Bedel, Ödeme ve İfa</h2>
-            <PaymentTr />
-          </section>
-          <section>
-            <h2>5. Cayma Hakkı, İptal ve İade</h2>
-            <WithdrawalTr />
-          </section>
-          <section>
-            <h2>6. Tarafların Yükümlülükleri</h2>
-            <ul>
-              <li>Satıcı, ödemesi onaylanan davetiyeyi yayına almak ve hizmet süresince erişilebilir tutmak için makul özeni gösterir.</li>
-              <li>Alıcı, davetiyeye eklediği içeriğin doğruluğundan ve hukuka uygunluğundan sorumludur; <Link href="/kullanim-sartlari">Kullanım Şartları</Link> bu sözleşmenin ayrılmaz parçasıdır.</li>
-              <li>Alıcı, misafirlerin katılım bildirimlerini yalnızca davetin organizasyonu için kullanır.</li>
-            </ul>
-          </section>
-          <section>
-            <h2>7. Mücbir Sebepler</h2>
-            <p>
-              Tarafların kontrolü dışındaki olaylar (doğal afet, salgın, altyapı veya enerji kesintisi, siber
-              saldırı, resmî makam kararları vb.) nedeniyle yükümlülüklerin geç veya hiç yerine
-              getirilememesinden taraflar sorumlu tutulamaz. Bu durum 30 günden uzun sürerse Alıcı, henüz
-              yararlanmadığı hizmet bedelinin iadesini isteyebilir.
-            </p>
-          </section>
-          <section>
-            <h2>8. Uyuşmazlıklar</h2>
-            <DisputesTr />
-            <p>
-              Tüketici sıfatı taşımayan Alıcılarla uyuşmazlıklarda <Biz field="courtCity" /> mahkemeleri ve
-              icra daireleri yetkilidir.
-            </p>
-          </section>
-          <section>
-            <h2>9. Yürürlük ve Kayıt</h2>
-            <p>
-              Sözleşme, Alıcı&apos;nın Ön Bilgilendirme Formu&apos;nu ve bu sözleşmeyi okuduğunu onaylayan
-              kutuyu işaretleyip &quot;Onayla ve Devam Et&quot; düğmesine bastığı anda elektronik ortamda
-              kurulur. Onay zamanı ve metinlerin sürümü, davetiyeyle birlikte Satıcı&apos;nın sistemlerinde
-              kaydedilir ve en az 3 yıl saklanır. Alıcı, sözleşmenin bu sayfadaki güncel metnine her zaman
-              ulaşabilir; talep etmesi hâlinde onayladığı sürüm e-posta ile gönderilir.
-            </p>
-          </section>
-        </>
+        <DistanceSalesContractTr />
       }
       en={
         <>
@@ -369,7 +383,9 @@ export function DistanceSalesContract() {
               Pre-Contract Information Form and this contract and presses &quot;Confirm and continue&quot;.
               The time of acceptance and the version of the texts are recorded with the invitation in the
               Seller&apos;s systems and kept for at least 3 years. The current text is always available on
-              this page; on request, the accepted version is sent by email.
+              this page. The accepted texts are archived as they were at acceptance, filled in with the
+              Buyer&apos;s details, attached to the order email, and can be viewed at any time from &quot;View
+              my contract&quot; on the My Invitations page.
             </p>
           </section>
         </>

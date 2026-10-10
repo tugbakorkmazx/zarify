@@ -7,6 +7,8 @@ public static class TurkeyTime
 {
     public static readonly TimeZoneInfo Zone = Find();
 
+    public static readonly System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+
     public static DateTime FromUtc(DateTime utc) =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Zone);
 

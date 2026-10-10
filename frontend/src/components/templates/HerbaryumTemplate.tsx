@@ -31,6 +31,7 @@ export function HerbaryumTemplate({
   content,
   rsvpEnabled = true,
   invitationSlug,
+  rsvpClosesAtUtc,
 }: {
   eventDate: Date;
   names?: string;
@@ -44,6 +45,8 @@ export function HerbaryumTemplate({
   /** Set only for a published invitation — the local draft preview has
    * nothing on the backend to attach RSVP replies to. */
   invitationSlug?: string;
+  /** From the API — the published invitation only. */
+  rsvpClosesAtUtc?: string;
 }) {
   const { t } = useI18n();
   const showcase = content === undefined;
@@ -74,6 +77,7 @@ export function HerbaryumTemplate({
         names={names}
         invitationSlug={invitationSlug}
         deadline={showcase ? null : content.rsvpDeadline}
+        closesAtUtc={rsvpClosesAtUtc}
       />
       <SiteFooter names={names} />
     </>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getInvitationAgreement, type SalesAgreement } from "@/lib/invitations";
 import { formatPrice } from "@/lib/pricing";
 
-const DATE_TIME = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeStyle: "short" });
+const DATE_TIME = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Istanbul" });
 
 /** The order as the owner agreed to it: the price fixed when they
  * published, when they accepted the contract and which version — with
@@ -52,6 +52,14 @@ export function OrderSummary({ token, invitationId }: { token: string; invitatio
         </Link>
         &apos;ni onayladınız{agreement.version && <> (metin sürümü {agreement.version})</>}.
       </p>
+      {agreement.hasContract && (
+        <p className="mt-2">
+          <Link href={`/davetiyelerim/${invitationId}/sozlesme`} className={link}>
+            Sözleşmemi görüntüle
+          </Link>{" "}
+          — onayladığınız anki hâli, bilgilerinizle doldurulmuş olarak.
+        </p>
+      )}
     </div>
   );
 }

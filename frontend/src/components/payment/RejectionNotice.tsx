@@ -1,6 +1,6 @@
 import type { InvitationDto } from "@/lib/invitations";
 
-const DATE_TIME = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeStyle: "short" });
+const DATE_TIME = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Istanbul" });
 
 /** The admin's note when a transfer couldn't be confirmed. The order is
  * still pending; this says what to fix. Renders nothing otherwise. */

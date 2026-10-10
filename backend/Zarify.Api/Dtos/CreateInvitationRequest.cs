@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Zarify.Api.Dtos;
 
@@ -15,4 +15,10 @@ public class CreateInvitationRequest : InvitationFieldsRequest
     /// Which version of those texts was shown (e.g. "2026-09-29").
     [MaxLength(32)]
     public string? DistanceSalesVersion { get; set; }
+
+    /// The two texts exactly as the publish dialog rendered them, filled in
+    /// with the price and the buyer — archived on the agreement record (see
+    /// ContractArchive).
+    [Required, MaxLength(Services.ContractArchive.MaxBodyLength)]
+    public required string ContractHtml { get; set; }
 }

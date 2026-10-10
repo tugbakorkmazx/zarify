@@ -33,7 +33,9 @@ public class EmailComposer(
         new EmailButton(T("welcome.button"), Link("/davetiye-bilgileri")),
         []));
 
-    public EmailMessage OrderPlaced(User user, Invitation invitation)
+    /// With the accepted contract attached as an HTML file when one was
+    /// archived (and a line in the text saying so).
+    public EmailMessage OrderPlaced(User user, Invitation invitation, string? contractHtml = null)
     {
         var p = payment.Value;
         var reference = invitation.PaymentReference ?? "—";
@@ -51,7 +53,12 @@ public class EmailComposer(
         }
         details.Add(new EmailDetail(T("order.reference"), reference, Emphasis: true));
 
-        return Build(user.Email, Name(user), "order-placed", new EmailContent(
+        var after = new List<string> { $"{T("paymentApproval")} {T("order.p2")}", T("order.p3") };
+        if (contractHtml is not null)
+        {
+            after.Add(T("order.contract"));
+        }
+        var message = Build(user.Email, Name(user), "order-placed", new EmailContent(
             T("order.subject", Couple(invitation)),
             T("order.preheader", reference),
             T("order.eyebrow"),
@@ -59,8 +66,34 @@ public class EmailComposer(
             hasBank ? [T("order.p1")] : [T("order.p1"), T("order.noBank")],
             details,
             new EmailButton(T("order.button"), Link($"/davetiyem/{invitation.Slug}")),
-            [$"{T("paymentApproval")} {T("order.p2")}", T("order.p3")]));
+            after));
+        return contractHtml is null
+            ? message
+            : message with
+            {
+                Attachments =
+                [
+                    new EmailAttachment(
+                        $"zarify-sozlesme-{reference}.html", "text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(contractHtml)),
+                ],
+            };
     }
+
+    /// RetentionWorker: guests lose access to the page on `closesOn`;
+    /// download the replies before then.
+    public EmailMessage RetentionNotice(User user, Invitation invitation, DateOnly closesOn, DateOnly deletedOn) =>
+        Build(user.Email, Name(user), "retention-notice", new EmailContent(
+            T("retention.subject", Couple(invitation)),
+            T("retention.preheader", Date(closesOn)),
+            T("retention.eyebrow"),
+            Couple(invitation),
+            [T("retention.p1", Date(closesOn)), T("retention.p2")],
+            [
+                new EmailDetail(T("retention.closes"), Date(closesOn)),
+                new EmailDetail(T("retention.deleted"), Date(deletedOn)),
+            ],
+            new EmailButton(T("retention.button"), Link("/davetiyelerim")),
+            [T("retention.p3")]));
 
     /// Null when Email:AdminAddress isn't set.
     public EmailMessage? AdminNewOrder(User owner, Invitation invitation)

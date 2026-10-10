@@ -51,6 +51,7 @@ export function RsvpSection({
   names,
   invitationSlug,
   deadline,
+  closesAtUtc,
 }: {
   enabled?: boolean;
   /** The published invitation replies are saved against. Absent on the
@@ -63,6 +64,10 @@ export function RsvpSection({
   names?: string;
   /** "2027-05-01" — mentioned in the intro only when the couple set one. */
   deadline?: string | null;
+  /** When RSVPs stop being accepted (end of the deadline day, or of the
+   * wedding day). Past it the form is replaced by a "süresi doldu" note —
+   * the API refuses late replies too. */
+  closesAtUtc?: string;
 }) {
   const { t, lang } = useI18n();
   const deadlineLine = deadline
@@ -75,6 +80,9 @@ export function RsvpSection({
         }).format(new Date(`${deadline}T00:00:00`)),
       )
     : null;
+  // Read once when the page opens; a guest who keeps it open past midnight
+  // gets the API's "süresi doldu" message instead.
+  const [closed] = useState(() => (closesAtUtc ? Date.now() >= new Date(closesAtUtc).getTime() : false));
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -139,7 +147,7 @@ export function RsvpSection({
         <p className="mt-8 max-w-[40ch] text-center font-body text-xl italic leading-snug text-paper/90">
           {t.rsvp.intro}
         </p>
-        {deadlineLine && (
+        {deadlineLine && !closed && (
           <p className="apparatus mt-3 text-center text-sm text-wine-pale">{deadlineLine}</p>
         )}
 
@@ -149,6 +157,10 @@ export function RsvpSection({
               {!enabled ? (
                 <p className="font-body text-lg leading-relaxed text-soot">
                   {t.rsvp.disabledNote}
+                </p>
+              ) : closed ? (
+                <p className="font-body text-lg leading-relaxed text-soot" role="status">
+                  {t.rsvp.closedNote}
                 </p>
               ) : submitted ? (
                 <div className="flex flex-col items-center gap-4 py-8 text-center" role="status">

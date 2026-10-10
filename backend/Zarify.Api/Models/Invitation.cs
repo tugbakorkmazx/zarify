@@ -86,6 +86,10 @@ public class Invitation
     public DateTime? DistanceSalesAcceptedAtUtc { get; set; }
     public string? DistanceSalesVersion { get; set; }
 
+    /// When the owner was told the invitation is about to close to guests
+    /// (RetentionWorker), so the reminder goes out once.
+    public DateTime? RetentionNoticeSentAtUtc { get; set; }
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }
 }

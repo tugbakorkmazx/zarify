@@ -1,7 +1,7 @@
 "use client";
 
 import { apiErrorFrom, pageLanguage } from "@/lib/apiErrors";
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 import { API_URL } from "@/lib/apiUrl";
 const STORAGE_KEY = "zarify.auth";
@@ -32,33 +32,44 @@ export function jsonHeaders(extra?: Record<string, string>): Record<string, stri
 }
 
 function isExpired(expiresAtUtc: string): boolean {
-  return new Date(expiresAtUtc).getTime() <= Date.now();
+  // A few seconds early, so a token doesn't run out mid-request.
+  return new Date(expiresAtUtc).getTime() - 10_000 <= Date.now();
 }
 
-// A minimal external store over localStorage, read via useSyncExternalStore.
-// This makes auth state SSR-safe (the server snapshot is always "logged
-// out", so there's no hydration mismatch) without a mount effect, and keeps
-// state in sync across browser tabs via the native "storage" event.
+// ---------------------------------------------------------------------------
+// The session store.
+//
+// The short-lived access token (15 min) and the user live in localStorage;
+// the long-lived refresh token is an httpOnly cookie the page can't read,
+// sent only to /api/auth (see backend RefreshTokenService). When the access
+// token has run out — on load, or when a request comes back 401 — the store
+// asks /api/auth/refresh for a new one, once, shared by every caller in the
+// tab. Only when that fails is the user signed out.
+//
+// A minimal external store over localStorage, read via useSyncExternalStore:
+// SSR-safe (the server snapshot is always "logged out", so there's no
+// hydration mismatch) and in sync across browser tabs via the "storage" event.
+// ---------------------------------------------------------------------------
 const listeners = new Set<() => void>();
 let cachedRaw: string | null | undefined;
 let cachedValue: StoredAuth | null = null;
 
-function readSnapshot(): StoredAuth | null {
-  let raw: string | null;
+function readRaw(): string | null {
   try {
-    raw = localStorage.getItem(STORAGE_KEY);
+    return localStorage.getItem(STORAGE_KEY);
   } catch {
-    raw = null;
-  }
-  if (raw === cachedRaw) return cachedValue;
-  cachedRaw = raw;
-  if (!raw) {
-    cachedValue = null;
     return null;
   }
+}
+
+/** The stored session — also when its access token has expired (the user
+ * is still shown while it's being renewed). */
+function readSnapshot(): StoredAuth | null {
+  const raw = readRaw();
+  if (raw === cachedRaw) return cachedValue;
+  cachedRaw = raw;
   try {
-    const parsed: StoredAuth = JSON.parse(raw);
-    cachedValue = isExpired(parsed.expiresAtUtc) ? null : parsed;
+    cachedValue = raw ? (JSON.parse(raw) as StoredAuth) : null;
   } catch {
     cachedValue = null;
   }
@@ -67,6 +78,10 @@ function readSnapshot(): StoredAuth | null {
 
 function getServerSnapshot(): StoredAuth | null {
   return null;
+}
+
+function notify() {
+  listeners.forEach((listener) => listener());
 }
 
 function subscribe(listener: () => void) {
@@ -90,7 +105,77 @@ function writeAuth(value: StoredAuth | null) {
   }
   cachedRaw = value ? JSON.stringify(value) : null;
   cachedValue = value;
-  listeners.forEach((listener) => listener());
+  if (value) refreshGaveUp = false;
+  notify();
+}
+
+/** The access token if it's still good, otherwise null. */
+export function currentToken(): string | null {
+  const stored = readSnapshot();
+  return stored && !isExpired(stored.expiresAtUtc) ? stored.token : null;
+}
+
+// 0 idle · 1 renewing · 2 gave up (network down) — a primitive, so it's a
+// stable useSyncExternalStore snapshot.
+let refreshInFlight: Promise<string | null> | null = null;
+let refreshGaveUp = false;
+function getRefreshState(): number {
+  return refreshInFlight ? 1 : refreshGaveUp ? 2 : 0;
+}
+
+/** Asks the API for a new access token with the refresh cookie. One request
+ * at a time per tab: concurrent callers share it. Resolves to the new token,
+ * or null when there's no sign-in to renew (the stored session is then
+ * cleared) or the API couldn't be reached. If another tab renewed in the
+ * meantime, its token is used. */
+export function refreshSession(): Promise<string | null> {
+  if (refreshInFlight) return refreshInFlight;
+  const startedWith = readRaw();
+  refreshInFlight = fetch(`${API_URL}/api/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Accept-Language": pageLanguage() },
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        const auth = (await res.json()) as StoredAuth;
+        writeAuth(auth);
+        return auth.token;
+      }
+      // Two tabs racing: the other one's rotation made ours stale, but it
+      // stored a fresh session we can use.
+      if (readRaw() !== startedWith) {
+        const token = currentToken();
+        if (token) return token;
+      }
+      writeAuth(null);
+      return null;
+    })
+    .catch(() => {
+      refreshGaveUp = true;
+      return null;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+      notify();
+    });
+  notify();
+  return refreshInFlight;
+}
+
+/** Revokes this browser's refresh cookie (best effort) and forgets the
+ * session. */
+function signOut() {
+  writeAuth(null);
+  fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
+}
+
+/** Where to send someone whose session ended: the sign-in page, coming back
+ * to the current page afterwards. */
+export function loginHref(): string {
+  if (typeof window === "undefined") return "/giris";
+  const here = `${window.location.pathname}${window.location.search}`;
+  return here === "/" || here.startsWith("/giris") ? "/giris" : `/giris?next=${encodeURIComponent(here)}`;
 }
 
 // False during SSR and the hydration render, true from the first client
@@ -103,13 +188,30 @@ function subscribeNever() {
   return () => {};
 }
 
+/** Re-evaluated on every render: whether the stored access token has run
+ * out by now. */
+function getExpiredSnapshot(): boolean {
+  const stored = readSnapshot();
+  return stored ? isExpired(stored.expiresAtUtc) : false;
+}
+
 export function useAuth() {
   const stored = useSyncExternalStore(subscribe, readSnapshot, getServerSnapshot);
-  const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const hydrated = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const expired = useSyncExternalStore(subscribe, getExpiredSnapshot, () => false);
+  const refreshState = useSyncExternalStore(subscribe, getRefreshState, () => 0);
+
+  // A stored session whose access token ran out (the tab sat idle, or the
+  // page was reopened): renew it before anyone decides the user is signed out.
+  const needsRefresh = hydrated && stored !== null && expired;
+  useEffect(() => {
+    if (needsRefresh && refreshState === 0) void refreshSession();
+  }, [needsRefresh, refreshState]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
+      credentials: "include",
       headers: jsonHeaders(),
       body: JSON.stringify({ email, password }),
     });
@@ -123,6 +225,7 @@ export function useAuth() {
     async (input: { email: string; password: string; firstName: string; lastName: string }) => {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
+        credentials: "include",
         headers: jsonHeaders(),
         body: JSON.stringify(input),
       });
@@ -134,16 +237,34 @@ export function useAuth() {
     [],
   );
 
-  const logout = useCallback(() => writeAuth(null), []);
+  const logout = useCallback(() => signOut(), []);
 
   return {
-    ready,
+    // Not ready while a renewal is pending (or about to start).
+    ready: hydrated && !(needsRefresh && refreshState !== 2),
     user: stored?.user ?? null,
-    token: stored?.token ?? null,
+    token: stored && !expired ? stored.token : null,
     login,
     register,
     logout,
   };
+}
+
+/** fetch() for the API with the page language and, given a token, the
+ * Authorization header. A 401 triggers one silent renewal and a retry with
+ * the new token; if renewal fails the 401 is returned and the caller sends
+ * the user to sign in (loginHref). */
+export async function apiFetch(url: string, init: RequestInit = {}, token?: string | null): Promise<Response> {
+  const send = (bearer: string | null | undefined) => {
+    const headers = new Headers(init.headers);
+    headers.set("Accept-Language", pageLanguage());
+    if (bearer) headers.set("Authorization", `Bearer ${bearer}`);
+    return fetch(url, { ...init, headers });
+  };
+  const res = await send(token === undefined ? null : (currentToken() ?? token));
+  if (res.status !== 401 || token === undefined) return res;
+  const fresh = await refreshSession();
+  return fresh ? send(fresh) : res;
 }
 
 // ---------------------------------------------------------------------------
@@ -179,11 +300,11 @@ export async function resetPassword(token: string, password: string): Promise<vo
 
 /** Deletes the signed-in account after re-checking its password. */
 export async function deleteAccount(token: string, password: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/auth/delete-account`, {
-    method: "POST",
-    headers: jsonHeaders({ Authorization: `Bearer ${token}` }),
-    body: JSON.stringify({ password }),
-  });
+  const res = await apiFetch(
+    `${API_URL}/api/auth/delete-account`,
+    { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) },
+    token,
+  );
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }

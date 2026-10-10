@@ -17,7 +17,9 @@ public record SalesAgreementDto(
     string UserEmail,
     string UserFirstName,
     string UserLastName,
-    DateTime? CancelledAtUtc)
+    DateTime? CancelledAtUtc,
+    /// The filled-in contract was archived and can be opened again.
+    bool HasContract)
 {
     public static SalesAgreementDto FromEntity(SalesAgreement a) => new(
         a.Id,
@@ -31,5 +33,6 @@ public record SalesAgreementDto(
         a.UserEmail,
         a.UserFirstName,
         a.UserLastName,
-        a.CancelledAtUtc);
+        a.CancelledAtUtc,
+        a.ContractSha256 != null);
 }

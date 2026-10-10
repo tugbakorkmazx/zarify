@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuth, loginHref } from "@/lib/auth";
 import { OwnerShell } from "@/components/owner/OwnerShell";
 import type { InvitationStatus } from "@/lib/invitations";
 import { adminHref, type AdminTab } from "./shared";
@@ -41,7 +41,7 @@ export function AdminPanel({ params }: { params: AdminParams }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (ready && !token) router.replace("/giris");
+    if (ready && !token) router.replace(loginHref());
   }, [ready, token, router]);
 
   if (!token) return null;

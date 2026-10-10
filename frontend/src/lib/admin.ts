@@ -1,4 +1,5 @@
 import { apiErrorFrom } from "@/lib/apiErrors";
+import { apiFetch } from "@/lib/auth";
 import type { InvitationDto, InvitationStatus, SalesAgreement } from "@/lib/invitations";
 
 import { API_URL } from "@/lib/apiUrl";
@@ -94,10 +95,7 @@ export interface AdminSummary {
 }
 
 async function adminGet<T>(token: string, path: string): Promise<T> {
-  const res = await fetch(`${API_URL}/api/admin/${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  const res = await apiFetch(`${API_URL}/api/admin/${path}`, { cache: "no-store" }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -105,14 +103,15 @@ async function adminGet<T>(token: string, path: string): Promise<T> {
 }
 
 async function adminSend<T>(token: string, method: "POST" | "PUT", path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_URL}/api/admin/${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+  const res = await apiFetch(
+    `${API_URL}/api/admin/${path}`,
+    {
+      method,
+      headers: body === undefined ? {} : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+    token,
+  );
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -183,10 +182,7 @@ export const getAuditLog = (token: string, page: number) =>
  * file for the accountant, saved through a temporary link (the request
  * needs the Authorization header, so a plain <a href> can't fetch it). */
 export async function downloadApprovedOrdersCsv(token: string, from: string, to: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/admin/orders/approved.csv${query({ from, to })}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  const res = await apiFetch(`${API_URL}/api/admin/orders/approved.csv${query({ from, to })}`, { cache: "no-store" }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }

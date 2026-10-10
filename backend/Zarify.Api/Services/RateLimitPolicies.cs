@@ -19,6 +19,7 @@ public static class RateLimitPolicies
     public const string ForgotPassword = "forgot-password";
     public const string ResetPassword = "reset-password";
     public const string InvitationLookup = "invitation-lookup";
+    public const string Refresh = "refresh";
 
     /// Guest RSVP: a household sharing one connection still fits.
     public static readonly FixedWindowRateLimiterOptions RsvpPerIp = Window(5, TimeSpan.FromMinutes(1));
@@ -38,6 +39,9 @@ public static class RateLimitPolicies
 
     /// Submitting a new password with a link's token.
     public static readonly FixedWindowRateLimiterOptions ResetPasswordPerIp = Window(10, TimeSpan.FromMinutes(15));
+
+    /// Renewing the session. A page load can trigger one per open tab.
+    public static readonly FixedWindowRateLimiterOptions RefreshPerIp = Window(30, TimeSpan.FromMinutes(1));
 
     /// The public slug lookup behind every guest page. Slugs are guessable
     /// ("gelin-damat"), so this caps scanning; a guest opening the page a

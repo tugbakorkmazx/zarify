@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuth, loginHref } from "@/lib/auth";
 import { useInvitationDraft, type InvitationDraft } from "@/lib/invitationDraft";
 import { EMPTY_FORM } from "@/lib/invitationForm";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -21,7 +21,7 @@ export function InvitationDetailsForm() {
   // during hydration `user` is still the server's logged-out snapshot.
   useEffect(() => {
     if (ready && !user) {
-      router.replace("/giris");
+      router.replace(loginHref());
     }
   }, [ready, user, router]);
 

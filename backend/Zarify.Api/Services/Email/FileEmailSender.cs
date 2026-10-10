@@ -35,6 +35,13 @@ public class FileEmailSender(
         var log = new StringBuilder()
             .AppendLine($"E-posta (gönderilmedi, dosyaya yazıldı) → {message.To}: {message.Subject}")
             .AppendLine($"  dosya: {new Uri(htmlPath).AbsoluteUri}");
+        foreach (var attachment in message.Attachments)
+        {
+            var attachmentPath = Path.Combine(
+                _directory, $"{baseName}-ek-{Safe(Path.GetFileNameWithoutExtension(attachment.FileName))}{Path.GetExtension(attachment.FileName)}");
+            await File.WriteAllBytesAsync(attachmentPath, attachment.Content, ct);
+            log.AppendLine($"  ek:    {new Uri(attachmentPath).AbsoluteUri}");
+        }
         foreach (var link in message.Links)
         {
             log.AppendLine($"  link:  {link}");

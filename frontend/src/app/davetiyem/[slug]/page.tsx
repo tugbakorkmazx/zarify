@@ -8,7 +8,7 @@ import { BUTTON_PRIMARY, BUTTON_PRIMARY_SM, BUTTON_SECONDARY, TEXT_LINK } from "
 import { PaymentInstructionsPanel } from "@/components/payment/PaymentInstructionsPanel";
 import { OrderSummary } from "@/components/payment/OrderSummary";
 import { RejectionNotice } from "@/components/payment/RejectionNotice";
-import { useAuth } from "@/lib/auth";
+import { useAuth, loginHref } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 
 // origin never changes over the page's lifetime, so there's nothing to
@@ -46,7 +46,7 @@ export default function InvitationReadyPage() {
     if (!ready) return;
     // Owner-only: a pending invitation isn't visible without the owner's token.
     if (!token) {
-      router.replace("/giris");
+      router.replace(loginHref());
       return;
     }
     let cancelled = false;

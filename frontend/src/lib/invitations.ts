@@ -1,4 +1,5 @@
 import { apiErrorFrom } from "@/lib/apiErrors";
+import { apiFetch } from "@/lib/auth";
 
 import { API_URL } from "@/lib/apiUrl";
 
@@ -45,6 +46,9 @@ export interface InvitationDto {
    * the owner was emailed. Only the owner and admins ever see these. */
   removedAtUtc: string | null;
   removalNote: string | null;
+  /** The first moment RSVPs are refused: the end of the deadline day, or of
+   * the wedding day without one (Turkish time). */
+  rsvpClosesAtUtc: string;
 }
 
 /** "removed": paid for, then taken offline by an admin (inappropriate
@@ -82,6 +86,9 @@ export interface CreateInvitationInput extends InvitationFieldsInput {
   acceptDistanceSales: boolean;
   /** legalSettings.version — which texts were shown. */
   distanceSalesVersion: string;
+  /** The Pre-Contract Information Form and the Distance Sales Contract as
+   * rendered in the publish dialog, filled in — the API archives them. */
+  contractHtml: string;
 }
 
 /** Persists a filled-in draft + chosen template as a real invitation owned
@@ -90,14 +97,11 @@ export async function createInvitation(
   token: string,
   input: CreateInvitationInput,
 ): Promise<InvitationDto> {
-  const res = await fetch(`${API_URL}/api/invitations`, {
+  const res = await apiFetch(`${API_URL}/api/invitations`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -111,14 +115,11 @@ export async function updateInvitation(
   id: string,
   input: InvitationFieldsInput,
 ): Promise<InvitationDto> {
-  const res = await fetch(`${API_URL}/api/invitations/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/invitations/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -128,7 +129,8 @@ export async function updateInvitation(
 export type InvitationLookup =
   | { kind: "found"; invitation: InvitationDto }
   | { kind: "not-found" }
-  | { kind: "removed" };
+  | { kind: "removed" }
+  | { kind: "expired" };
 
 /** Lookup by slug for the guest-facing /davetiye/[slug] page — no auth
  * needed. Guests only get Published invitations; pass the owner's token and
@@ -137,13 +139,12 @@ export type InvitationLookup =
  * slug; one an admin took offline answers "removed". Both are expected
  * outcomes, not errors. */
 export async function getInvitationBySlug(slug: string, token?: string | null): Promise<InvitationLookup> {
-  const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(slug)}`, {
-    cache: "no-store",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
+  const res = await apiFetch(`${API_URL}/api/invitations/${encodeURIComponent(slug)}`, { cache: "no-store" }, token ?? undefined);
   if (res.status === 404) {
     const body = await res.json().catch(() => null);
-    return body?.code === "INVITATION_REMOVED" ? { kind: "removed" } : { kind: "not-found" };
+    if (body?.code === "INVITATION_REMOVED") return { kind: "removed" };
+    if (body?.code === "INVITATION_EXPIRED") return { kind: "expired" };
+    return { kind: "not-found" };
   }
   if (!res.ok) {
     throw await apiErrorFrom(res);
@@ -163,10 +164,9 @@ export interface PaymentInstructions {
 
 /** Bank-transfer details for one of the owner's pending invitations. */
 export async function getPaymentInstructions(token: string, invitationId: string): Promise<PaymentInstructions> {
-  const res = await fetch(`${API_URL}/api/invitations/${invitationId}/payment`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/payment`, {
     cache: "no-store",
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -206,10 +206,9 @@ export interface MyInvitation {
 
 /** The signed-in owner's invitations with their RSVP tallies, newest first. */
 export async function getMyInvitations(token: string): Promise<MyInvitation[]> {
-  const res = await fetch(`${API_URL}/api/invitations/mine`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiFetch(`${API_URL}/api/invitations/mine`, {
     cache: "no-store",
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -218,10 +217,9 @@ export async function getMyInvitations(token: string): Promise<MyInvitation[]> {
 
 /** Every guest reply to one of the owner's invitations, newest first. */
 export async function getInvitationRsvps(token: string, invitationId: string): Promise<RsvpDto[]> {
-  const res = await fetch(`${API_URL}/api/invitations/${invitationId}/rsvps`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/rsvps`, {
     cache: "no-store",
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -245,14 +243,15 @@ export interface SalesAgreement {
   userFirstName: string;
   userLastName: string;
   cancelledAtUtc: string | null;
+  /** The filled-in contract was archived and can be opened again. */
+  hasContract: boolean;
 }
 
 /** The owner's accepted-contract record for one invitation. */
 export async function getInvitationAgreement(token: string, invitationId: string): Promise<SalesAgreement> {
-  const res = await fetch(`${API_URL}/api/invitations/${invitationId}/agreement`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/agreement`, {
     cache: "no-store",
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
@@ -262,11 +261,69 @@ export async function getInvitationAgreement(token: string, invitationId: string
 /** Cancels an order that isn't published yet: the invitation is deleted,
  * its contract record kept and marked cancelled. */
 export async function cancelInvitation(token: string, invitationId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/invitations/${invitationId}`, {
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  }, token);
   if (!res.ok) {
     throw await apiErrorFrom(res);
   }
+}
+
+/** Deletes one guest reply (owner only). */
+export async function deleteRsvp(token: string, invitationId: string, rsvpId: string): Promise<void> {
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/rsvps/${rsvpId}`, { method: "DELETE" }, token);
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+}
+
+/** Saves every reply as a CSV file that opens in Turkish Excel (fetched with
+ * the token, then handed to the browser through a temporary link). */
+export async function downloadRsvpsCsv(token: string, invitationId: string, slug: string): Promise<void> {
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/rsvps.csv`, { cache: "no-store" }, token);
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+  saveBlob(await res.blob(), `zarify-yanitlar-${slug}.csv`);
+}
+
+/** Changes only the RSVP deadline (null: close at the end of the wedding day). */
+export async function setRsvpDeadline(token: string, invitationId: string, rsvpDeadline: string | null): Promise<InvitationDto> {
+  const res = await apiFetch(
+    `${API_URL}/api/invitations/${invitationId}/rsvp-deadline`,
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rsvpDeadline }) },
+    token,
+  );
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+  return res.json();
+}
+
+export interface ContractDocument {
+  html: string;
+  sha256: string | null;
+  paymentReference: string | null;
+  acceptedAtUtc: string;
+}
+
+/** The archived contract the owner accepted for this order. */
+export async function getContractDocument(token: string, invitationId: string): Promise<ContractDocument> {
+  const res = await apiFetch(`${API_URL}/api/invitations/${invitationId}/agreement/document`, { cache: "no-store" }, token);
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+  return res.json();
+}
+
+/** Hands a downloaded file to the browser's save flow. */
+export function saveBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

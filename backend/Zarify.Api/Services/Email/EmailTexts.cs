@@ -36,6 +36,7 @@ public static class EmailTexts
         ["order.p2"] = "Onaylandığında size e-posta ile haber vereceğiz ve davetiyeniz misafirlerinize açılacak.",
         ["order.button"] = "Ödeme Bilgilerini Görüntüle",
         ["order.p3"] = "Henüz ödeme yapmadıysanız siparişinizi Davetiyelerim sayfasından iptal edebilirsiniz.",
+        ["order.contract"] = "Onayladığınız Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi, bilgilerinizle doldurulmuş hâliyle bu e-postanın ekindedir. Davetiyelerim sayfasındaki \"Sözleşmemi görüntüle\" bağlantısından da her zaman açabilirsiniz.",
 
         ["adminOrder.subject"] = "Yeni sipariş: {0} — {1}",
         ["adminOrder.preheader"] = "{0} tutarında yeni sipariş ödeme bekliyor.",
@@ -63,6 +64,16 @@ public static class EmailTexts
         ["rejected.note"] = "Notumuz",
         ["rejected.p2"] = "Davetiyeniz silinmedi; ödeme bekliyor durumunda kalıyor. Nottaki konuyu düzelttiğinizde ödemenizi yeniden inceleyip onaylayacağız.",
         ["rejected.button"] = "Ödeme Bilgilerini Görüntüle",
+
+        ["retention.subject"] = "Davetiyenizin yayın süresi doluyor — {0}",
+        ["retention.preheader"] = "Davetiyeniz {0} tarihinde misafirlerinize kapanacak.",
+        ["retention.eyebrow"] = "Yayın süresi doluyor",
+        ["retention.p1"] = "Davetiyeniz {0} tarihinde misafirlerinize kapanacak. Bu tarihten sonra link \"yayın süresi doldu\" mesajını gösterir; siz panelinizden görmeye devam edebilirsiniz.",
+        ["retention.p2"] = "Katılım yanıtlarını saklamak isterseniz Davetiyelerim sayfasından \"Yanıtları indir (CSV)\" ile şimdiden indirmenizi öneririz.",
+        ["retention.closes"] = "Misafirlere kapanış",
+        ["retention.deleted"] = "Davetiye ve yanıtların silinmesi",
+        ["retention.button"] = "Yanıtlarımı İndir",
+        ["retention.p3"] = "Silme tarihinde davetiyenizin içeriği ve misafir yanıtları kalıcı olarak silinir. Sözleşme ve ödeme kayıtları yasal süre boyunca saklanır.",
 
         ["removed.subject"] = "Davetiyeniz yayından kaldırıldı — {0}",
         ["removed.preheader"] = "Davetiyeniz şu anda misafirlerinize kapalı.",

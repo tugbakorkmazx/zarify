@@ -10,7 +10,13 @@ public record EmailMessage(
     string Html,
     string Text,
     string Kind,
-    IReadOnlyList<string> Links);
+    IReadOnlyList<string> Links)
+{
+    public IReadOnlyList<EmailAttachment> Attachments { get; init; } = [];
+}
+
+/// A file sent with the email, e.g. the accepted contract as HTML.
+public record EmailAttachment(string FileName, string ContentType, byte[] Content);
 
 public interface IEmailSender
 {

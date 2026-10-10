@@ -21,6 +21,7 @@ public class AuthController(
     AuthThrottle throttle,
     IEmailQueue emails,
     EmailComposer composer,
+    RefreshTokenService refreshTokens,
     ILogger<AuthController> logger) : ControllerBase
 {
     private static readonly TimeSpan ResetLinkLifetime = TimeSpan.FromHours(1);
@@ -53,6 +54,7 @@ public class AuthController(
         };
 
         db.Users.Add(user);
+        refreshTokens.Issue(Response, user);
         await db.SaveChangesAsync(ct);
         emails.Enqueue(composer.Welcome(user));
 
@@ -85,8 +87,37 @@ public class AuthController(
             return this.Error(StatusCodes.Status403Forbidden, ErrorCodes.AccountSuspended);
         }
 
+        refreshTokens.Issue(Response, user);
+        await db.SaveChangesAsync(ct);
         var (token, expiresAtUtc) = tokenService.CreateToken(user);
         return Ok(new AuthResponse(token, expiresAtUtc, UserDto.FromEntity(user)));
+    }
+
+    /// Swaps the refresh cookie for a new one plus a fresh access token —
+    /// what the frontend calls when an access token has expired. 401 (and a
+    /// cleared cookie) when there's no valid sign-in to renew: never signed
+    /// in, signed out, expired, password changed, suspended, deleted.
+    [HttpPost("refresh")]
+    [EnableRateLimiting(RateLimitPolicies.Refresh)]
+    public async Task<ActionResult<AuthResponse>> Refresh(CancellationToken ct)
+    {
+        var (outcome, user) = await refreshTokens.RotateAsync(Request, Response, ct);
+        if (outcome != RefreshTokenService.Outcome.Ok || user is null)
+        {
+            return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+        var (token, expiresAtUtc) = tokenService.CreateToken(user);
+        return Ok(new AuthResponse(token, expiresAtUtc, UserDto.FromEntity(user)));
+    }
+
+    /// Ends this browser's sign-in: the refresh token is revoked and the
+    /// cookie cleared. Anonymous on purpose — it must work with an expired
+    /// access token too. (The access token itself just runs out.)
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(CancellationToken ct)
+    {
+        await refreshTokens.RevokeCurrentAsync(Request, Response, ct);
+        return NoContent();
     }
 
     [Authorize]
@@ -169,6 +200,7 @@ public class AuthController(
         await db.PasswordResetTokens
             .Where(t => t.UserId == user.Id && t.Id != reset.Id)
             .ExecuteDeleteAsync(ct);
+        await refreshTokens.RevokeAllAsync(user.Id, ct);
 
         emails.Enqueue(composer.PasswordChanged(user, now));
         logger.LogInformation("Password reset completed for user {UserId}", user.Id);
@@ -224,6 +256,9 @@ public class AuthController(
         var (email, firstName, lastName) = (user.Email, user.FirstName, user.LastName);
         db.Users.Remove(user);
         await db.SaveChangesAsync(ct);
+        // The cascade already removed the refresh tokens; clear this
+        // browser's cookie too.
+        RefreshTokenService.Clear(Response);
 
         emails.Enqueue(composer.AccountDeleted(email, firstName, lastName));
         logger.LogInformation("Account {UserId} deleted by its owner ({Cancelled} unpaid order(s) cancelled)",

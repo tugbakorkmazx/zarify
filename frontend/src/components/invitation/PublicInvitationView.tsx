@@ -5,14 +5,15 @@ import Link from "next/link";
 import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
 import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
 import { useAuth } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromInvitation } from "@/lib/invitationForm";
 import { venueMapUrl } from "@/lib/mapUrl";
 
-type Status = "loading" | "found" | "not-found" | "removed" | "error";
+type Status = "loading" | "found" | "not-found" | "removed" | "expired" | "error";
 
-const MESSAGES: Record<"not-found" | "removed" | "error", { title: string; body: string }> = {
+const MESSAGES: Record<"not-found" | "removed" | "expired" | "error", { title: string; body: string }> = {
   "not-found": {
     title: "Bu davetiyeyi bulamadık.",
     body: "Link yanlış yazılmış ya da davetiye kaldırılmış olabilir.",
@@ -20,6 +21,10 @@ const MESSAGES: Record<"not-found" | "removed" | "error", { title: string; body:
   removed: {
     title: "Bu davetiye yayında değil.",
     body: "Bu davetiye şu anda görüntülenemiyor. Davet eden kişiyle iletişime geçebilirsiniz.",
+  },
+  expired: {
+    title: "Bu davetiyenin yayın süresi doldu.",
+    body: "Düğünün ardından davetiye sayfaları bir süre sonra misafirlere kapanır. Katıldığınız için teşekkürler!",
   },
   error: {
     title: "Davetiye şu anda yüklenemedi.",
@@ -40,6 +45,7 @@ const MESSAGES: Record<"not-found" | "removed" | "error", { title: string; body:
  * banner of their own — the owner's payment page isn't theirs to open. */
 export function PublicInvitationView({ slug }: { slug: string }) {
   const { ready, token, user } = useAuth();
+  const { lang } = useI18n();
   const [invitation, setInvitation] = useState<InvitationDto | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
@@ -123,7 +129,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
       <HerbaryumTemplate
         eventDate={eventDate}
         names={names}
-        dateLine={formatDateLine(inv.weddingDate)}
+        dateLine={formatDateLine(inv.weddingDate, lang)}
         venueLine={`${inv.venueName}, ${inv.venueAddress}`}
         venueName={inv.venueName}
         venueAddress={inv.venueAddress}
@@ -132,6 +138,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
         rsvpEnabled={inv.rsvpEnabled}
         // Not live yet → the RSVP form runs in preview mode (nothing saved).
         invitationSlug={isLive ? inv.slug : undefined}
+        rsvpClosesAtUtc={isLive ? inv.rsvpClosesAtUtc : undefined}
       />
     </main>
   );

@@ -4,11 +4,11 @@ import Link from "next/link";
 import { LegalLayout } from "@/components/legal/LegalLayout";
 import { Biz } from "@/components/legal/Placeholder";
 
-/** Written from an actual scan of the code (2026-09-28): the site sets no
- * cookies and loads nothing from third parties; the only browser storage
- * is the three entries listed below. Update this page whenever that
- * changes — and add a consent banner if any non-essential cookie or
- * tracker is ever introduced. DRAFT: to be reviewed by a lawyer. */
+/** Written from an actual scan of the code (2026-10-10): one strictly
+ * necessary cookie (the sign-in refresh cookie), nothing from third
+ * parties, and the browser-storage entries listed below. Update this page
+ * whenever that changes — and add a consent banner if any non-essential
+ * cookie or tracker is ever introduced. DRAFT: to be reviewed by a lawyer. */
 export function CookiePolicy() {
   return <LegalLayout tr={<Tr />} en={<En />} />;
 }
@@ -26,16 +26,18 @@ function Tr() {
       <section>
         <h2>1. Kısaca</h2>
         <ul>
-          <li><strong>Zarify çerez (cookie) kullanmaz.</strong></li>
+          <li>
+            <strong>Zarify yalnızca bir çerez kullanır:</strong> giriş yaptığınızda oturumunuzu güvenle açık
+            tutan, kesinlikle gerekli bir oturum yenileme çerezi.
+          </li>
           <li>Analiz, reklam, takip veya sosyal medya çerezi ya da benzeri bir izleme aracı yoktur.</li>
           <li>
             Sayfalar üçüncü taraf kaynak yüklemez: yazı tipleri ve görseller kendi sunucumuzdan gelir,
             dışarıdan betik, harita veya video gömülmez.
           </li>
           <li>
-            Yalnızca sitenin çalışması için zorunlu olan üç bilgi, tarayıcınızın yerel depolama
-            alanlarında tutulur (aşağıdaki tablo). Bunlar sunucuya gönderilmez ve sizi başka sitelerde
-            tanımak için kullanılamaz.
+            Bunun dışında yalnızca sitenin çalışması için zorunlu birkaç bilgi tarayıcınızın yerel depolama
+            alanlarında tutulur (aşağıdaki tablo). Hiçbiri sizi başka sitelerde tanımak için kullanılamaz.
           </li>
           <li>
             Kullanılan tüm depolama kesinlikle gerekli nitelikte olduğundan onay (çerez) banner&apos;ı
@@ -57,10 +59,27 @@ function Tr() {
           </thead>
           <tbody>
             <tr>
+              <td><code>zarify_refresh</code></td>
+              <td>Çerez (birinci taraf; HttpOnly, Secure, SameSite=Strict)</td>
+              <td>
+                Oturumunuzu yenilemek için kullanılan rastgele bir anahtar. Sayfa betikleri tarafından okunamaz,
+                yalnızca bizim giriş adresimize (<code>/api/auth</code>) gönderilir; sunucuda yalnızca geri
+                döndürülemez özeti tutulur ve her kullanımda yenisiyle değiştirilir. Şifreniz değiştiğinde,
+                hesabınız askıya alındığında veya silindiğinde ya da çıkış yaptığınızda geçersiz olur.
+              </td>
+              <td>Son kullanımdan itibaren 14 gün; çıkış yaptığınızda silinir.</td>
+            </tr>
+            <tr>
               <td><code>zarify.auth</code></td>
               <td>localStorage</td>
-              <td>Giriş yaptığınızda oturumunuzu açık tutar: oturum anahtarı ile adınız, e-postanız ve hesap türünüz.</td>
-              <td>Çıkış yapana kadar; oturum 60 dakika sonra geçersiz sayılır.</td>
+              <td>Giriş yaptığınızda kısa ömürlü oturum anahtarı ile adınızı, e-postanızı ve hesap türünüzü tutar.</td>
+              <td>Çıkış yapana kadar; anahtar 15 dakikada bir yukarıdaki çerezle yenilenir.</td>
+            </tr>
+            <tr>
+              <td><code>zarify.edit.&lt;davetiye&gt;</code>, <code>zarify.preview.&lt;davetiye&gt;</code></td>
+              <td>localStorage</td>
+              <td>Yayındaki davetiyenizde henüz kaydetmediğiniz değişiklikleri, oturumunuz düşerse kaybolmasın ve &quot;Önizle&quot; sekmesinde gösterilebilsin diye saklar.</td>
+              <td>Değişiklikleri kaydedene veya atana kadar.</td>
             </tr>
             <tr>
               <td><code>zarify.invitationDraft</code></td>
@@ -88,7 +107,7 @@ function Tr() {
       <section>
         <h2>3. Nasıl Silebilirsiniz?</h2>
         <p>
-          &quot;Çıkış Yap&quot; oturum bilgisini siler. Tüm bilgileri, tarayıcınızın ayarlarından bu site
+          &quot;Çıkış Yap&quot; oturum bilgisini ve oturum yenileme çerezini siler. Tüm bilgileri, tarayıcınızın ayarlarından bu site
           için &quot;site verilerini temizle&quot; seçeneğiyle istediğiniz zaman silebilirsiniz; bu durumda
           yeniden giriş yapmanız gerekir ve yayınlanmamış taslağınız kaybolur.
         </p>
@@ -117,13 +136,13 @@ function En() {
       <section>
         <h2>1. In Short</h2>
         <ul>
-          <li><strong>Zarify does not use cookies.</strong></li>
+          <li><strong>Zarify uses a single cookie:</strong> a strictly necessary refresh cookie that keeps you securely signed in.</li>
           <li>There are no analytics, advertising, tracking or social-media cookies, and no similar tracking tools.</li>
           <li>Pages load nothing from third parties: fonts and images come from our own server, and no outside scripts, maps or videos are embedded.</li>
           <li>
-            Only three pieces of information that the site needs in order to work are kept in your
-            browser&apos;s local storage (table below). They are not sent to our server and cannot be used
-            to recognise you on other sites.
+            Apart from that, only a few pieces of information the site needs in order to work are kept in
+            your browser&apos;s local storage (table below). None of it can be used to recognise you on other
+            sites.
           </li>
           <li>Because all of this storage is strictly necessary, no consent banner is shown.</li>
         </ul>
@@ -142,10 +161,27 @@ function En() {
           </thead>
           <tbody>
             <tr>
+              <td><code>zarify_refresh</code></td>
+              <td>Cookie (first-party; HttpOnly, Secure, SameSite=Strict)</td>
+              <td>
+                A random key used to renew your session. Page scripts can&apos;t read it; it is sent only to our
+                sign-in endpoint (<code>/api/auth</code>), the server keeps only an irreversible hash of it, and
+                it is replaced on every use. It stops working when your password changes, your account is
+                suspended or deleted, or you sign out.
+              </td>
+              <td>14 days from last use; deleted when you sign out.</td>
+            </tr>
+            <tr>
               <td><code>zarify.auth</code></td>
               <td>localStorage</td>
-              <td>Keeps you signed in: your session token, name, email and account type.</td>
-              <td>Until you sign out; the session stops being valid after 60 minutes.</td>
+              <td>When you&apos;re signed in: a short-lived session token, your name, email and account type.</td>
+              <td>Until you sign out; the token is renewed every 15 minutes with the cookie above.</td>
+            </tr>
+            <tr>
+              <td><code>zarify.edit.&lt;invitation&gt;</code>, <code>zarify.preview.&lt;invitation&gt;</code></td>
+              <td>localStorage</td>
+              <td>Unsaved changes to your published invitation, so they survive a session that ends and can be shown in the &quot;Preview&quot; tab.</td>
+              <td>Until you save or discard them.</td>
             </tr>
             <tr>
               <td><code>zarify.invitationDraft</code></td>
@@ -173,7 +209,7 @@ function En() {
       <section>
         <h2>3. How to Delete It</h2>
         <p>
-          &quot;Sign out&quot; removes the session. You can remove everything at any time with your
+          &quot;Sign out&quot; removes the session and the refresh cookie. You can remove everything at any time with your
           browser&apos;s &quot;clear site data&quot; option for this site; you&apos;ll then need to sign in
           again and any unpublished draft is lost.
         </p>

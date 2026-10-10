@@ -9,14 +9,26 @@ import { BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, TEXT_LINK } from "@/lib/ui";
 import { paymentApprovalNote } from "@/lib/legal";
 import { describeError } from "@/lib/apiErrors";
 import { CancelOrderDialog } from "@/components/payment/CancelOrderDialog";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { RejectionNotice } from "@/components/payment/RejectionNotice";
 import {
   cancelInvitation,
+  deleteRsvp,
+  downloadRsvpsCsv,
   getInvitationRsvps,
+  setRsvpDeadline,
+  type InvitationDto,
   type MyInvitation,
   type RsvpAttendance,
   type RsvpDto,
 } from "@/lib/invitations";
+
+const DAY = new Intl.DateTimeFormat("tr-TR", { dateStyle: "long", timeZone: "Europe/Istanbul" });
+
+/** "yyyy-mm-dd" for today in Türkiye — the earliest deadline worth setting. */
+function todayIso(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
+}
 
 const ATTENDANCE_LABEL: Record<RsvpAttendance, string> = {
   yes: "Geliyor",
@@ -59,7 +71,10 @@ export function InvitationCard({
   token: string;
   onCancelled: () => void;
 }) {
-  const { invitation: inv, rsvp } = item;
+  // Kept locally so deleting a reply or moving the deadline updates the
+  // card without reloading the whole dashboard.
+  const [inv, setInv] = useState<InvitationDto>(item.invitation);
+  const [rsvp, setRsvp] = useState(item.rsvp);
   const [open, setOpen] = useState(false);
   const [replies, setReplies] = useState<RsvpDto[] | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -67,6 +82,47 @@ export function InvitationCard({
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<RsvpDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [csvBusy, setCsvBusy] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+
+  async function handleDeleteReply() {
+    if (!toDelete) return;
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      await deleteRsvp(token, inv.id, toDelete.id);
+      const gone = toDelete;
+      setReplies((current) => current?.filter((r) => r.id !== gone.id) ?? null);
+      setRsvp((s) => ({
+        ...s,
+        attendingResponses: s.attendingResponses - (gone.attendance === "yes" ? 1 : 0),
+        attendingGuests: s.attendingGuests - (gone.attendance === "yes" ? gone.guestCount : 0),
+        maybeResponses: s.maybeResponses - (gone.attendance === "maybe" ? 1 : 0),
+        maybeGuests: s.maybeGuests - (gone.attendance === "maybe" ? gone.guestCount : 0),
+        notAttendingResponses: s.notAttendingResponses - (gone.attendance === "no" ? 1 : 0),
+      }));
+      setToDelete(null);
+    } catch (err) {
+      setDeleteError(describeError(err));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function handleCsv() {
+    setCsvError(null);
+    setCsvBusy(true);
+    try {
+      await downloadRsvpsCsv(token, inv.id, inv.slug);
+    } catch (err) {
+      setCsvError(describeError(err));
+    } finally {
+      setCsvBusy(false);
+    }
+  }
 
   async function handleCancel() {
     setCancelError(null);
@@ -211,7 +267,9 @@ export function InvitationCard({
             </p>
           ) : (
             <>
-              <div className="mx-auto grid max-w-xl grid-cols-3">
+              <RsvpDeadlineControl invitation={inv} token={token} onChanged={setInv} />
+
+              <div className="mx-auto mt-6 grid max-w-xl grid-cols-3">
                 <Tally
                   first
                   label="Geliyor"
@@ -243,14 +301,29 @@ export function InvitationCard({
                 </p>
               ) : (
                 <div className="mt-6">
-                  <button
-                    type="button"
-                    onClick={toggleReplies}
-                    aria-expanded={open}
-                    className={`apparatus text-sm ${TEXT_LINK}`}
-                  >
-                    {open ? "Yanıtları gizle" : `Yanıtları göster (${totalResponses})`}
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                    <button
+                      type="button"
+                      onClick={toggleReplies}
+                      aria-expanded={open}
+                      className={`apparatus min-h-11 text-sm ${TEXT_LINK}`}
+                    >
+                      {open ? "Yanıtları gizle" : `Yanıtları göster (${totalResponses})`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCsv}
+                      disabled={csvBusy}
+                      className={`apparatus min-h-11 text-sm ${TEXT_LINK} disabled:opacity-60`}
+                    >
+                      {csvBusy ? "Hazırlanıyor…" : "Yanıtları indir (CSV)"}
+                    </button>
+                  </div>
+                  {csvError && (
+                    <p role="alert" className="mt-2 font-body text-base text-wine">
+                      {csvError}
+                    </p>
+                  )}
 
                   {open && (
                     <div className="mx-auto mt-4 max-w-xl text-left">
@@ -296,6 +369,18 @@ export function InvitationCard({
                                   “{r.message}”
                                 </p>
                               )}
+                              <p className="text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteError(null);
+                                    setToDelete(r);
+                                  }}
+                                  className={`apparatus text-xs ${TEXT_LINK}`}
+                                >
+                                  Yanıtı sil
+                                </button>
+                              </p>
                             </li>
                           ))}
                         </ul>
@@ -309,6 +394,26 @@ export function InvitationCard({
         </div>
       </div>
 
+      <p className="mt-8">
+        <Link href={`/davetiyelerim/${inv.id}/sozlesme`} className={`apparatus text-sm ${TEXT_LINK}`}>
+          Sözleşmemi görüntüle
+        </Link>
+      </p>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        busy={deleting}
+        title="Yanıtı sil"
+        confirmLabel="Evet, sil"
+        busyLabel="Siliniyor…"
+        error={deleteError}
+        onCancel={() => setToDelete(null)}
+        onConfirm={handleDeleteReply}
+      >
+        <strong className="font-semibold text-soot">{toDelete?.guestName}</strong> adlı misafirin yanıtı kalıcı
+        olarak silinecek ve sayılardan düşülecek. Bu işlem geri alınamaz.
+      </ConfirmDialog>
+
       {isPending && (
         <CancelOrderDialog
           open={cancelOpen}
@@ -320,5 +425,92 @@ export function InvitationCard({
         />
       )}
     </article>
+  );
+}
+
+/** "Katılım bildirimi 1 Haziran'a kadar açık" plus a small form to move the
+ * deadline (never past the wedding day — the API refuses that too). */
+function RsvpDeadlineControl({
+  invitation,
+  token,
+  onChanged,
+}: {
+  invitation: InvitationDto;
+  token: string;
+  onChanged: (invitation: InvitationDto) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(invitation.rsvpDeadline ?? invitation.weddingDate);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [now] = useState(() => Date.now());
+  const closed = new Date(invitation.rsvpClosesAtUtc).getTime() <= now;
+  // After the wedding there's nothing left to extend (the deadline can't
+  // pass the wedding day).
+  const weddingOver = invitation.weddingDate < todayIso();
+  const lastDay = DAY.format(new Date(new Date(invitation.rsvpClosesAtUtc).getTime() - 1));
+
+  async function save() {
+    setError(null);
+    setBusy(true);
+    try {
+      onChanged(await setRsvpDeadline(token, invitation.id, value || null));
+      setEditing(false);
+    } catch (err) {
+      setError(describeError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-xl">
+      <p className={`font-body text-base ${closed ? "text-wine" : "text-soot-soft"}`}>
+        {closed
+          ? `Katılım bildirimi süresi doldu (${lastDay}).`
+          : `Katılım bildirimi ${lastDay} gününün sonuna kadar açık.`}{" "}
+        {!editing && !weddingOver && (
+          <button type="button" onClick={() => setEditing(true)} className={`apparatus text-sm ${TEXT_LINK}`}>
+            {closed ? "Süreyi uzat" : "Son tarihi değiştir"}
+          </button>
+        )}
+      </p>
+      {editing && (
+        <form
+          className="mt-3 flex flex-wrap items-end justify-center gap-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            save();
+          }}
+        >
+          <label className="flex flex-col gap-1 text-left">
+            <span className="apparatus text-xs text-soot-soft">Son tarih</span>
+            <input
+              type="date"
+              required
+              value={value}
+              min={todayIso()}
+              max={invitation.weddingDate}
+              onChange={(e) => setValue(e.target.value)}
+              className="border-b border-soot-soft/60 bg-transparent py-1 font-body text-lg text-soot outline-none focus:border-wine"
+            />
+          </label>
+          <button type="submit" disabled={busy} className={BUTTON_PRIMARY_SM}>
+            {busy ? "Kaydediliyor…" : "Kaydet"}
+          </button>
+          <button type="button" onClick={() => setEditing(false)} disabled={busy} className={`apparatus text-sm ${TEXT_LINK}`}>
+            Vazgeç
+          </button>
+        </form>
+      )}
+      {editing && (
+        <p className="mt-2 font-body text-sm text-soot-soft">En geç düğün günü olabilir.</p>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 font-body text-base text-wine">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

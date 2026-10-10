@@ -3,10 +3,19 @@
 import { useEffect, useState } from "react";
 
 import { API_URL } from "@/lib/apiUrl";
+import { apiFetch } from "@/lib/auth";
+
+export interface Retention {
+  guestAccessMonths: number;
+  deleteAfterMonths: number;
+  noticeDaysBefore: number;
+}
 
 export interface Pricing {
   amountTry: number | null;
   currency: string;
+  /** How long a wedding's data is kept — see lib/legal retentionDefaults. */
+  retention?: Retention;
 }
 
 /** The invitation price, from the same setting the payment screen uses
@@ -17,7 +26,7 @@ export function usePricing(): Pricing | undefined {
   const [pricing, setPricing] = useState<Pricing>();
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_URL}/api/pricing`, { cache: "no-store" })
+    apiFetch(`${API_URL}/api/pricing`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((body: Pricing | null) => {
         if (!cancelled) setPricing(body ?? { amountTry: null, currency: "TRY" });

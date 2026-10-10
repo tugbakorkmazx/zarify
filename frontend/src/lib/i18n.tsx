@@ -12,7 +12,6 @@ import {
 export type Lang = "tr" | "en";
 
 export interface Strings {
-  meta: { title: string };
   nav: { toggleTo: string };
   hero: {
     names: string;
@@ -69,6 +68,8 @@ export interface Strings {
     submit: string;
     submitError: string;
     disabledNote: string;
+    /** The deadline (or the wedding day) has passed. */
+    closedNote: string;
     /** Shown under the form — the point where guest data is collected, so
      * KVKK wants the notice (and a link to the full text) right here. */
     privacyNote: string;
@@ -90,7 +91,6 @@ export interface Strings {
       logout: string;
       myInvitations: string;
       admin: string;
-      greetingPrefix: string;
       cta: string;
     };
     hero: {
@@ -99,10 +99,7 @@ export interface Strings {
       body: string;
       ctaPrimary: string;
       ctaSecondary: string;
-      mockupInvite: string;
       mockupNames: string;
-      mockupDate: string;
-      mockupVenue: string;
     };
     howItWorks: {
       eyebrow: string;
@@ -143,7 +140,6 @@ export interface Strings {
 
 export const strings: Record<Lang, Strings> = {
   tr: {
-    meta: { title: "Elif & Kerem — Davetiye" },
     nav: { toggleTo: "EN" },
     hero: {
       names: "Elif & Kerem",
@@ -224,6 +220,7 @@ export const strings: Record<Lang, Strings> = {
       submitError: "Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
       disabledNote:
         "Bu davetiye için katılım bildirimi kapatılmış. Sorularınız için çifte doğrudan ulaşabilirsiniz.",
+      closedNote: "Katılım bildirimi süresi doldu. Sorularınız için çifte doğrudan ulaşabilirsiniz.",
       privacyNote:
         "Adınız, katılım durumunuz ve notunuz yalnızca davetiye sahibiyle paylaşılır.",
       privacyLink: "Gizlilik Politikası",
@@ -246,7 +243,6 @@ export const strings: Record<Lang, Strings> = {
         logout: "Çıkış Yap",
         myInvitations: "Davetiyelerim",
         admin: "Yönetim",
-        greetingPrefix: "Merhaba",
         cta: "Davetiye Oluştur",
       },
       hero: {
@@ -255,10 +251,7 @@ export const strings: Record<Lang, Strings> = {
         body: "Şablon seçin, bilgilerinizi girin — davetiye sayfanız dakikalar içinde hazır olsun. Yayına aldığınızda misafirleriniz linkten görüntüler, dilerseniz katılım bildirir.",
         ctaPrimary: "Davetiye Oluşturmaya Başla",
         ctaSecondary: "Şablonları İncele",
-        mockupInvite: "sizi düğünlerine davet ediyor",
         mockupNames: "Elif & Kerem",
-        mockupDate: "12 Haziran 2027 · Cumartesi",
-        mockupVenue: "Boğaziçi Yalısı, İstanbul",
       },
       howItWorks: {
         eyebrow: "Nasıl Çalışır",
@@ -306,7 +299,6 @@ export const strings: Record<Lang, Strings> = {
     },
   },
   en: {
-    meta: { title: "Elif & Kerem — Wedding Invitation" },
     nav: { toggleTo: "TR" },
     hero: {
       names: "Elif & Kerem",
@@ -387,6 +379,7 @@ export const strings: Record<Lang, Strings> = {
       submitError: "Couldn't reach the server. Check your connection and try again.",
       disabledNote:
         "RSVP has been turned off for this invitation. Please reach out to the couple directly with any questions.",
+      closedNote: "The RSVP deadline has passed. For any questions, please contact the couple directly.",
       privacyNote:
         "Your name, reply, and note are shared only with the invitation's owner.",
       privacyLink: "Privacy Policy",
@@ -409,7 +402,6 @@ export const strings: Record<Lang, Strings> = {
         logout: "Log Out",
         myInvitations: "My Invitations",
         admin: "Admin",
-        greetingPrefix: "Hello",
         cta: "Create an Invitation",
       },
       hero: {
@@ -418,10 +410,7 @@ export const strings: Record<Lang, Strings> = {
         body: "Pick a template, fill in your details — have your invitation page ready in minutes. Once it's published, guests view it from a link, and can RSVP if you enable it.",
         ctaPrimary: "Start Creating Your Invitation",
         ctaSecondary: "Browse Templates",
-        mockupInvite: "invite you to their wedding",
         mockupNames: "Elif & Kerem",
-        mockupDate: "June 12, 2027 · Saturday",
-        mockupVenue: "Bosphorus Waterside House, Istanbul",
       },
       howItWorks: {
         eyebrow: "How It Works",

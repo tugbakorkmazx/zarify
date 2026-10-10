@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +22,7 @@ public class AdminController(
     ZarifyDbContext db,
     IEmailQueue emails,
     EmailComposer composer,
+    RefreshTokenService refreshTokens,
     ILogger<AdminController> logger) : ControllerBase
 {
     private const int PageSize = 20;
@@ -93,6 +93,7 @@ public class AdminController(
             .Where(a => a.CancelledAtUtc != null)
             .OrderByDescending(a => a.CancelledAtUtc)
             .Take(200)
+            .WithoutContract()
             .ToListAsync(ct);
         return Ok(rows.Select(SalesAgreementDto.FromEntity));
     }
@@ -201,36 +202,26 @@ public class AdminController(
         var rows = await db.SalesAgreements
             .Where(a => a.PaymentApprovedAtUtc >= fromUtc && a.PaymentApprovedAtUtc < toUtc)
             .OrderBy(a => a.PaymentApprovedAtUtc)
+            .WithoutContract()
             .ToListAsync(ct);
 
-        var csv = new StringBuilder();
-        csv.AppendLine(string.Join(';', "Onay tarihi", "Referans", "Ad", "Soyad", "E-posta", "Tutar (TL)", "Çift", "Sipariş tarihi"));
+        var csv = new CsvFile()
+            .Row("Onay tarihi", "Referans", "Ad", "Soyad", "E-posta", "Tutar (TL)", "Çift", "Sipariş tarihi");
         foreach (var a in rows)
         {
-            csv.AppendLine(string.Join(';',
-                Cell(TurkeyTime.FromUtc(a.PaymentApprovedAtUtc!.Value).ToString("dd.MM.yyyy HH:mm", Tr)),
-                Cell(a.PaymentReference ?? ""),
-                Cell(a.UserFirstName),
-                Cell(a.UserLastName),
-                Cell(a.UserEmail),
-                Cell(a.AmountTry.ToString("0.00", Tr)),
-                Cell(a.CoupleNames),
-                Cell(TurkeyTime.FromUtc(a.AcceptedAtUtc).ToString("dd.MM.yyyy HH:mm", Tr))));
+            csv.Row(
+                CsvFile.Moment(a.PaymentApprovedAtUtc),
+                a.PaymentReference,
+                a.UserFirstName,
+                a.UserLastName,
+                a.UserEmail,
+                CsvFile.Money(a.AmountTry),
+                a.CoupleNames,
+                CsvFile.Moment(a.AcceptedAtUtc));
         }
 
-        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        var bytes = csv.ToBytes();
         return File(bytes, "text/csv; charset=utf-8", $"zarify-onaylanan-siparisler-{from:yyyy-MM-dd}-{to:yyyy-MM-dd}.csv");
-    }
-
-    /// Quotes a CSV field, and defuses values a spreadsheet would run as a
-    /// formula (a couple's name typed as "=HYPERLINK(…)").
-    private static string Cell(string value)
-    {
-        if (value.Length > 0 && "=+-@\t\r".Contains(value[0]))
-        {
-            value = "'" + value;
-        }
-        return $"\"{value.Replace("\"", "\"\"")}\"";
     }
 
     // ── Invitations ───────────────────────────────────────────────────────
@@ -292,6 +283,7 @@ public class AdminController(
         var agreements = await db.SalesAgreements
             .Where(a => a.InvitationId == id)
             .OrderByDescending(a => a.AcceptedAtUtc)
+            .WithoutContract()
             .ToListAsync(ct);
 
         return Ok(new AdminInvitationDetailDto(
@@ -474,6 +466,7 @@ public class AdminController(
         user.SecurityStamp = Models.User.NewSecurityStamp();
         Audit(AdminActions.UserSuspended, AuditTargets.User, user.Id, user.Email, note);
         await db.SaveChangesAsync(ct);
+        await refreshTokens.RevokeAllAsync(user.Id, ct);
 
         logger.LogInformation("User {UserId} suspended by admin {AdminId}", user.Id, AdminId());
         return Ok(ToDto(user, await db.Invitations.CountAsync(i => i.UserId == id, ct)));
@@ -499,6 +492,18 @@ public class AdminController(
 
         logger.LogInformation("User {UserId} reinstated by admin {AdminId}", user.Id, AdminId());
         return Ok(ToDto(user, await db.Invitations.CountAsync(i => i.UserId == id, ct)));
+    }
+
+    // ── Retention ─────────────────────────────────────────────────────────
+
+    /// Runs the daily retention pass now (reminders + deletions) instead of
+    /// waiting for RetentionWorker's next tick, and says what it did.
+    [HttpPost("retention/run")]
+    public async Task<ActionResult<object>> RunRetention([FromServices] RetentionWorker worker, CancellationToken ct)
+    {
+        var (notified, deleted) = await worker.RunOnceAsync(DateTime.UtcNow, ct);
+        logger.LogInformation("Retention run by admin {AdminId}: {Notified} notified, {Deleted} deleted", AdminId(), notified, deleted);
+        return Ok(new { notified, deleted });
     }
 
     // ── Audit log ─────────────────────────────────────────────────────────

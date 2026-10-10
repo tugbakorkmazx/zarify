@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -27,7 +27,7 @@ public class RsvpController(ZarifyDbContext db) : ControllerBase
     {
         var invitation = await db.Invitations
             .Where(i => i.Slug == request.InvitationSlug)
-            .Select(i => new { i.Id, i.RsvpEnabled, i.Status })
+            .Select(i => new { i.Id, i.RsvpEnabled, i.Status, i.RsvpDeadline, i.WeddingDate })
             .SingleOrDefaultAsync(ct);
 
         // Not yet published (payment pending) looks the same as unknown to a
@@ -42,6 +42,15 @@ public class RsvpController(ZarifyDbContext db) : ControllerBase
         if (!invitation.RsvpEnabled)
         {
             return this.Error(StatusCodes.Status409Conflict, ErrorCodes.RsvpClosed);
+        }
+
+        // Closed at the end of the deadline day (or of the wedding day when
+        // there's none), Turkish time — the form says so too, but the
+        // endpoint is public. Covers updates to an earlier reply as well.
+        var closesAtUtc = TurkeyTime.StartOfDayUtc((invitation.RsvpDeadline ?? invitation.WeddingDate).AddDays(1));
+        if (DateTime.UtcNow >= closesAtUtc)
+        {
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.RsvpDeadlinePassed);
         }
 
         var guestName = GuestNameKey.NormalizeDisplay(request.Name);

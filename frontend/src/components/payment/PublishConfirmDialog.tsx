@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { Price } from "@/components/legal/Placeholder";
+import { DistanceSalesContractTr, PreContractInfoTr } from "@/components/legal/docs/SalesDocs";
 import { paymentApprovalNote } from "@/lib/legal";
 import { BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/lib/ui";
 
@@ -12,7 +13,11 @@ import { BUTTON_PRIMARY, BUTTON_SECONDARY } from "@/lib/ui";
  * the Pre-Contract Information Form and the Distance Sales Contract have
  * been read. The server records when (its own clock) and which version
  * (legalSettings.version) was accepted. The legal pages open in a new tab
- * so the draft and this dialog stay put. */
+ * so the draft and this dialog stay put.
+ *
+ * The two texts are also rendered here, hidden and filled in with the
+ * price, and handed to onConfirm as HTML: the API archives exactly what the
+ * buyer was shown on their agreement record and emails it to them. */
 export function PublishConfirmDialog({
   open,
   busy,
@@ -22,10 +27,11 @@ export function PublishConfirmDialog({
   open: boolean;
   busy: boolean;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: (contractHtml: string) => void;
 }) {
   const { lang } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
+  const contractRef = useRef<HTMLDivElement>(null);
   const [accepted, setAccepted] = useState(false);
   const checkboxId = useId();
   const tr = lang === "tr";
@@ -108,7 +114,7 @@ export function PublishConfirmDialog({
           </button>
           <button
             type="button"
-            onClick={onConfirm}
+            onClick={() => onConfirm(contractRef.current?.innerHTML ?? "")}
             disabled={!accepted || busy}
             aria-disabled={!accepted || busy}
             className={BUTTON_PRIMARY}
@@ -116,6 +122,16 @@ export function PublishConfirmDialog({
             {busy ? (tr ? "Hazırlanıyor…" : "Preparing…") : tr ? "Onayla ve Ödemeye Geç" : "Confirm and continue"}
           </button>
         </div>
+      </div>
+      <div ref={contractRef} hidden>
+        <article>
+          <h1>Ön Bilgilendirme Formu</h1>
+          <PreContractInfoTr />
+        </article>
+        <article>
+          <h1>Mesafeli Satış Sözleşmesi</h1>
+          <DistanceSalesContractTr />
+        </article>
       </div>
     </dialog>
   );

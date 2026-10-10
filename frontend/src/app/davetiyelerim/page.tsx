@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, ApiError } from "@/lib/auth";
+import { useAuth, ApiError, loginHref } from "@/lib/auth";
 import { OwnerShell } from "@/components/owner/OwnerShell";
 import { CoverMiniature } from "@/components/art/CoverMiniature";
 import { BUTTON_PRIMARY } from "@/lib/ui";
@@ -24,7 +24,7 @@ export default function MyInvitationsPage() {
   useEffect(() => {
     if (!ready) return;
     if (!token) {
-      router.replace("/giris");
+      router.replace(loginHref());
       return;
     }
     let cancelled = false;
@@ -40,7 +40,7 @@ export default function MyInvitationsPage() {
         // removed) — clear it rather than leaving the owner on a dead page.
         if (err instanceof ApiError && err.status === 401) {
           logout();
-          router.replace("/giris");
+          router.replace(loginHref());
           return;
         }
         setStatus("error");

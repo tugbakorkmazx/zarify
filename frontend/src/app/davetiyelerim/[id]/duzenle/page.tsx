@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, ApiError } from "@/lib/auth";
+import { useAuth, ApiError, loginHref } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { InvitationFields } from "@/components/invitation-details/InvitationFields";
 import {
@@ -12,8 +12,10 @@ import {
   updateInvitation,
   type InvitationDto,
 } from "@/lib/invitations";
-import { fromInvitation, toApiFields } from "@/lib/invitationForm";
-import { TEXT_LINK } from "@/lib/ui";
+import { fromInvitation, toApiFields, type InvitationFormValues } from "@/lib/invitationForm";
+import { clearEditDraft, readEditDraft, writeEditDraft } from "@/lib/editDraft";
+import { writePreview } from "@/lib/editPreview";
+import { BUTTON_SECONDARY, TEXT_LINK } from "@/lib/ui";
 import { describeError } from "@/lib/apiErrors";
 
 type Status = "loading" | "ready" | "not-found" | "error";
@@ -32,7 +34,7 @@ export default function EditInvitationPage() {
   useEffect(() => {
     if (!ready) return;
     if (!token) {
-      router.replace("/giris");
+      router.replace(loginHref());
       return;
     }
     let cancelled = false;
@@ -47,7 +49,7 @@ export default function EditInvitationPage() {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           logout();
-          router.replace("/giris");
+          router.replace(loginHref());
           return;
         }
         setStatus("error");
@@ -85,7 +87,7 @@ export default function EditInvitationPage() {
 
   function handleSessionExpired() {
     logout();
-    router.replace("/giris");
+    router.replace(loginHref());
   }
 
   // Keyed so the form's initial state is taken from the loaded invitation.
@@ -108,10 +110,65 @@ function EditForm({
   token: string;
   onSessionExpired: () => void;
 }) {
-  const [values, setValues] = useState(() => fromInvitation(invitation));
+  // What's saved on the server; the form is "dirty" while it differs.
+  const [saved, setSaved] = useState(invitation);
+  // Unsaved edits from an earlier visit (a session that ended mid-edit, a
+  // closed tab) come back here — read once, on mount.
+  const [restored] = useState(() => {
+    const draft = readEditDraft(invitation.id);
+    return draft && !sameFields(draft.values, fromInvitation(invitation)) ? draft : null;
+  });
+  const [values, setValues] = useState(() => restored?.values ?? fromInvitation(invitation));
+  const [showRestored, setShowRestored] = useState(restored !== null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const dirty = !sameFields(values, fromInvitation(saved));
+
+  // Every change is kept locally until it's saved or discarded.
+  function handleChange(next: InvitationFormValues) {
+    setValues(next);
+    setSavedAt(null);
+    if (sameFields(next, fromInvitation(saved))) clearEditDraft(invitation.id);
+    else writeEditDraft(invitation.id, next, saved.updatedAtUtc);
+  }
+
+  function discard() {
+    clearEditDraft(invitation.id);
+    setValues(fromInvitation(saved));
+    setShowRestored(false);
+  }
+
+  // Leaving with unsaved changes: the browser's own prompt for reloads and
+  // closing the tab, a confirm for links inside the site.
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.("a[href]");
+      if (!link || link.getAttribute("target") === "_blank" || event.defaultPrevented) return;
+      const leave = window.confirm(
+        "Kaydedilmemiş değişiklikleriniz var. Sayfadan çıkmak istiyor musunuz? (Değişiklikler bu tarayıcıda saklanır.)",
+      );
+      if (!leave) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("click", onClick, true);
+    };
+  }, [dirty]);
+
+  function openPreview() {
+    writePreview(invitation.id, values);
+    window.open(`/davetiyelerim/${invitation.id}/onizleme`, "_blank", "noopener");
+  }
 
   async function handleSave() {
     setError(null);
@@ -119,10 +176,16 @@ function EditForm({
     setSaving(true);
     try {
       const updated = await updateInvitation(token, invitation.id, toApiFields(values));
+      clearEditDraft(invitation.id);
+      setSaved(updated);
       setValues(fromInvitation(updated));
+      setShowRestored(false);
       setSavedAt(new Date());
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
+        // The session couldn't be renewed. The edits are kept locally and
+        // come back after signing in (?next= returns here).
+        writeEditDraft(invitation.id, values, saved.updatedAtUtc);
         onSessionExpired();
         return;
       }
@@ -135,13 +198,26 @@ function EditForm({
   return (
     <AuthLayout
       eyebrow="Davetiyeyi Düzenle"
-      title={`${invitation.brideName} & ${invitation.groomName}`}
+      title={`${saved.brideName} & ${saved.groomName}`}
       wide
     >
       <p className="-mt-4 mb-8 font-body text-lg italic leading-relaxed text-soot-soft">
-        Değişiklikleriniz kaydettiğiniz anda yayındaki davetiyede görünür.
-        Davetiye linkiniz değişmez; misafirlerinize gönderdiğiniz link aynen çalışmaya devam eder.
+        Değişiklikleriniz kaydettiğiniz anda yayındaki davetiyede görünür; kaydetmeden önce
+        &ldquo;Önizle&rdquo; ile yeni sekmede bakabilirsiniz. Davetiye linkiniz değişmez.
       </p>
+
+      {showRestored && restored && (
+        <div role="status" className="mb-8 border-l-2 border-wine/60 bg-paper-deep px-5 py-4">
+          <p className="font-body text-lg text-soot">
+            Kaydedilmemiş değişiklikleriniz geri yüklendi
+            {restored.basedOn !== saved.updatedAtUtc && " (davetiye bu arada başka bir yerden güncellenmiş olabilir)"}.
+            Kaydedene kadar yayındaki davetiye değişmez.
+          </p>
+          <button type="button" onClick={discard} className={`apparatus mt-2 text-sm ${TEXT_LINK}`}>
+            Değişiklikleri at
+          </button>
+        </div>
+      )}
 
       {savedAt && (
         <div
@@ -160,16 +236,21 @@ function EditForm({
 
       <InvitationFields
         values={values}
-        onChange={(next) => {
-          setValues(next);
-          setSavedAt(null);
-        }}
+        onChange={handleChange}
         onSubmit={handleSave}
         submitLabel={saving ? "Kaydediliyor…" : "Değişiklikleri Kaydet"}
         submitting={saving}
         error={error}
-        namesLocked={isPaid(invitation.status)}
+        namesLocked={isPaid(saved.status)}
+        savedWeddingDate={saved.weddingDate}
       />
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <button type="button" onClick={openPreview} className={BUTTON_SECONDARY}>
+          Önizle
+        </button>
+        {dirty && <span className="font-body text-base italic text-wine">Kaydedilmemiş değişiklikler var.</span>}
+      </div>
 
       <p className="mt-12 border-t border-soot/20 pt-6">
         <Link
@@ -181,4 +262,8 @@ function EditForm({
       </p>
     </AuthLayout>
   );
+}
+
+function sameFields(a: InvitationFormValues, b: InvitationFormValues): boolean {
+  return JSON.stringify(toApiFields(a)) === JSON.stringify(toApiFields(b));
 }

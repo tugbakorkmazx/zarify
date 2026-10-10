@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, ApiError } from "@/lib/auth";
+import { useAuth, ApiError, loginHref } from "@/lib/auth";
 import type { InvitationStatus } from "@/lib/invitations";
 import { BOX_INPUT, BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, FIELD_LABEL, LINE_INPUT, TEXT_LINK } from "@/lib/ui";
 
@@ -48,7 +48,7 @@ export function useAdminData<T>(key: string, load: (token: string) => Promise<T>
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
           logout();
-          router.replace("/giris");
+          router.replace(loginHref());
           return;
         }
         setState({ key, status: err instanceof ApiError && err.status === 403 ? "forbidden" : "error" });

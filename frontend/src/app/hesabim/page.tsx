@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth, deleteAccount, requestPasswordReset, ApiError } from "@/lib/auth";
+import { useAuth, deleteAccount, requestPasswordReset, ApiError, loginHref } from "@/lib/auth";
 import { describeError } from "@/lib/apiErrors";
 import { OwnerShell } from "@/components/owner/OwnerShell";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -23,7 +23,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (ready && !token && !deleted) {
-      router.replace("/giris");
+      router.replace(loginHref());
     }
   }, [ready, token, deleted, router]);
 
@@ -74,7 +74,7 @@ export default function AccountPage() {
           }}
           onSessionExpired={() => {
             logout();
-            router.replace("/giris");
+            router.replace(loginHref());
           }}
         />
       </div>

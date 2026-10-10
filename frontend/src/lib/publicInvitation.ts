@@ -10,6 +10,7 @@ import type { InvitationDto } from "@/lib/invitations";
 export async function getPublishedInvitation(slug: string): Promise<InvitationDto | null> {
   try {
     const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(slug)}`, {
+      headers: { "Accept-Language": "tr" },
       next: { revalidate: 300 },
     });
     if (!res.ok) return null;

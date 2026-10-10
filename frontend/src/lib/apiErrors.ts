@@ -30,6 +30,18 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
 
   // Invitations and payment
   INVITATION_NOT_FOUND: { tr: "Davetiye bulunamadı.", en: "Invitation not found." },
+  INVITATION_EXPIRED: { tr: "Bu davetiyenin yayın süresi doldu.", en: "This invitation is no longer online." },
+  WEDDING_DATE_PAST: { tr: "Düğün tarihi bugünden önce olamaz.", en: "The wedding date can't be in the past." },
+  CONTRACT_INVALID: {
+    tr: "Sözleşme metni alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.",
+    en: "The contract text couldn't be recorded. Please refresh the page and try again.",
+  },
+  CONTRACT_NOT_ARCHIVED: {
+    tr: "Bu sipariş, sözleşme arşivi başlamadan önce verildi; onayladığınız metin sürümü siparişinizde kayıtlıdır.",
+    en: "This order predates the contract archive; the accepted version is on record with your order.",
+  },
+  RSVP_DEADLINE_PASSED: { tr: "Katılım bildirimi süresi doldu.", en: "The RSVP deadline has passed." },
+  RSVP_NOT_FOUND: { tr: "Yanıt bulunamadı.", en: "Reply not found." },
   INVITATION_REMOVED: { tr: "Bu davetiye yayında değil.", en: "This invitation isn't available." },
   NAMES_LOCKED: {
     tr: "Yayındaki bir davetiyede çift adları değiştirilemez. Yazım hatası varsa lütfen bize ulaşın.",

@@ -15,6 +15,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
     public DbSet<SalesAgreement> SalesAgreements => Set<SalesAgreement>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -104,6 +105,19 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(t => t.TokenHash).HasMaxLength(64);
+            entity.Property(t => t.SecurityStamp).HasMaxLength(32);
+            entity.HasIndex(t => t.TokenHash).IsUnique();
+            entity.HasIndex(t => t.UserId);
+            // A sign-in is worthless without its account.
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<AdminAuditLog>(entity =>
         {
             entity.Property(l => l.AdminEmail).HasMaxLength(256);
@@ -132,6 +146,9 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(a => a.PaymentReference).HasMaxLength(16);
             entity.Property(a => a.AmountTry).HasPrecision(10, 2);
             entity.Property(a => a.Version).HasMaxLength(32);
+            // A few tens of KB of HTML: longtext, never loaded in lists.
+            entity.Property(a => a.ContractHtml).HasColumnType("longtext");
+            entity.Property(a => a.ContractSha256).HasMaxLength(64);
             // The admin's cancelled-orders list, and the approved-orders
             // export and monthly totals.
             entity.HasIndex(a => a.CancelledAtUtc);

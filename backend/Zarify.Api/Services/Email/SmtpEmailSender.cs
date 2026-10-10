@@ -19,7 +19,12 @@ public class SmtpEmailSender(IOptions<EmailOptions> options) : IEmailSender
         mime.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
         mime.To.Add(new MailboxAddress(message.ToName ?? "", message.To));
         mime.Subject = message.Subject;
-        mime.Body = new BodyBuilder { HtmlBody = message.Html, TextBody = message.Text }.ToMessageBody();
+        var body = new BodyBuilder { HtmlBody = message.Html, TextBody = message.Text };
+        foreach (var attachment in message.Attachments)
+        {
+            body.Attachments.Add(attachment.FileName, attachment.Content, ContentType.Parse(attachment.ContentType));
+        }
+        mime.Body = body.ToMessageBody();
 
         var smtp = _options.Smtp;
         var security = smtp.Security switch

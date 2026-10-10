@@ -15,10 +15,10 @@ const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// The API only ever receives small JSON bodies (the largest is an
-// invitation with its story and schedule, a few KB), so cap requests far
-// below Kestrel's 30 MB default.
-builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 64 * 1024);
+// The API only ever receives small JSON bodies (the largest is a new order:
+// the invitation plus the contract text it archives, a few tens of KB), so
+// cap requests far below Kestrel's 30 MB default.
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 192 * 1024);
 
 // Add services to the container.
 
@@ -77,7 +77,21 @@ if (Encoding.UTF8.GetByteCount(jwtOptions.Key) < 32)
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<AuthThrottle>();
 builder.Services.AddSingleton<InvitationThrottle>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<RefreshTokenService>();
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
+
+// How long a wedding's data is kept (RetentionWorker, the guest page, the
+// legal texts via /api/pricing).
+builder.Services.Configure<RetentionOptions>(builder.Configuration.GetSection("Retention"));
+var retention = builder.Configuration.GetSection("Retention").Get<RetentionOptions>() ?? new RetentionOptions();
+if (retention.GuestAccessMonths < 1 || retention.DeleteAfterMonths <= retention.GuestAccessMonths || retention.NoticeDaysBefore < 1)
+{
+    throw new InvalidOperationException(
+        "Retention settings are inconsistent: GuestAccessMonths must be ≥ 1, DeleteAfterMonths greater than it, NoticeDaysBefore ≥ 1.");
+}
+builder.Services.AddSingleton<RetentionWorker>();
+builder.Services.AddHostedService(services => services.GetRequiredService<RetentionWorker>());
 
 // Links in emails point at the frontend. Development falls back to the
 // local dev server; anywhere else Site:Url must be set.
@@ -191,8 +205,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
     {
-        // Only what the frontend actually sends.
+        // Only what the frontend actually sends. Credentials: the refresh
+        // cookie rides along to /api/auth (see RefreshTokenService).
         policy.WithOrigins(allowedOrigins)
+            .AllowCredentials()
             .WithMethods("GET", "POST", "PUT", "DELETE")
             .WithHeaders("Content-Type", "Authorization", "Accept-Language")
             .WithExposedHeaders("Retry-After")
@@ -249,6 +265,8 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ForgotPasswordPerIp));
     options.AddPolicy(RateLimitPolicies.ResetPassword, context =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ResetPasswordPerIp));
+    options.AddPolicy(RateLimitPolicies.Refresh, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.RefreshPerIp));
     options.AddPolicy(RateLimitPolicies.InvitationLookup, context =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.InvitationLookupPerIp));
     options.OnRejected = (context, ct) =>

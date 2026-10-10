@@ -17,8 +17,7 @@ export type BusinessField =
   | "kepAddress"
   | "courtCity"
   | "hostingProvider"
-  | "emailProvider"
-  | "servicePeriod";
+  | "emailProvider";
 
 export const business: Record<BusinessField, string | null> = {
   /** Unvan — company name, or the owner's full name for a sole trader. */
@@ -41,9 +40,6 @@ export const business: Record<BusinessField, string | null> = {
   /** Who delivers the transactional emails (the SMTP service), and in
    * which country — it receives addresses, names and email contents. */
   emailProvider: null,
-  /** How long a published invitation stays online, e.g. "düğün tarihinden
-   * itibaren 12 ay". */
-  servicePeriod: null,
 };
 
 /** What a missing field says, per language. */
@@ -59,7 +55,21 @@ export const placeholderLabel: Record<BusinessField, { tr: string; en: string }>
   courtCity: { tr: "YETKİLİ MAHKEME İLİ", en: "COURT CITY" },
   hostingProvider: { tr: "BARINDIRMA SAĞLAYICISI VE ÜLKESİ", en: "HOSTING PROVIDER AND COUNTRY" },
   emailProvider: { tr: "E-POSTA GÖNDERİM SAĞLAYICISI VE ÜLKESİ", en: "EMAIL DELIVERY PROVIDER AND COUNTRY" },
-  servicePeriod: { tr: "DAVETİYENİN YAYINDA KALACAĞI SÜRE", en: "HOW LONG THE INVITATION STAYS ONLINE" },
+};
+
+/** How long a wedding's data is kept, in months from the wedding date —
+ * the service period the legal texts quote. The live values come from the
+ * API (Retention section in appsettings, via GET /api/pricing), which also
+ * runs the job that applies them; these are only the fallback shown while
+ * that loads, and must match the backend defaults. Pending lawyer approval
+ * (EKSIKLER.md #21). */
+export const retentionDefaults = {
+  /** The guest page closes this long after the wedding. */
+  guestAccessMonths: 3,
+  /** The invitation and its RSVPs are deleted this long after the wedding. */
+  deleteAfterMonths: 6,
+  /** The owner is reminded this many days before the guest page closes. */
+  noticeDaysBefore: 7,
 };
 
 export const legalSettings = {
@@ -69,8 +79,8 @@ export const legalSettings = {
   /** Bump whenever the substance of any legal text changes. Also stored
    * with each invitation when the owner accepts the distance-sales texts,
    * so we know which version they agreed to. */
-  version: "2026-10-09",
-  lastUpdated: { tr: "9 Ekim 2026", en: "9 October 2026" },
+  version: "2026-10-10",
+  lastUpdated: { tr: "10 Ekim 2026", en: "10 October 2026" },
 };
 
 /** How long payment approval takes — the one wording used everywhere it's

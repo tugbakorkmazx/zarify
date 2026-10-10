@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
 import { useAuth, ApiError } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 import { useInvitationDraft } from "@/lib/invitationDraft";
 import { createInvitation } from "@/lib/invitations";
 import { formatDateLine } from "@/lib/formatDateLine";
@@ -25,6 +26,7 @@ const PLACEHOLDER_MAP_URL =
 export default function HerbaryumPreviewPage() {
   const { user, token, logout, ready } = useAuth();
   const { draft, clearDraft } = useInvitationDraft();
+  const { lang } = useI18n();
   const router = useRouter();
   const [publishing, setPublishing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function HerbaryumPreviewPage() {
       : PLACEHOLDER_EVENT_DATE;
 
   const names = draft ? `${draft.brideName} & ${draft.groomName}` : undefined;
-  const dateLine = draft?.weddingDate ? formatDateLine(draft.weddingDate) : undefined;
+  const dateLine = draft?.weddingDate ? formatDateLine(draft.weddingDate, lang) : undefined;
   const venueLine = draft ? `${draft.venueName}, ${draft.venueAddress}` : undefined;
   const rsvpEnabled = draft?.rsvpEnabled ?? true;
   // No draft → gallery showcase with the template's sample content; with a
@@ -53,7 +55,7 @@ export default function HerbaryumPreviewPage() {
   // the form + chosen template actually become a real, shareable invitation.
   // Runs only from the confirmation dialog, after the owner has accepted
   // the pre-contract information and the distance sales contract.
-  async function handlePublish() {
+  async function handlePublish(contractHtml: string) {
     if (!draft || !token) return;
     setPublishError(null);
     setSessionExpired(false);
@@ -64,6 +66,7 @@ export default function HerbaryumPreviewPage() {
         ...toApiFields(draft),
         acceptDistanceSales: true,
         distanceSalesVersion: legalSettings.version,
+        contractHtml,
       });
       clearDraft();
       router.push(`/davetiyem/${invitation.slug}`);
@@ -153,7 +156,7 @@ export default function HerbaryumPreviewPage() {
           <p className="font-body text-base text-wine">{publishError}</p>
           {sessionExpired && (
             <Link
-              href="/giris"
+              href="/giris?next=/sablonlar/nikah-tezhibi"
               className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
             >
               Giriş Yap

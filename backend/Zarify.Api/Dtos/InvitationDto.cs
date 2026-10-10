@@ -1,4 +1,5 @@
 using Zarify.Api.Models;
+using Zarify.Api.Services;
 
 namespace Zarify.Api.Dtos;
 
@@ -32,7 +33,10 @@ public record InvitationDto(
     /// Only while an admin has taken the invitation offline — guests never
     /// get a Removed invitation, only its owner and admins do.
     DateTime? RemovedAtUtc,
-    string? RemovalNote)
+    string? RemovalNote,
+    /// The first moment RSVPs are refused: the end of the deadline day, or
+    /// of the wedding day when there's no deadline (Turkish time).
+    DateTime RsvpClosesAtUtc)
 {
     public static string StatusToWire(InvitationStatus status) => status switch
     {
@@ -75,5 +79,6 @@ public record InvitationDto(
         invitation.PaymentRejectedAtUtc,
         invitation.PaymentRejectionNote,
         invitation.RemovedAtUtc,
-        invitation.RemovalNote);
+        invitation.RemovalNote,
+        InvitationRules.RsvpClosesAtUtc(invitation));
 }

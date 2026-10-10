@@ -68,3 +68,8 @@ desktop.ini
 # frontend/src/lib/art.ts and lives in frontend/public/images/art/). Kept
 # on disk only, outside public/ so no build can ever serve it.
 /gorseller/
+
+# Raw AI-generated image exports for the current art set (see ASSETS.md):
+# kept on disk as the provenance record, never committed — the optimised
+# WebP versions in frontend/public/images/art/ are what the site uses.
+/zarify-yeni-gorseller/

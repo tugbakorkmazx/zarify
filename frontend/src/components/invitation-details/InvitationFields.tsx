@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { FormField } from "@/components/auth/FormField";
 import { FormError } from "@/components/auth/FormError";
 import { TextAreaField } from "@/components/forms/TextAreaField";
@@ -28,6 +28,7 @@ export function InvitationFields({
   submitting = false,
   error,
   namesLocked = false,
+  savedWeddingDate,
 }: {
   values: InvitationFormValues;
   onChange: (values: InvitationFormValues) => void;
@@ -38,7 +39,13 @@ export function InvitationFields({
   /** The invitation is paid for: the couple's names are fixed (only an
    * admin corrects a typo), every other field stays editable. */
   namesLocked?: boolean;
+  /** Editing: the date already saved. A wedding can't be moved into the
+   * past, but an invitation whose date has passed can still be edited. */
+  savedWeddingDate?: string;
 }) {
+  // Today in Türkiye, read once — the earliest wedding date a new one can have.
+  const [today] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date()));
+  const minWeddingDate = savedWeddingDate && savedWeddingDate < today ? savedWeddingDate : today;
   const set = <K extends keyof InvitationFormValues>(key: K, value: InvitationFormValues[K]) =>
     onChange({ ...values, [key]: value });
 
@@ -92,6 +99,7 @@ export function InvitationFields({
           label="Düğün Tarihi"
           type="date"
           required
+          min={minWeddingDate}
           value={values.weddingDate}
           onChange={(e) => set("weddingDate", e.target.value)}
         />
@@ -170,7 +178,7 @@ export function InvitationFields({
       {values.rsvpEnabled && (
         <FormField
           label="Son Bildirim Tarihi"
-          hint="İsteğe bağlı. Boş bırakırsanız davetiyede tarih yazmaz."
+          hint="İsteğe bağlı; düğün tarihinden sonra olamaz. Boş bırakırsanız katılım bildirimi düğün günü sonunda kapanır."
           type="date"
           max={values.weddingDate || undefined}
           value={values.rsvpDeadline}

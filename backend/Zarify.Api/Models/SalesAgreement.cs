@@ -42,4 +42,14 @@ public class SalesAgreement
     /// on the row that outlives the invitation and the account, so the
     /// accountant's export of approved orders stays complete.
     public DateTime? PaymentApprovedAtUtc { get; set; }
+
+    /// The Pre-Contract Information Form and the Distance Sales Contract as
+    /// the buyer saw them when they accepted, filled in with their name,
+    /// the price and the time — a complete HTML document, emailed with the
+    /// order and shown again from "Sözleşmemi görüntüle". Null on orders
+    /// placed before the archive existed.
+    public string? ContractHtml { get; set; }
+
+    /// SHA-256 (hex) of ContractHtml at the moment it was stored.
+    public string? ContractSha256 { get; set; }
 }

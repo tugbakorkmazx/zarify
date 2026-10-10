@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { Biz } from "@/components/legal/Placeholder";
+import { Biz, RetentionDelete, ServicePeriod } from "@/components/legal/Placeholder";
 
 /** KVKK md. 10 aydınlatma metni — for account holders and for guests who
  * send an RSVP. DRAFT: to be reviewed by a lawyer. */
@@ -148,9 +148,15 @@ function Tr() {
             kullanıldığında, yenisi istendiğinde veya hesap silindiğinde silinir.
           </li>
           <li>
-            Davetiye içeriği ve misafir katılım bildirimleri: davetiyenin yayın süresi (<Biz field="servicePeriod" />)
-            boyunca ve sonrasında en fazla 6 ay; bu sürenin sonunda veya davetiye sahibinin talebiyle silinir
-            ya da anonim hâle getirilir.
+            Davetiye içeriği ve misafir katılım bildirimleri: davetiye, misafirlere{" "}
+            <ServicePeriod /> açık kalır (kapanmadan önce davetiye sahibine e-postayla
+            hatırlatılır); <RetentionDelete lang="tr" /> içeriği ve tüm katılım bildirimleriyle birlikte
+            otomatik olarak silinir. Davetiye sahibi yanıtları dilediği an tek tek silebilir veya hesabını
+            silerek hepsini hemen sildirebilir.
+          </li>
+          <li>
+            Oturum yenileme kayıtları: son kullanımdan itibaren en fazla 14 gün; yalnızca geri döndürülemez
+            özetleri saklanır ve çıkışta, şifre değişikliğinde veya hesap silindiğinde geçersiz olur.
           </li>
           <li>
             Sözleşme ve onay kayıtları: 6502 sayılı Kanun ve Mesafeli Sözleşmeler Yönetmeliği uyarınca
@@ -321,9 +327,14 @@ function En() {
             used, when a new one is requested, or when the account is deleted.
           </li>
           <li>
-            Invitation content and guests&apos; RSVPs: for the invitation&apos;s publication period
-            (<Biz field="servicePeriod" />) and at most 6 months after; then deleted or anonymised, or
-            earlier at the owner&apos;s request.
+            Invitation content and guests&apos; RSVPs: the invitation stays open to guests for{" "}
+            <ServicePeriod /> (the owner is reminded by email before it closes); it is then deleted
+            automatically, with all its RSVPs, <RetentionDelete lang="en" />. The owner can delete replies one
+            by one at any time, or all at once by deleting the account.
+          </li>
+          <li>
+            Session renewal records: at most 14 days after last use; stored only as irreversible hashes and
+            invalidated on sign-out, a password change or account deletion.
           </li>
           <li>Contract and consent records: at least 3 years, under Law No. 6502 and the Distance Contracts Regulation.</li>
           <li>Payment and invoicing records: for the periods set by the Tax Procedure Law and the Turkish Commercial Code (5–10 years).</li>

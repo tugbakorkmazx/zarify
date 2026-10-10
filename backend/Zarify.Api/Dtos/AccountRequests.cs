@@ -49,3 +49,11 @@ public class CorrectNamesRequest
     [Required, MaxLength(100)]
     public required string GroomName { get; set; }
 }
+
+public class RsvpDeadlineRequest
+{
+    public DateOnly? RsvpDeadline { get; set; }
+}
+
+/// The archived contract HTML, for the owner's "Sözleşmemi görüntüle" page.
+public record ContractDocumentDto(string Html, string? Sha256, string? PaymentReference, DateTime AcceptedAtUtc);

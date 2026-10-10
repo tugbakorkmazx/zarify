@@ -30,6 +30,10 @@ public static class ErrorCodes
     public const string CannotCancelPublished = "CANNOT_CANCEL_PUBLISHED";
     public const string RejectionNoteInvalid = "REJECTION_NOTE_INVALID";
     public const string InvitationRemoved = "INVITATION_REMOVED";
+    public const string InvitationExpired = "INVITATION_EXPIRED";
+    public const string WeddingDatePast = "WEDDING_DATE_PAST";
+    public const string ContractInvalid = "CONTRACT_INVALID";
+    public const string ContractNotArchived = "CONTRACT_NOT_ARCHIVED";
     public const string NamesLocked = "NAMES_LOCKED";
     public const string TooManyPendingOrders = "TOO_MANY_PENDING_ORDERS";
 
@@ -45,6 +49,8 @@ public static class ErrorCodes
 
     // RSVP
     public const string RsvpClosed = "RSVP_CLOSED";
+    public const string RsvpDeadlinePassed = "RSVP_DEADLINE_PASSED";
+    public const string RsvpNotFound = "RSVP_NOT_FOUND";
     public const string GuestNameRequired = "GUEST_NAME_REQUIRED";
 
     // Validation (400) — the first invalid field decides the code.
@@ -93,6 +99,12 @@ public static class ApiErrors
         [ErrorCodes.NotAwaitingPayment] = ("Bu davetiye ödeme beklemiyor.", "This invitation isn't awaiting payment."),
         [ErrorCodes.CannotCancelPublished] = ("Yayındaki bir davetiye iptal edilemez.", "A published invitation can't be cancelled."),
         [ErrorCodes.DistanceSalesNotAccepted] = ("Devam etmek için Ön Bilgilendirme Formu'nu ve Mesafeli Satış Sözleşmesi'ni onaylamanız gerekir.", "To continue, please confirm the Pre-Contract Information Form and the Distance Sales Contract."),
+        [ErrorCodes.RsvpDeadlinePassed] = ("Katılım bildirimi süresi doldu.", "The RSVP deadline has passed."),
+        [ErrorCodes.RsvpNotFound] = ("Yanıt bulunamadı.", "Reply not found."),
+        [ErrorCodes.InvitationExpired] = ("Bu davetiyenin yayın süresi doldu.", "This invitation is no longer online."),
+        [ErrorCodes.WeddingDatePast] = ("Düğün tarihi bugünden önce olamaz.", "The wedding date can't be in the past."),
+        [ErrorCodes.ContractInvalid] = ("Sözleşme metni alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.", "The contract text couldn't be recorded. Please refresh the page and try again."),
+        [ErrorCodes.ContractNotArchived] = ("Bu sipariş, sözleşme arşivi başlamadan önce verildi; onayladığınız sürüm etiketi kayıtlıdır.", "This order predates the contract archive; the accepted version label is on record."),
         [ErrorCodes.RsvpClosed] = ("Bu davetiye için katılım bildirimi kapatılmış.", "RSVPs are closed for this invitation."),
         [ErrorCodes.GuestNameRequired] = ("Lütfen adınızı yazın.", "Please enter your name."),
         [ErrorCodes.ValidationFailed] = ("Bazı bilgiler geçersiz. Lütfen formu kontrol edin.", "Some details are invalid. Please check the form."),
@@ -155,6 +167,8 @@ public static class ApiErrors
             "message" or "storytext" or "dresscode" or "giftnote" or "accommodationnote" => ErrorCodes.MessageTooLong,
             "schedule" => ErrorCodes.ScheduleTooLong,
             "rsvpdeadline" => ErrorCodes.RsvpDeadlineAfterWedding,
+            "weddingdate" => ErrorCodes.WeddingDatePast,
+            "contracthtml" => ErrorCodes.ContractInvalid,
             "token" => ErrorCodes.ResetTokenInvalid,
             "note" => ErrorCodes.NoteInvalid,
             _ => ErrorCodes.ValidationFailed,

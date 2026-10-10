@@ -26,7 +26,7 @@ function Tr() {
         <h2>Taahhütlerimiz</h2>
         <ul>
           <li>Verilerinizi satmayız, reklam veya pazarlama için kullanmayız.</li>
-          <li>Sitede reklam, analiz veya takip aracı yoktur; çerez kullanmayız (<Link href="/cerez-politikasi">Çerez Politikası</Link>).</li>
+          <li>Sitede reklam, analiz veya takip aracı yoktur; yalnızca oturumunuzu açık tutan zorunlu bir çerez kullanırız (<Link href="/cerez-politikasi">Çerez Politikası</Link>).</li>
           <li>Misafirlerinizden yalnızca ad, katılım durumu, kişi sayısı ve isteğe bağlı bir not isteriz; e-posta veya telefon istemeyiz.</li>
           <li>Misafir yanıtlarını yalnızca davetiye sahibi görür; davetiye sayfasında gösterilmez.</li>
           <li>Kart bilgisi toplamayız; ödeme banka havalesiyle yapılır.</li>
@@ -85,7 +85,7 @@ function En() {
         <h2>Our Commitments</h2>
         <ul>
           <li>We never sell your data or use it for advertising or marketing.</li>
-          <li>There are no ads, analytics or trackers on the site, and no cookies (<Link href="/cerez-politikasi">Cookie Policy</Link>).</li>
+          <li>There are no ads, analytics or trackers on the site; the only cookie is a strictly necessary one that keeps you signed in (<Link href="/cerez-politikasi">Cookie Policy</Link>).</li>
           <li>From your guests we ask only for a name, whether they&apos;re coming, how many, and an optional note — never an email or phone number.</li>
           <li>Guests&apos; replies are seen only by the invitation owner and never shown on the invitation page.</li>
           <li>We don&apos;t collect card details; payment is by bank transfer.</li>

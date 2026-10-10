@@ -133,7 +133,7 @@ The swan lake and the letters still life have **portrait versions** (`portrait` 
 
 ## Imagery
 
-All images are raster (WebP) in `frontend/public/images/art/`, registered in `frontend/src/lib/art.ts`. **Nothing outside that registry goes on a page.** The previous gravure/herbarium set (willow, swallow, bees, cherry branch, damask, toile, stamps, sepia roses, dried lily, anemone, hellebore…) is retired and archived in `public/images/_arsiv/`.
+All images are raster (WebP) in `frontend/public/images/art/`, registered in `frontend/src/lib/art.ts`. **Nothing outside that registry goes on a page.** The previous gravure/herbarium set (willow, swallow, bees, cherry branch, damask, toile, stamps, sepia roses, dried lily, anemone, hellebore…) is retired and archived outside the repo in `gorseller/_arsiv/` (git-ignored, never served). Where each image comes from is recorded in `ASSETS.md`.
 
 - **Paintings:** swan lake (landscape and portrait), pastoral sunset, still life with letters and lilies with an empty centre (landscape and portrait), dark floral still life, and a swan close-up (inside the gilded frame on the landing).
 - **Paper objects:** Victorian lace card (its plain oval holds the cover text), the envelope (drawn in CSS/SVG as paper, with the wax seal).
