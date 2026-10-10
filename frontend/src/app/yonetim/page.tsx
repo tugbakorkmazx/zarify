@@ -7,7 +7,7 @@ import { useAuth, ApiError } from "@/lib/auth";
 import { OwnerShell } from "@/components/owner/OwnerShell";
 import { CoupleNames } from "@/components/herbarium/CoupleNames";
 import { BUTTON_PRIMARY_SM, TEXT_LINK } from "@/lib/ui";
-import { approvePayment, getCancelledOrders, getPendingPayments, type AdminInvitation } from "@/lib/admin";
+import { approvePayment, getCancelledOrders, getPendingPayments, rejectPayment, type AdminInvitation } from "@/lib/admin";
 import type { SalesAgreement } from "@/lib/invitations";
 import { formatPrice } from "@/lib/pricing";
 import { formatDateLine } from "@/lib/formatDateLine";
@@ -175,10 +175,30 @@ function PendingRow({
   token: string;
   onApproved: () => void;
 }) {
-  const { invitation: inv, owner, paymentReference } = item;
-  const [confirming, setConfirming] = useState(false);
+  const { invitation: initial, owner, paymentReference } = item;
+  // Replaced by the API's answer after a rejection, so the note shows here.
+  const [inv, setInv] = useState(initial);
+  const [mode, setMode] = useState<"idle" | "approve" | "reject">("idle");
   const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const confirming = mode === "approve";
+  const setConfirming = (on: boolean) => setMode(on ? "approve" : "idle");
+
+  async function handleReject() {
+    setError(null);
+    setRejecting(true);
+    try {
+      setInv(await rejectPayment(token, inv.id, note));
+      setNote("");
+      setMode("idle");
+    } catch (err) {
+      setError(describeError(err));
+    } finally {
+      setRejecting(false);
+    }
+  }
 
   async function handleApprove() {
     setError(null);
@@ -217,14 +237,63 @@ function PendingRow({
         <p className="font-body text-sm text-soot-soft">
           Oluşturulma: {DATE_TIME.format(new Date(inv.createdAtUtc))}
         </p>
+        {inv.paymentRejectionNote && (
+          <p className="mt-2 border-l-2 border-wine/60 pl-3 font-body text-sm text-soot">
+            <span className="apparatus text-xs text-wine">
+              Reddedildi{inv.paymentRejectedAtUtc && ` · ${DATE_TIME.format(new Date(inv.paymentRejectedAtUtc))}`}
+            </span>
+            <br />
+            {inv.paymentRejectionNote}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3 lg:col-span-4 lg:items-end">
-        {!confirming ? (
+        {mode === "reject" ? (
+          <form
+            className="flex w-full flex-col gap-3 bg-paper-deep p-4 lg:max-w-xs"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleReject();
+            }}
+          >
+            <label className="flex flex-col gap-1">
+              <span className="apparatus text-sm text-soot-soft">Çifte gidecek not</span>
+              <textarea
+                required
+                maxLength={500}
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ör. Havale açıklamasında referans kodu yoktu."
+                className="border border-soot-soft/60 bg-transparent p-2 font-body text-base text-soot outline-none focus:border-wine"
+              />
+            </label>
+            <p className="font-body text-sm text-soot-soft">
+              Sipariş silinmez, ödeme bekliyor olarak kalır; not e-postayla gönderilir.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <button type="submit" disabled={rejecting || note.trim() === ""} className={BUTTON_PRIMARY_SM}>
+                {rejecting ? "Gönderiliyor…" : "Reddet ve bildir"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                disabled={rejecting}
+                className={`apparatus text-sm ${TEXT_LINK}`}
+              >
+                Vazgeç
+              </button>
+            </div>
+          </form>
+        ) : !confirming ? (
           <div className="flex flex-wrap items-center gap-4 lg:justify-end">
             <Link href={`/davetiye/${inv.slug}`} className={`apparatus text-sm ${TEXT_LINK}`}>
               Davetiyeye bak
             </Link>
+            <button type="button" onClick={() => setMode("reject")} className={`apparatus text-sm ${TEXT_LINK}`}>
+              Reddet
+            </button>
             <button type="button" onClick={() => setConfirming(true)} className={BUTTON_PRIMARY_SM}>
               Ödemeyi Onayla
             </button>

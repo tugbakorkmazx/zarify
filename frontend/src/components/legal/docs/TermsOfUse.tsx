@@ -103,10 +103,12 @@ function Tr() {
       <section>
         <h2>9. Fesih</h2>
         <p>
-          Hesabınızın kapatılmasını dilediğiniz zaman <Biz field="email" /> adresinden talep edebilirsiniz.
-          Bu şartları ihlal etmeniz hâlinde hesabınızı askıya alabilir veya kapatabiliriz. Hesabın
-          kapanmasıyla davetiyeleriniz yayından kaldırılır ve verileriniz KVKK Aydınlatma Metni&apos;ndeki
-          sürelere uygun olarak silinir.
+          Hesabınızı dilediğiniz zaman Hesabım sayfasından, şifrenizle onaylayarak silebilir ya da{" "}
+          <Biz field="email" /> adresinden kapatılmasını isteyebilirsiniz. Hesabınız silindiğinde
+          davetiyeleriniz ve misafirlerinizin katılım yanıtları hemen ve kalıcı olarak silinir, davetiye
+          linkleriniz çalışmayı durdurur ve ödemesi onaylanmamış siparişleriniz iptal edilir; mesafeli
+          satış sözleşmesi ve onay kayıtları KVKK Aydınlatma Metni&apos;ndeki süre boyunca saklanır. Bu
+          şartları ihlal etmeniz hâlinde hesabınızı askıya alabilir veya kapatabiliriz.
         </p>
       </section>
       <section>
@@ -225,9 +227,12 @@ function En() {
       <section>
         <h2>9. Ending the Agreement</h2>
         <p>
-          You can ask us to close your account at any time via <Biz field="email" />. If you break these
-          terms we may suspend or close your account. When an account is closed its invitations are taken
-          offline and the data is deleted within the periods in the Personal Data Notice.
+          You can delete your account at any time on the My Account page, confirming with your password,
+          or ask us to close it via <Biz field="email" />. When your account is deleted, your invitations
+          and your guests&apos; RSVPs are deleted at once and for good, your invitation links stop working,
+          and orders whose payment hasn&apos;t been confirmed are cancelled; distance-sales contract and
+          consent records are kept for the period in the Personal Data Notice. If you break these terms we
+          may suspend or close your account.
         </p>
       </section>
       <section>

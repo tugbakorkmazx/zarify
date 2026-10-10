@@ -37,6 +37,20 @@ export async function approvePayment(token: string, invitationId: string): Promi
   return res.json();
 }
 
+/** The transfer couldn't be confirmed: the order stays pending with the
+ * note, which is emailed to the couple and shown on their payment page. */
+export async function rejectPayment(token: string, invitationId: string, note: string): Promise<InvitationDto> {
+  const res = await fetch(`${API_URL}/api/admin/invitations/${invitationId}/reject-payment`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ note }),
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+  return res.json();
+}
+
 /** Orders their owners cancelled before publishing, newest first. */
 export async function getCancelledOrders(token: string): Promise<SalesAgreement[]> {
   const res = await fetch(`${API_URL}/api/admin/orders/cancelled`, {

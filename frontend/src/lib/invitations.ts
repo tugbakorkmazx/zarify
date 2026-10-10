@@ -37,6 +37,10 @@ export interface InvitationDto {
   publishedAtUtc: string | null;
   createdAtUtc: string;
   updatedAtUtc: string | null;
+  /** Set while a pending order's transfer couldn't be confirmed — the
+   * admin's note to the couple. Cleared when the payment is approved. */
+  paymentRejectedAtUtc: string | null;
+  paymentRejectionNote: string | null;
 }
 
 export type InvitationStatus = "draft" | "pendingPayment" | "published";

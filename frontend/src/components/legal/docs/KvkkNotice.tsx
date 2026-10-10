@@ -60,8 +60,8 @@ function Tr() {
         <h3>Tüm ziyaretçiler</h3>
         <p>
           Kötüye kullanımı önlemek için (ör. kısa sürede çok sayıda giriş denemesi veya form gönderimi) IP
-          adresiniz ve giriş/kayıt denemelerinde yazdığınız e-posta adresi, en fazla 10 dakika boyunca
-          yalnızca sunucu belleğinde sayaç olarak tutulur; kalıcı olarak kaydedilmez.
+          adresiniz ve giriş, kayıt veya şifre sıfırlama denemelerinde yazdığınız e-posta adresi, en fazla
+          1 saat boyunca yalnızca sunucu belleğinde sayaç olarak tutulur; kalıcı olarak kaydedilmez.
         </p>
       </section>
 
@@ -80,6 +80,12 @@ function Tr() {
             Misafir katılım bildirimlerini kaydetmek ve davetiye sahibine göstermek — davetiye sahibine
             sunulan hizmetin ifası (md. 5/2-c) ve misafirin kendi isteğiyle gönderdiği bilginin davet
             edenle paylaşılmasındaki meşru menfaat (md. 5/2-f).
+          </li>
+          <li>
+            Hesabınızla ilgili işlem e-postalarını göndermek (hoş geldiniz, sipariş ve havale bilgileri,
+            ödemenin onaylanması veya onaylanamaması, şifre sıfırlama ve değişikliği, hesap silme onayı) —
+            sözleşmenin ifası (md. 5/2-c) ve hesap güvenliğindeki meşru menfaat (md. 5/2-f). Pazarlama
+            e-postası gönderilmez.
           </li>
           <li>Platformun güvenliğini sağlamak, kötüye kullanımı önlemek — meşru menfaat (md. 5/2-f).</li>
           <li>Yetkili kurumların taleplerini karşılamak — kanunlarda öngörülmesi, hukuki yükümlülük (md. 5/2-a, ç).</li>
@@ -121,7 +127,8 @@ function Tr() {
           </li>
           <li>
             <strong>Hizmet sağlayıcılar:</strong> sunucu ve veritabanı altyapısını sağlayan barındırma
-            hizmeti (<Biz field="hostingProvider" />).
+            hizmeti (<Biz field="hostingProvider" />) ve işlem e-postalarını ileten e-posta gönderim
+            hizmeti (<Biz field="emailProvider" />; e-posta adresiniz, adınız ve e-postanın içeriği).
           </li>
           <li><strong>Yetkili kurumlar:</strong> kanunen yetkili kamu kurum ve kuruluşları ile yargı mercileri, talep hâlinde.</li>
         </ul>
@@ -130,7 +137,16 @@ function Tr() {
       <section>
         <h2>7. Ne Kadar Süre Saklıyoruz?</h2>
         <ul>
-          <li>Hesap bilgileri: hesabınız açık olduğu sürece; hesabın kapatılması talebinizden sonra silinir veya anonim hâle getirilir.</li>
+          <li>
+            Hesap bilgileri, davetiyeler ve misafir katılım bildirimleri: hesabınız açık olduğu sürece.
+            Hesabınızı Hesabım sayfasından sildiğinizde (ya da bize yazarak kapatılmasını istediğinizde)
+            hesabınız, davetiyeleriniz ve misafir yanıtları derhâl silinir; sözleşme ve onay kayıtları
+            aşağıdaki süre boyunca saklanır.
+          </li>
+          <li>
+            Şifre sıfırlama bağlantıları: 1 saat geçerlidir ve yalnızca geri döndürülemez özetleri saklanır;
+            kullanıldığında, yenisi istendiğinde veya hesap silindiğinde silinir.
+          </li>
           <li>
             Davetiye içeriği ve misafir katılım bildirimleri: davetiyenin yayın süresi (<Biz field="servicePeriod" />)
             boyunca ve sonrasında en fazla 6 ay; bu sürenin sonunda veya davetiye sahibinin talebiyle silinir
@@ -141,7 +157,7 @@ function Tr() {
             en az 3 yıl.
           </li>
           <li>Ödeme ve faturalandırma kayıtları: Vergi Usul Kanunu ve Türk Ticaret Kanunu&apos;nda öngörülen süreler (5–10 yıl).</li>
-          <li>Güvenlik sayaçları (IP, deneme e-postası): en fazla 10 dakika, yalnızca bellekte.</li>
+          <li>Güvenlik sayaçları (IP, deneme e-postası): en fazla 1 saat, yalnızca bellekte.</li>
         </ul>
       </section>
 
@@ -231,8 +247,8 @@ function En() {
         <h3>All visitors</h3>
         <p>
           To prevent abuse (such as many sign-in attempts or form submissions in a short time), your IP
-          address, and the email address typed into a sign-in or sign-up attempt, are kept as counters in
-          server memory only, for at most 10 minutes, and are never stored permanently.
+          address, and the email address typed into a sign-in, sign-up or password-reset attempt, are kept
+          as counters in server memory only, for at most 1 hour, and are never stored permanently.
         </p>
       </section>
 
@@ -245,6 +261,12 @@ function En() {
             Recording guests&apos; RSVPs and showing them to the invitation owner — performance of the
             service provided to the owner (5/2-c) and the legitimate interest in passing on what the guest
             chose to send to the person who invited them (5/2-f).
+          </li>
+          <li>
+            Sending the emails your account needs (welcome, order and bank-transfer details, payment
+            confirmed or not confirmed, password reset and change, account deletion) — performance of a
+            contract (5/2-c) and the legitimate interest in account security (5/2-f). We send no marketing
+            email.
           </li>
           <li>Keeping the Platform secure and preventing abuse — legitimate interest (5/2-f).</li>
           <li>Responding to requests from competent authorities — required by law, legal obligation (5/2-a, ç).</li>
@@ -276,7 +298,11 @@ function En() {
         <ul>
           <li><strong>The invitation owner:</strong> guests&apos; RSVPs (name, attendance, number of guests, note) are shown only to the owner of that invitation, in their dashboard.</li>
           <li><strong>Anyone with the invitation link:</strong> a published invitation&apos;s content (names, date, venue…) can be viewed by anyone who has the link. Guests&apos; replies are never shown there.</li>
-          <li><strong>Service providers:</strong> the hosting provider for our servers and database (<Biz field="hostingProvider" />).</li>
+          <li>
+            <strong>Service providers:</strong> the hosting provider for our servers and database
+            (<Biz field="hostingProvider" />) and the email delivery service that sends transactional
+            emails (<Biz field="emailProvider" />; your email address, name and the email&apos;s content).
+          </li>
           <li><strong>Authorities:</strong> competent public bodies and courts, on request.</li>
         </ul>
       </section>
@@ -284,7 +310,16 @@ function En() {
       <section>
         <h2>7. How Long We Keep It</h2>
         <ul>
-          <li>Account details: while your account is open; deleted or anonymised after you ask us to close it.</li>
+          <li>
+            Account details, invitations and guests&apos; RSVPs: while your account is open. When you delete
+            your account on the My Account page (or ask us to close it), your account, invitations and
+            guests&apos; replies are deleted at once; contract and consent records are kept for the period
+            below.
+          </li>
+          <li>
+            Password reset links: valid for 1 hour, stored only as an irreversible hash, and deleted once
+            used, when a new one is requested, or when the account is deleted.
+          </li>
           <li>
             Invitation content and guests&apos; RSVPs: for the invitation&apos;s publication period
             (<Biz field="servicePeriod" />) and at most 6 months after; then deleted or anonymised, or
@@ -292,7 +327,7 @@ function En() {
           </li>
           <li>Contract and consent records: at least 3 years, under Law No. 6502 and the Distance Contracts Regulation.</li>
           <li>Payment and invoicing records: for the periods set by the Tax Procedure Law and the Turkish Commercial Code (5–10 years).</li>
-          <li>Security counters (IP, sign-in email): at most 10 minutes, in memory only.</li>
+          <li>Security counters (IP, sign-in email): at most 1 hour, in memory only.</li>
         </ul>
       </section>
 

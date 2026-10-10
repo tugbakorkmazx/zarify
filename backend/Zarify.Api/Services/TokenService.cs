@@ -10,6 +10,8 @@ namespace Zarify.Api.Services;
 
 public class TokenService(IOptions<JwtOptions> jwtOptions) : ITokenService
 {
+    public const string SecurityStampClaim = "stamp";
+
     private readonly JwtOptions _options = jwtOptions.Value;
 
     public (string Token, DateTime ExpiresAtUtc) CreateToken(User user)
@@ -24,6 +26,9 @@ public class TokenService(IOptions<JwtOptions> jwtOptions) : ITokenService
             // Read by [Authorize(Roles = "Admin")]. A role change takes
             // effect at the user's next login (tokens live ExpiryMinutes).
             new Claim(ClaimTypes.Role, user.Role.ToString()),
+            // Checked against the database on every request (Program.cs):
+            // a password reset changes the stamp and ends every session.
+            new Claim(SecurityStampClaim, user.SecurityStamp),
         };
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));

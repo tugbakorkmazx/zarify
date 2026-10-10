@@ -48,7 +48,8 @@ function Tr() {
         <p>
           Yayınlanan bir davetiyenin içeriği, bağlantıyı bilen herkes tarafından görülebilir; bağlantıyı
           kiminle paylaşacağınıza siz karar verirsiniz. Veriler yalnızca barındırma sağlayıcımızla (
-          <Biz field="hostingProvider" />) ve kanunen yetkili kurumlarla, talep hâlinde paylaşılır.
+          <Biz field="hostingProvider" />), işlem e-postalarını ileten e-posta gönderim hizmetiyle (
+          <Biz field="emailProvider" />) ve kanunen yetkili kurumlarla, talep hâlinde paylaşılır.
         </p>
       </section>
 
@@ -60,8 +61,8 @@ function Tr() {
       <section>
         <h2>İletişim ve Haklarınız</h2>
         <p>
-          Verilerinize erişmek, düzeltmek veya silinmesini istemek için <Biz field="email" /> adresine
-          yazabilirsiniz. KVKK kapsamındaki tüm haklarınız ve başvuru yolları{" "}
+          Hesabınızı ve davetiyelerinizi Hesabım sayfasından kendiniz silebilirsiniz. Verilerinize erişmek,
+          düzeltmek veya silinmesini istemek için <Biz field="email" /> adresine de yazabilirsiniz. KVKK kapsamındaki tüm haklarınız ve başvuru yolları{" "}
           <Link href="/kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</Link>&apos;nde açıklanmıştır.
         </p>
       </section>
@@ -105,8 +106,9 @@ function En() {
         <h2>Sharing</h2>
         <p>
           A published invitation&apos;s content can be seen by anyone who has its link; you decide who gets
-          it. Otherwise data is shared only with our hosting provider (<Biz field="hostingProvider" />) and,
-          on request, with competent authorities.
+          it. Otherwise data is shared only with our hosting provider (<Biz field="hostingProvider" />), the
+          email delivery service that sends transactional emails (<Biz field="emailProvider" />) and, on
+          request, with competent authorities.
         </p>
       </section>
 
@@ -118,7 +120,8 @@ function En() {
       <section>
         <h2>Contact and Your Rights</h2>
         <p>
-          To access, correct or delete your data, write to <Biz field="email" />. All your rights under KVKK
+          You can delete your account and invitations yourself on the My Account page. To access, correct
+          or delete your data you can also write to <Biz field="email" />. All your rights under KVKK
           and how to use them are set out in the <Link href="/kvkk-aydinlatma-metni">Personal Data Notice</Link>.
         </p>
       </section>

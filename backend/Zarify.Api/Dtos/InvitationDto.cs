@@ -24,7 +24,11 @@ public record InvitationDto(
     string Status,
     DateTime? PublishedAtUtc,
     DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc)
+    DateTime? UpdatedAtUtc,
+    /// Only on a PendingPayment invitation whose transfer an admin
+    /// couldn't confirm; cleared on approval, so guests never see it.
+    DateTime? PaymentRejectedAtUtc,
+    string? PaymentRejectionNote)
 {
     public static string StatusToWire(InvitationStatus status) => status switch
     {
@@ -53,5 +57,7 @@ public record InvitationDto(
         StatusToWire(invitation.Status),
         invitation.PublishedAtUtc,
         invitation.CreatedAtUtc,
-        invitation.UpdatedAtUtc);
+        invitation.UpdatedAtUtc,
+        invitation.PaymentRejectedAtUtc,
+        invitation.PaymentRejectionNote);
 }

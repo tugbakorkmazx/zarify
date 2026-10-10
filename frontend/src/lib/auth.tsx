@@ -145,3 +145,46 @@ export function useAuth() {
     logout,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Account recovery and deletion — plain functions: none of them changes the
+// stored session except through the caller (deleteAccount's caller logs out).
+// ---------------------------------------------------------------------------
+
+/** Asks for a reset link. Resolves the same way whether or not the address
+ * has an account — the API never says. */
+export async function requestPasswordReset(email: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+}
+
+/** Sets a new password with the token from the emailed link. Every existing
+ * session (this browser's included) stops working afterwards. */
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: jsonHeaders(),
+    body: JSON.stringify({ token, password }),
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+}
+
+/** Deletes the signed-in account after re-checking its password. */
+export async function deleteAccount(token: string, password: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/auth/delete-account`, {
+    method: "POST",
+    headers: jsonHeaders({ Authorization: `Bearer ${token}` }),
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    throw await apiErrorFrom(res);
+  }
+}

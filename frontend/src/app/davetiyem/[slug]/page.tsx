@@ -7,6 +7,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { BUTTON_PRIMARY, BUTTON_PRIMARY_SM, BUTTON_SECONDARY, TEXT_LINK } from "@/lib/ui";
 import { PaymentInstructionsPanel } from "@/components/payment/PaymentInstructionsPanel";
 import { OrderSummary } from "@/components/payment/OrderSummary";
+import { RejectionNotice } from "@/components/payment/RejectionNotice";
 import { useAuth } from "@/lib/auth";
 import { getInvitationBySlug, type InvitationDto } from "@/lib/invitations";
 
@@ -95,6 +96,12 @@ export default function InvitationReadyPage() {
         </p>
       }
     >
+      {invitation && invitation.paymentRejectionNote && !isLive && (
+        <div className="mb-8">
+          <RejectionNotice invitation={invitation} />
+        </div>
+      )}
+
       {invitation && token && !isLive && (
         <div className="mb-10">
           <PaymentInstructionsPanel token={token} invitationId={invitation.id} />

@@ -16,6 +16,8 @@ public static class ErrorCodes
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string EmailTaken = "EMAIL_TAKEN";
     public const string SessionExpired = "SESSION_EXPIRED";
+    public const string ResetTokenInvalid = "RESET_TOKEN_INVALID";
+    public const string PasswordIncorrect = "PASSWORD_INCORRECT";
 
     // Invitations and payment
     public const string InvitationNotFound = "INVITATION_NOT_FOUND";
@@ -26,6 +28,7 @@ public static class ErrorCodes
     public const string NotAwaitingPayment = "NOT_AWAITING_PAYMENT";
     public const string DistanceSalesNotAccepted = "DISTANCE_SALES_NOT_ACCEPTED";
     public const string CannotCancelPublished = "CANNOT_CANCEL_PUBLISHED";
+    public const string RejectionNoteInvalid = "REJECTION_NOTE_INVALID";
 
     // RSVP
     public const string RsvpClosed = "RSVP_CLOSED";
@@ -53,6 +56,9 @@ public static class ApiErrors
     private static readonly Dictionary<string, (string Tr, string En)> Messages = new()
     {
         [ErrorCodes.InvalidCredentials] = ("E-posta veya şifre hatalı.", "Incorrect email or password."),
+        [ErrorCodes.ResetTokenInvalid] = ("Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.", "This password reset link is invalid or has expired. Please request a new one."),
+        [ErrorCodes.PasswordIncorrect] = ("Şifre hatalı.", "Incorrect password."),
+        [ErrorCodes.RejectionNoteInvalid] = ("Lütfen reddetme sebebini yazın (en fazla 500 karakter).", "Please write why the payment is rejected (up to 500 characters)."),
         [ErrorCodes.EmailTaken] = ("Bu e-posta adresi zaten kayıtlı.", "This email address is already registered."),
         [ErrorCodes.SessionExpired] = ("Oturumunuz artık geçerli değil. Lütfen tekrar giriş yapın.", "Your session has expired. Please sign in again."),
         [ErrorCodes.InvitationNotFound] = ("Davetiye bulunamadı.", "Invitation not found."),
@@ -125,6 +131,8 @@ public static class ApiErrors
             "message" or "storytext" or "dresscode" or "giftnote" or "accommodationnote" => ErrorCodes.MessageTooLong,
             "schedule" => ErrorCodes.ScheduleTooLong,
             "rsvpdeadline" => ErrorCodes.RsvpDeadlineAfterWedding,
+            "token" => ErrorCodes.ResetTokenInvalid,
+            "note" => ErrorCodes.RejectionNoteInvalid,
             _ => ErrorCodes.ValidationFailed,
         };
     }

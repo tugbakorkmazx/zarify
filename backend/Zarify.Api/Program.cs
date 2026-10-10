@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Zarify.Api.Data;
 using Zarify.Api.Options;
 using Zarify.Api.Services;
+using Zarify.Api.Services.Email;
 
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 
@@ -77,6 +78,57 @@ builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<AuthThrottle>();
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
 
+// Links in emails point at the frontend. Development falls back to the
+// local dev server; anywhere else Site:Url must be set.
+builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site"));
+builder.Services.PostConfigure<SiteOptions>(site =>
+{
+    if (string.IsNullOrWhiteSpace(site.Url) && builder.Environment.IsDevelopment())
+    {
+        site.Url = "http://localhost:3000";
+    }
+});
+var siteUrl = builder.Configuration["Site:Url"];
+if (!builder.Environment.IsDevelopment() && !Uri.TryCreate(siteUrl, UriKind.Absolute, out _))
+{
+    throw new InvalidOperationException(
+        "Site:Url is not set (or not a URL) — email links need the site's address. Set the Site__Url environment variable, e.g. https://zarify.com.tr.");
+}
+
+// Email: real SMTP in production; in development every message is written
+// to dev-emails/ as .html and its links logged (FileEmailSender), unless
+// Email:Mode says otherwise. Sending happens in the background
+// (EmailQueue/EmailWorker), so a mail problem never fails a request.
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+var emailOptions = builder.Configuration.GetSection("Email").Get<EmailOptions>() ?? new EmailOptions();
+// (An empty value — "Mode": null in appsettings.json binds as "" — counts as unset.)
+var emailMode = string.IsNullOrWhiteSpace(emailOptions.Mode)
+    ? builder.Environment.IsDevelopment() ? EmailModes.File : EmailModes.Smtp
+    : emailOptions.Mode.Trim();
+if (emailMode == EmailModes.Smtp)
+{
+    if (string.IsNullOrWhiteSpace(emailOptions.Smtp.Host) || string.IsNullOrWhiteSpace(emailOptions.FromAddress))
+    {
+        throw new InvalidOperationException(
+            "Email:Smtp:Host is not configured — password resets and order emails couldn't be sent. " +
+            "Set Email__Smtp__Host, Email__Smtp__Port, Email__Smtp__Username and Email__Smtp__Password " +
+            "(or Email__Mode=File to write emails to disk instead).");
+    }
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+}
+else if (emailMode == EmailModes.File)
+{
+    builder.Services.AddSingleton<IEmailSender, FileEmailSender>();
+}
+else
+{
+    throw new InvalidOperationException($"Email:Mode must be \"{EmailModes.Smtp}\" or \"{EmailModes.File}\", not \"{emailMode}\".");
+}
+builder.Services.AddSingleton<EmailQueue>();
+builder.Services.AddSingleton<IEmailQueue>(services => services.GetRequiredService<EmailQueue>());
+builder.Services.AddHostedService<EmailWorker>();
+builder.Services.AddSingleton<EmailComposer>();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -92,6 +144,35 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30),
+        };
+        // A signature and expiry check alone would honour a token for up to
+        // an hour after a password reset or account deletion. Every token
+        // carries the user's SecurityStamp; a token whose user is gone or
+        // whose stamp has changed is rejected. (One indexed lookup per
+        // authenticated request.)
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal!;
+                var sub = principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? principal.FindFirst("sub")?.Value;
+                var stamp = principal.FindFirst(TokenService.SecurityStampClaim)?.Value;
+                if (!Guid.TryParse(sub, out var userId) || stamp is null)
+                {
+                    context.Fail("Token predates security stamps.");
+                    return;
+                }
+                var db = context.HttpContext.RequestServices.GetRequiredService<ZarifyDbContext>();
+                var current = await db.Users
+                    .Where(u => u.Id == userId)
+                    .Select(u => u.SecurityStamp)
+                    .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+                if (current != stamp)
+                {
+                    context.Fail("Session revoked.");
+                }
+            },
         };
     });
 
@@ -162,6 +243,10 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.LoginPerIp));
     options.AddPolicy(RateLimitPolicies.Register, context =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.RegisterPerIp));
+    options.AddPolicy(RateLimitPolicies.ForgotPassword, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ForgotPasswordPerIp));
+    options.AddPolicy(RateLimitPolicies.ResetPassword, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ResetPasswordPerIp));
     options.OnRejected = (context, ct) =>
     {
         TimeSpan? retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : null;

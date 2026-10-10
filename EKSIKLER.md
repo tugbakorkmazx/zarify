@@ -25,6 +25,12 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 | `GET /api/pricing` (`lib/pricing.ts`) | `PricingController` | ✅ |
 | `GET /api/admin/invitations/pending-payment`, `POST …/approve-payment` (`lib/admin.ts`) | `AdminController` | ✅ |
 
+### ✅ E-posta turunda eklenenler (9 Ekim 2026)
+- **Yeni migration:** `20261009151109_EmailPasswordResetAccountDeletion`. Değişiklikleri:
+  - `Users.SecurityStamp` kolonu (mevcut kullanıcılara rastgele değer dolduruldu; eski token'lar bir kez geçersiz kalır).
+  - `PasswordResetTokens` tablosu.
+  - `Invitations.PaymentRejectedAtUtc` ve `PaymentRejectionNote` kolonları.
+
 ### ✅ Bu turda ek olarak düzeltilen
 - **API tarihleri saat dilimi olmadan gidiyordu:** MySQL'den gelen UTC zamanlar "Z" eki olmadan dönüyordu. Tarayıcı bunları yerel saat sandığı için, örneğin admin panelindeki "Oluşturulma" saati 3 saat geride görünüyordu. `Services/UtcDateTimeConverter.cs` ile bütün tarihler artık "Z" ekiyle gönderiliyor.
 - **Yeni migration:** `20261008114041_OrderAmountAgreementsRsvpTokens`. Değişiklikleri:
@@ -41,6 +47,7 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 ### 1. Yasal metinlerdeki şirket bilgileri boş, "Taslak" uyarısı açık
 - **Sorun:** Unvan, adres, vergi dairesi/no, e-posta, telefon, yetkili mahkeme, barındırma sağlayıcısı ve **davetiyenin yayında kalacağı süre** gibi alanların hepsi `null`. Bu yüzden yedi yasal sayfanın hepsinde kırmızı `[ŞİRKET UNVANI]` gibi yer tutucular görünüyor. `showDraftNotice: true` olduğu için her sayfanın başında "Taslak" kutusu da çıkıyor. Mesafeli Satış Sözleşmesi bu hâliyle hukuken eksik; satıcı bilgisi olmadan satış yapılamaz.
 - **Dosya:** `frontend/src/lib/legal.ts` (`business`, `legalSettings.showDraftNotice`)
+- **Ek (9 Ekim 2026, e-posta turu):** Yeni alan `emailProvider` (e-posta gönderim sağlayıcısı ve ülkesi) eklendi; KVKK ve Gizlilik metinleri bu alanı kullanıyor, doldurulması gerekiyor.
 - **Ek:** Metinlerin avukat ve mali müşavir onayından geçmesi gerekiyor (dosyanın kendi notu). Metin değişirse `legalSettings.version` de güncellenmeli.
 - **İş:** Küçük (kod) + dış süreç
 
@@ -50,7 +57,8 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Yapılacak:** Üretim ortam değişkenlerine `Payment__Iban`, `Payment__AccountHolder`, `Payment__BankName`, `Payment__AmountTry` eklenmeli.
 - **İş:** Küçük
 
-### 3. Şifre sıfırlama yok, e-posta altyapısı hiç yok
+### ✅ 3. Şifre sıfırlama yok, e-posta altyapısı hiç yok
+- **✅ Çözüldü (9 Ekim 2026, e-posta turu):** E-posta altyapısı kuruldu: `IEmailSender` arayüzü, MailKit ile SMTP gönderimi ve arka plan kuyruğu (`EmailQueue`/`EmailWorker`). Gönderim hatası isteği bozmuyor; iki kez yeniden deneniyor ve loglanıyor. Development'ta e-posta gönderilmiyor; her mesaj `backend/Zarify.Api/dev-emails/` klasörüne .html ve .txt olarak yazılıyor, dosya yolu ve içindeki linkler konsola basılıyor. Tek bir HTML şablonu var (tablo düzeni, inline stil, düz metin alternatifi); metinler TR/EN'e hazır bir katalogda. Şifre sıfırlama akışı: `/sifremi-unuttum` ve `/sifre-sifirla?token=` sayfaları. Token rastgele üretiliyor, veritabanında hash'li tutuluyor, 1 saat geçerli ve tek kullanımlık; yeni istek eskilerini siliyor. Kayıtlı olsun olmasın cevap aynı (202). Rate limit IP başına (5/15 dk) ve e-posta başına (3/saat) uygulanıyor. Şifre değişince bilgilendirme e-postası gidiyor ve `SecurityStamp` yenilendiği için tüm JWT'ler hemen geçersiz kalıyor.
 - **Sorun:** Backend'de e-posta gönderen hiçbir servis yok (SMTP veya sağlayıcı). "Şifremi unuttum" bağlantısı, endpoint'i ve token tablosu da yok. Şifresini unutan kullanıcı ödemesini yaptığı davetiyeye bir daha ulaşamıyor. Destek ekibinin şifreyi elle sıfırlayacağı bir araç da yok; tek yol veritabanına doğrudan bcrypt hash yazmak.
 - **Dosya:** `backend/Zarify.Api/Controllers/AuthController.cs`, `frontend/src/components/auth/LoginForm.tsx`
 - **Yapılacak:** E-posta servisi seçilip kurulmalı (ör. Resend, SES, SMTP). Ardından `POST /api/auth/forgot-password` ve `POST /api/auth/reset-password` eklenmeli; tek kullanımlık, süreli token tablosu ve migration'ı gerekiyor. Frontend'e `/sifremi-unuttum` ve `/sifre-sifirla` sayfaları eklenmeli.
@@ -95,6 +103,12 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Yapılacak:** Mekân adı ve adresinden bir Google Maps arama linki üretilsin (`maps/search/?api=1&query=…`).
 - **İş:** Küçük
 
+### 42. SMTP ve site adresi üretimde tanımlı değil
+- **Sorun:** Üretimde `Email:Smtp:Host` (ve kullanıcı adı/şifre) tanımlı değilse API açılırken bilerek hata veriyor. `Site:Url` `appsettings.Production.json` içinde `https://zarify.com.tr` olarak tanımlı. Yeni sipariş bildirimi için `Email:AdminAddress` tanımlanmalı; tanımlı değilse bu bildirim atlanıyor.
+- **Yapılacak:** Bir e-posta sağlayıcısı seçilmeli (ör. Yandex/Google Workspace SMTP, Amazon SES, Resend SMTP). `bildirim@zarify.com.tr` adresi için alan adına **SPF, DKIM ve DMARC** DNS kayıtları girilmeli; aksi hâlde e-postalar spam'e düşer. Ardından `Email__Smtp__Host`, `Email__Smtp__Port`, `Email__Smtp__Username`, `Email__Smtp__Password`, `Email__AdminAddress` ortam değişkenleri tanımlanmalı.
+- **Dosya:** `backend/Zarify.Api/Program.cs`, `Options/EmailOptions.cs`, `appsettings.json`
+- **İş:** Küçük (kod) + dış süreç
+
 ---
 
 ## 🟡 Önemli ama bekleyebilir
@@ -112,7 +126,8 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Dosya:** `app/davetiyelerim/[id]/duzenle/page.tsx:122-126`, `components/auth/LoginForm.tsx:27`, `Services/TokenService.cs`, `appsettings.json` (`ExpiryMinutes: 60`)
 - **İş:** Orta
 
-#### 12. Ödeme onaylanınca kullanıcıya bildirim gitmiyor
+#### ✅ 12. Ödeme onaylanınca kullanıcıya bildirim gitmiyor
+- **✅ Çözüldü (9 Ekim 2026, e-posta turu):** Sipariş oluşunca sahibine tutar, IBAN, ZRF referansı ve onay süresi; `Email:AdminAddress` adresine yeni sipariş bildirimi gidiyor. Ödeme onaylanınca sahibine yayında olduğu ve paylaşım linki bildiriliyor. Ödeme reddedilince sahibine admin'in notu gönderiliyor. Kayıtta hoş geldin e-postası gidiyor.
 - **Sorun:** Davetiye yayına alındığında çift bunu ancak paneli yenileyerek öğreniyor. Yeni sipariş geldiğinde admin'e de bildirim gitmiyor.
 - **Dosya:** `Controllers/AdminController.cs:38-60`
 - **Not:** #3'teki e-posta altyapısına bağlı.
@@ -138,7 +153,8 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 
 **Var olanlar:** ödeme bekleyen davetiyelerin listesi (referans kodu, çift, sahip, e-posta, oluşturulma zamanı), davetiyeye bakma bağlantısı ve iki adımlı "Ödemeyi Onayla" düğmesi. **Yetki kontrolü:** backend tarafı doğru; controller düzeyinde `[Authorize(Roles = "Admin")]` var (`AdminController.cs:16`) ve rol token'dan okunuyor. Frontend tarafında yalnızca oturum kontrolü yapılıyor; rol kontrolünü API'nin 403 cevabına bırakıyor ve 403 gelince "yetkiniz yok" mesajı gösteriyor. Menüdeki bağlantı yalnızca admin'e görünüyor (`OwnerShell.tsx:58`). Bu yapı yeterli.
 
-#### 16. Admin panelinde temel işlemler eksik
+#### ◐ 16. Admin panelinde temel işlemler eksik
+- **◐ Kısmen çözüldü (9 Ekim 2026, e-posta turu):** Ödemeyi **not ile reddetme** eklendi (`POST /api/admin/invitations/{id}/reject-payment`). Sipariş silinmiyor, ödeme bekliyor olarak kalıyor; not sahibine e-postayla gidiyor ve ödeme sayfasında görünüyor, onaylanınca temizleniyor. **Kalan:** yayındaki davetiyelerin listesi, arama, kullanıcı listesi, yayından kaldırma.
 - **Eksik olanlar:**
   - Ödemeyi **reddetme**, iptal etme, iade edildi olarak işaretleme yok.
   - **Yayındaki davetiyelerin** listesi yok; onaylanan davetiye listeden düşünce bir daha bulunamıyor.
@@ -156,12 +172,14 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 
 ### Kullanıcı tarafı
 
-#### 18. Profil düzenleme ve şifre değiştirme yok
+#### ◐ 18. Profil düzenleme ve şifre değiştirme yok
+- **◐ Kısmen çözüldü (9 Ekim 2026, e-posta turu):** Hesabım sayfasından e-postayla şifre değiştirme bağlantısı istenebiliyor. **Kalan:** ad/e-posta düzenleme ve kayıtta e-posta doğrulaması.
 - **Sorun:** Ad, soyad veya e-posta değiştirilemiyor; şifre değiştirilemiyor. Hiç `PUT /api/auth/me` benzeri bir endpoint yok. Kayıtta e-posta doğrulaması da yok; başkasının e-postasıyla hesap açılabiliyor.
 - **Dosya:** `Controllers/AuthController.cs`, `components/owner/OwnerShell.tsx` (menüde "Hesabım" bağlantısı yok)
 - **İş:** Orta
 
-#### ◐ 19. Hesap silme yok; ayrıca elle silmek sözleşme kayıtlarını da yok ediyor
+#### ✅ 19. Hesap silme yok; ayrıca elle silmek sözleşme kayıtlarını da yok ediyor
+- **✅ Çözüldü (9 Ekim 2026, e-posta turu):** Hesabım sayfasına (`/hesabim`) "Hesabımı sil" eklendi: önce şifre doğrulanıyor, sonra onay penceresi açılıyor (`POST /api/auth/delete-account`). Kullanıcı, davetiyeleri, RSVP'leri ve sıfırlama token'ları siliniyor; SalesAgreements kayıtları kalıyor, ödenmemiş siparişlerin kaydı da iptal olarak işaretleniyor. Silme sonrası onay e-postası gidiyor ve oturum anında geçersiz oluyor. Kullanım Şartları, KVKK Aydınlatma Metni ve Gizlilik Politikası bu akışa göre güncellendi. (Sistemde kullanıcıya ait görsel yüklemesi olmadığı için silinecek görsel de yok.)
 - **◐ Kısmen çözüldü (9 Ekim 2026):** Sözleşme onay kayıtları artık ayrı bir `SalesAgreements` tablosunda tutuluyor: zaman, sürüm, e-posta, ad, tutar ve referans. Davetiye ve kullanıcı bağlantıları `SetNull`; kullanıcı veya davetiye silinse de kayıt kalıyor (test edildi). **Kalan:** kullanıcının kendi hesabını silebileceği bir özellik hâlâ yok.
 - **Sorun:** Kullanım Şartları ve KVKK metni hesabın talep üzerine silineceğini söylüyor ama uygulamada bu işlem yok. Daha ciddisi: veritabanında `User → Invitation → Rsvp` ilişkisi **Cascade** olarak tanımlı. Kullanıcı elle silinirse davetiyeyle birlikte `DistanceSalesAcceptedAtUtc / Version` (sözleşme onay kaydı) da siliniyor. Oysa metin bu kaydı "en az 3 yıl" saklayacağını söylüyor.
 - **Dosya:** `Data/ZarifyDbContext.cs:933-936`, `components/legal/docs/TermsOfUse.tsx:106`, `components/legal/docs/KvkkNotice.tsx:133,140-141`
@@ -187,7 +205,8 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Yapılacak:** Her sürüm PDF veya HTML olarak arşivlenmeli; en azından git etiketiyle eşlenmeli.
 - **İş:** Küçük–Orta
 
-#### 23. "Önemli değişiklikleri e-postayla bildiririz" vaadi
+#### ◐ 23. "Önemli değişiklikleri e-postayla bildiririz" vaadi
+- **◐ Kısmen çözüldü (9 Ekim 2026, e-posta turu):** Altyapı hazır. **Kalan:** şart değişikliğini tüm kullanıcılara duyuracak toplu gönderim yok.
 - **Dosya:** `components/legal/docs/TermsOfUse.tsx:115-117`
 - **Not:** #3'teki e-posta altyapısına bağlı.
 - **İş:** Küçük
@@ -264,6 +283,17 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 - **Sorun:** Dockerfile, nginx veya systemd yapılandırması ya da deploy README'si yok. MySQL yedekleme planı yok. `frontend/README.md` hâlâ create-next-app şablonu. `AllowedHosts: "*"` değeri üretimde alan adıyla sınırlandırılmalı.
 - **Dosya:** `frontend/README.md`, `backend/Zarify.Api/appsettings.json:12`
 - **İş:** Orta
+
+#### 43. E-posta kuyruğu bellekte tutuluyor
+- **Sorun:** Gönderilmeyi bekleyen bir e-posta, API yeniden başlarsa kaybolur. Bu durum loglanıyor ama tekrar gönderilmiyor. Hacim düşükken kabul edilebilir.
+- **Yapılacak:** Kuyruğu veritabanına taşımak (outbox tablosu) ya da sağlayıcının API'sini kullanmak.
+- **Dosya:** `backend/Zarify.Api/Services/Email/EmailQueue.cs`
+- **İş:** Orta
+
+#### 44. E-postalar yalnızca Türkçe
+- **Sorun:** Metin kataloğu TR/EN'e hazır ama İngilizce metinler yazılmadı. Kullanıcının dil tercihi de saklanmıyor.
+- **Dosya:** `backend/Zarify.Api/Services/Email/EmailTexts.cs`, `Services/Email/EmailComposer.cs`
+- **İş:** Küçük–Orta
 
 ---
 

@@ -10,7 +10,7 @@ import { FormError } from "@/components/auth/FormError";
 import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
 import { describeError } from "@/lib/apiErrors";
 
-export function LoginForm() {
+export function LoginForm({ passwordChanged = false }: { passwordChanged?: boolean }) {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -48,6 +48,11 @@ export function LoginForm() {
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {passwordChanged && (
+          <p role="status" className="bg-olive px-5 py-4 font-body text-lg text-paper">
+            Şifreniz değiştirildi. Yeni şifrenizle giriş yapabilirsiniz.
+          </p>
+        )}
         <FormField
           label="E-posta"
           type="email"
@@ -66,6 +71,11 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <p className="-mt-3 text-right">
+          <Link href="/sifremi-unuttum" className={`apparatus text-sm ${TEXT_LINK}`}>
+            Şifremi unuttum
+          </Link>
+        </p>
 
         {error && <FormError message={error} />}
 

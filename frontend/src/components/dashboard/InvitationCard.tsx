@@ -9,6 +9,7 @@ import { BUTTON_PRIMARY_SM, BUTTON_SECONDARY_SM, TEXT_LINK } from "@/lib/ui";
 import { paymentApprovalNote } from "@/lib/legal";
 import { describeError } from "@/lib/apiErrors";
 import { CancelOrderDialog } from "@/components/payment/CancelOrderDialog";
+import { RejectionNotice } from "@/components/payment/RejectionNotice";
 import {
   cancelInvitation,
   getInvitationRsvps,
@@ -177,7 +178,11 @@ export function InvitationCard({
         </div>
 
         <div className="mt-8">
-          {!isLive ? (
+          {!isLive && inv.paymentRejectionNote ? (
+            <div className="mx-auto max-w-2xl">
+              <RejectionNotice invitation={inv} />
+            </div>
+          ) : !isLive ? (
             <p className="mx-auto max-w-2xl bg-paper-deep px-5 py-4 font-body text-lg leading-relaxed text-soot">
               Davetiyeniz hazır. Ödemeniz onaylanınca yayına alınır ve linkiniz misafirlerinize
               açılır — IBAN ve referans kodu için <strong className="font-semibold">Ödeme Bilgileri</strong>&apos;ne tıklayın.

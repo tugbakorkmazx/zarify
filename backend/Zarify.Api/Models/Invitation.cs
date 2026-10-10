@@ -59,6 +59,12 @@ public class Invitation
     /// When an admin confirmed the bank transfer and the invitation went live.
     public DateTime? PublishedAtUtc { get; set; }
 
+    /// Set when an admin couldn't match the transfer (wrong amount, no
+    /// reference, nothing arrived…) and said why. The order stays
+    /// PendingPayment so the couple can fix it; approving clears both.
+    public DateTime? PaymentRejectedAtUtc { get; set; }
+    public string? PaymentRejectionNote { get; set; }
+
     /// When the owner ticked "I've read the Pre-Contract Information Form and
     /// the Distance Sales Contract" before publishing — the server's clock,
     /// not the browser's — and which version of those texts they saw. Null

@@ -13,6 +13,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<SalesAgreement> SalesAgreements => Set<SalesAgreement>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +24,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(u => u.FirstName).HasMaxLength(100);
             entity.Property(u => u.LastName).HasMaxLength(100);
             entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(u => u.SecurityStamp).HasMaxLength(32);
         });
 
         modelBuilder.Entity<Invitation>(entity =>
@@ -42,6 +44,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(i => i.DressCode).HasMaxLength(1000);
             entity.Property(i => i.GiftNote).HasMaxLength(1000);
             entity.Property(i => i.AccommodationNote).HasMaxLength(1000);
+            entity.Property(i => i.PaymentRejectionNote).HasMaxLength(500);
             entity.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
             // The admin payment queue filters on it.
             entity.HasIndex(i => i.Status);
@@ -83,6 +86,18 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.HasOne(r => r.Invitation)
                 .WithMany()
                 .HasForeignKey(r => r.InvitationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.Property(t => t.TokenHash).HasMaxLength(64);
+            entity.HasIndex(t => t.TokenHash).IsUnique();
+            entity.HasIndex(t => t.UserId);
+            // A reset link is worthless without its account.
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

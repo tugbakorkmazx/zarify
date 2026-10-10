@@ -17,6 +17,7 @@ export type BusinessField =
   | "kepAddress"
   | "courtCity"
   | "hostingProvider"
+  | "emailProvider"
   | "servicePeriod";
 
 export const business: Record<BusinessField, string | null> = {
@@ -37,6 +38,9 @@ export const business: Record<BusinessField, string | null> = {
    * decides whether the cross-border transfer paragraph (KVKK md. 9)
    * applies. */
   hostingProvider: null,
+  /** Who delivers the transactional emails (the SMTP service), and in
+   * which country — it receives addresses, names and email contents. */
+  emailProvider: null,
   /** How long a published invitation stays online, e.g. "düğün tarihinden
    * itibaren 12 ay". */
   servicePeriod: null,
@@ -54,6 +58,7 @@ export const placeholderLabel: Record<BusinessField, { tr: string; en: string }>
   kepAddress: { tr: "KEP ADRESİ (varsa)", en: "KEP ADDRESS (if any)" },
   courtCity: { tr: "YETKİLİ MAHKEME İLİ", en: "COURT CITY" },
   hostingProvider: { tr: "BARINDIRMA SAĞLAYICISI VE ÜLKESİ", en: "HOSTING PROVIDER AND COUNTRY" },
+  emailProvider: { tr: "E-POSTA GÖNDERİM SAĞLAYICISI VE ÜLKESİ", en: "EMAIL DELIVERY PROVIDER AND COUNTRY" },
   servicePeriod: { tr: "DAVETİYENİN YAYINDA KALACAĞI SÜRE", en: "HOW LONG THE INVITATION STAYS ONLINE" },
 };
 
@@ -64,8 +69,8 @@ export const legalSettings = {
   /** Bump whenever the substance of any legal text changes. Also stored
    * with each invitation when the owner accepts the distance-sales texts,
    * so we know which version they agreed to. */
-  version: "2026-10-08",
-  lastUpdated: { tr: "8 Ekim 2026", en: "8 October 2026" },
+  version: "2026-10-09",
+  lastUpdated: { tr: "9 Ekim 2026", en: "9 October 2026" },
 };
 
 /** How long payment approval takes — the one wording used everywhere it's

@@ -26,7 +26,7 @@ export function OwnerShell({
   section: string;
   title: string;
   lede?: ReactNode;
-  current: "invitations" | "admin";
+  current: "invitations" | "account" | "admin";
   children: ReactNode;
 }) {
   const { user, logout } = useAuth();
@@ -54,6 +54,13 @@ export function OwnerShell({
             className={`${NAV_LINK} ${tone("invitations")}`}
           >
             Davetiyelerim
+          </Link>
+          <Link
+            href="/hesabim"
+            aria-current={current === "account" ? "page" : undefined}
+            className={`${NAV_LINK} ${tone("account")}`}
+          >
+            Hesabım
           </Link>
           {user?.role === "admin" && (
             <Link

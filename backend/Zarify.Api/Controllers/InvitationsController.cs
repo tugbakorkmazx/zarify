@@ -9,12 +9,17 @@ using Zarify.Api.Dtos;
 using Zarify.Api.Models;
 using Zarify.Api.Options;
 using Zarify.Api.Services;
+using Zarify.Api.Services.Email;
 
 namespace Zarify.Api.Controllers;
 
 [ApiController]
 [Route("api/invitations")]
-public class InvitationsController(ZarifyDbContext db, ILogger<InvitationsController> logger) : ControllerBase
+public class InvitationsController(
+    ZarifyDbContext db,
+    IEmailQueue emails,
+    EmailComposer composer,
+    ILogger<InvitationsController> logger) : ControllerBase
 {
     private const int MaxCreateAttempts = 5;
     private const string SlugIndex = "IX_Invitations_Slug";
@@ -25,7 +30,9 @@ public class InvitationsController(ZarifyDbContext db, ILogger<InvitationsContro
     /// PendingPayment: the link goes live once an admin confirms the bank
     /// transfer (see AdminController). The current price is fixed onto the
     /// order here, and the accepted contract is recorded in its own
-    /// SalesAgreement row, which outlives the invitation.
+    /// SalesAgreement row, which outlives the invitation. The owner is
+    /// emailed the payment details, and the admin (Email:AdminAddress) a
+    /// new-order notice.
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<InvitationDto>> Create(
@@ -107,6 +114,11 @@ public class InvitationsController(ZarifyDbContext db, ILogger<InvitationsContro
             try
             {
                 await db.SaveChangesAsync(ct);
+                emails.Enqueue(composer.OrderPlaced(buyer, invitation));
+                if (composer.AdminNewOrder(buyer, invitation) is { } adminNotice)
+                {
+                    emails.Enqueue(adminNotice);
+                }
                 return CreatedAtAction(nameof(GetBySlug), new { slug = invitation.Slug }, InvitationDto.FromEntity(invitation));
             }
             catch (DbUpdateException ex) when (attempt < MaxCreateAttempts - 1

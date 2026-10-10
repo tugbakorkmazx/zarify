@@ -13,6 +13,15 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
     tr: "Oturumunuz artık geçerli değil. Lütfen tekrar giriş yapın.",
     en: "Your session has expired. Please sign in again.",
   },
+  RESET_TOKEN_INVALID: {
+    tr: "Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.",
+    en: "This password reset link is invalid or has expired. Please request a new one.",
+  },
+  PASSWORD_INCORRECT: { tr: "Şifre hatalı.", en: "Incorrect password." },
+  REJECTION_NOTE_INVALID: {
+    tr: "Lütfen reddetme sebebini yazın (en fazla 500 karakter).",
+    en: "Please write why the payment is rejected (up to 500 characters).",
+  },
   FORBIDDEN: { tr: "Bu işlem için yetkiniz yok.", en: "You don't have permission to do this." },
 
   // Invitations and payment

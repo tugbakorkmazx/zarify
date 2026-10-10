@@ -68,6 +68,13 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("varchar(16)");
 
+                    b.Property<DateTime?>("PaymentRejectedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PaymentRejectionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.Property<DateTime?>("PublishedAtUtc")
                         .HasColumnType("datetime(6)");
 
@@ -135,6 +142,39 @@ namespace Zarify.Api.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Invitations");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("Zarify.Api.Models.Rsvp", b =>
@@ -289,6 +329,11 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -298,6 +343,17 @@ namespace Zarify.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("Zarify.Api.Models.Invitation", b =>
+                {
+                    b.HasOne("Zarify.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.PasswordResetToken", b =>
                 {
                     b.HasOne("Zarify.Api.Models.User", "User")
                         .WithMany()

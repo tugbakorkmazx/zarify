@@ -19,5 +19,12 @@ public class User
     /// the API.
     public UserRole Role { get; set; } = UserRole.User;
 
+    /// Copied into every token this user is issued ("stamp" claim) and
+    /// checked on each authenticated request. Changing it — on a password
+    /// reset — signs the user out everywhere at once.
+    public string SecurityStamp { get; set; } = NewSecurityStamp();
+
+    public static string NewSecurityStamp() => Guid.NewGuid().ToString("N");
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

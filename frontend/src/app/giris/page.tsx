@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: "Giriş Yap — Zarify",
 };
 
-export default function LoginPage() {
-  return <LoginForm />;
+/** ?sifre=degisti — arriving from a completed password reset. */
+export default async function LoginPage({ searchParams }: PageProps<"/giris">) {
+  const { sifre } = await searchParams;
+  return <LoginForm passwordChanged={sifre === "degisti"} />;
 }

@@ -17,10 +17,16 @@ public sealed class AuthThrottle : IDisposable
         PartitionedRateLimiter.Create<string, string>(email =>
             RateLimitPartition.GetFixedWindowLimiter(email, _ => RateLimitPolicies.RegisterPerEmail));
 
+    private readonly PartitionedRateLimiter<string> _forgotPassword =
+        PartitionedRateLimiter.Create<string, string>(email =>
+            RateLimitPartition.GetFixedWindowLimiter(email, _ => RateLimitPolicies.ForgotPasswordPerEmail));
+
     /// Returns null when the attempt may go ahead, or how long to wait.
     public TimeSpan? TryLogin(string normalizedEmail) => Acquire(_login, normalizedEmail);
 
     public TimeSpan? TryRegister(string normalizedEmail) => Acquire(_register, normalizedEmail);
+
+    public TimeSpan? TryForgotPassword(string normalizedEmail) => Acquire(_forgotPassword, normalizedEmail);
 
     private static TimeSpan? Acquire(PartitionedRateLimiter<string> limiter, string key)
     {
@@ -38,5 +44,6 @@ public sealed class AuthThrottle : IDisposable
     {
         _login.Dispose();
         _register.Dispose();
+        _forgotPassword.Dispose();
     }
 }

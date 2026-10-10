@@ -16,6 +16,8 @@ public static class RateLimitPolicies
     public const string Rsvp = "rsvp";
     public const string Login = "login";
     public const string Register = "register";
+    public const string ForgotPassword = "forgot-password";
+    public const string ResetPassword = "reset-password";
 
     /// Guest RSVP: a household sharing one connection still fits.
     public static readonly FixedWindowRateLimiterOptions RsvpPerIp = Window(5, TimeSpan.FromMinutes(1));
@@ -27,6 +29,14 @@ public static class RateLimitPolicies
 
     public static readonly FixedWindowRateLimiterOptions RegisterPerIp = Window(5, TimeSpan.FromMinutes(10));
     public static readonly FixedWindowRateLimiterOptions RegisterPerEmail = Window(3, TimeSpan.FromMinutes(10));
+
+    /// "Forgot password" sends mail, so it's the tightest: per IP, and per
+    /// address so nobody can flood one inbox from many IPs.
+    public static readonly FixedWindowRateLimiterOptions ForgotPasswordPerIp = Window(5, TimeSpan.FromMinutes(15));
+    public static readonly FixedWindowRateLimiterOptions ForgotPasswordPerEmail = Window(3, TimeSpan.FromHours(1));
+
+    /// Submitting a new password with a link's token.
+    public static readonly FixedWindowRateLimiterOptions ResetPasswordPerIp = Window(10, TimeSpan.FromMinutes(15));
 
     private static FixedWindowRateLimiterOptions Window(int permits, TimeSpan window) => new()
     {
