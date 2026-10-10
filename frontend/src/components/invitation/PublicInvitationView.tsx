@@ -10,16 +10,16 @@ import { formatDateLine } from "@/lib/formatDateLine";
 import { contentFromInvitation } from "@/lib/invitationForm";
 import { venueMapUrl } from "@/lib/mapUrl";
 
-type Status = "loading" | "found" | "not-found" | "not-published" | "error";
+type Status = "loading" | "found" | "not-found" | "removed" | "error";
 
-const MESSAGES: Record<"not-found" | "not-published" | "error", { title: string; body: string }> = {
+const MESSAGES: Record<"not-found" | "removed" | "error", { title: string; body: string }> = {
   "not-found": {
     title: "Bu davetiyeyi bulamadık.",
     body: "Link yanlış yazılmış ya da davetiye kaldırılmış olabilir.",
   },
-  "not-published": {
-    title: "Bu davetiye henüz yayında değil.",
-    body: "Davetiye sahibi yayına aldığında bu link çalışmaya başlayacak. Lütfen daha sonra tekrar deneyin.",
+  removed: {
+    title: "Bu davetiye yayında değil.",
+    body: "Bu davetiye şu anda görüntülenemiyor. Davet eden kişiyle iletişime geçebilirsiniz.",
   },
   error: {
     title: "Davetiye şu anda yüklenemedi.",
@@ -34,10 +34,12 @@ const MESSAGES: Record<"not-found" | "not-published" | "error", { title: string;
  * adds the share-preview metadata on the server.
  *
  * Guests only ever see a Published invitation. If the owner opens their own
- * link while the payment is still pending, their session token lets them
- * see it as a preview (banner on top, RSVP form in preview mode). */
+ * link while the payment is still pending (or after an admin took it
+ * offline), their session token lets them see it as a preview (banner on
+ * top, RSVP form in preview mode). An admin gets the same preview with a
+ * banner of their own — the owner's payment page isn't theirs to open. */
 export function PublicInvitationView({ slug }: { slug: string }) {
-  const { ready, token } = useAuth();
+  const { ready, token, user } = useAuth();
   const [invitation, setInvitation] = useState<InvitationDto | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
@@ -92,6 +94,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
   const eventDate = new Date(`${inv.weddingDate}T${inv.weddingTime}+03:00`);
   const names = `${inv.brideName} & ${inv.groomName}`;
   const isLive = inv.status === "published";
+  const isAdmin = user?.role === "admin";
 
   const page = (
     <main>
@@ -101,13 +104,19 @@ export function PublicInvitationView({ slug }: { slug: string }) {
           className="bg-paper-deep border-b border-wine/40 px-6 py-3 flex flex-wrap items-center justify-center gap-3 text-center"
         >
           <p className="font-body text-base text-wine">
-            Önizleme — bu davetiye ödemeniz onaylandığında misafirlerinize açılacak.
+            {isAdmin
+              ? inv.status === "removed"
+                ? "Yönetici önizlemesi — bu davetiye yayından kaldırıldı, misafirler göremiyor."
+                : "Yönetici önizlemesi — bu davetiye henüz misafirlere açık değil."
+              : inv.status === "removed"
+                ? "Önizleme — bu davetiye yayından kaldırıldı; misafirleriniz şu anda göremiyor."
+                : "Önizleme — bu davetiye ödemeniz onaylandığında misafirlerinize açılacak."}
           </p>
           <Link
-            href={`/davetiyem/${inv.slug}`}
+            href={isAdmin ? `/yonetim?sekme=davetiyeler&id=${inv.id}` : `/davetiyem/${inv.slug}`}
             className="apparatus text-sm text-soot underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
           >
-            Ödeme bilgileri
+            {isAdmin ? "Yönetim paneli" : inv.status === "removed" ? "Ayrıntılar" : "Ödeme bilgileri"}
           </Link>
         </div>
       )}

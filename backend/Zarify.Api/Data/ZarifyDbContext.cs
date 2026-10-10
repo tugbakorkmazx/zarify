@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Zarify.Api.Models;
@@ -14,6 +14,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
     public DbSet<Rsvp> Rsvps => Set<Rsvp>();
     public DbSet<SalesAgreement> SalesAgreements => Set<SalesAgreement>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(u => u.LastName).HasMaxLength(100);
             entity.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
             entity.Property(u => u.SecurityStamp).HasMaxLength(32);
+            entity.Property(u => u.SuspensionNote).HasMaxLength(500);
         });
 
         modelBuilder.Entity<Invitation>(entity =>
@@ -45,6 +47,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(i => i.GiftNote).HasMaxLength(1000);
             entity.Property(i => i.AccommodationNote).HasMaxLength(1000);
             entity.Property(i => i.PaymentRejectionNote).HasMaxLength(500);
+            entity.Property(i => i.RemovalNote).HasMaxLength(500);
             entity.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
             // The admin payment queue filters on it.
             entity.HasIndex(i => i.Status);
@@ -101,6 +104,24 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<AdminAuditLog>(entity =>
+        {
+            entity.Property(l => l.AdminEmail).HasMaxLength(256);
+            entity.Property(l => l.Action).HasMaxLength(40);
+            entity.Property(l => l.TargetType).HasMaxLength(20);
+            entity.Property(l => l.TargetLabel).HasMaxLength(300);
+            entity.Property(l => l.Note).HasMaxLength(1000);
+            // The log tab reads newest first; an invitation's or a user's
+            // detail reads its own entries.
+            entity.HasIndex(l => l.CreatedAtUtc);
+            entity.HasIndex(l => new { l.TargetType, l.TargetId });
+            // The record of what an admin did outlives the admin's account.
+            entity.HasOne(l => l.AdminUser)
+                .WithMany()
+                .HasForeignKey(l => l.AdminUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
         modelBuilder.Entity<SalesAgreement>(entity =>
         {
             entity.Property(a => a.UserEmail).HasMaxLength(256);
@@ -111,8 +132,10 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(a => a.PaymentReference).HasMaxLength(16);
             entity.Property(a => a.AmountTry).HasPrecision(10, 2);
             entity.Property(a => a.Version).HasMaxLength(32);
-            // The admin's cancelled-orders list.
+            // The admin's cancelled-orders list, and the approved-orders
+            // export and monthly totals.
             entity.HasIndex(a => a.CancelledAtUtc);
+            entity.HasIndex(a => a.PaymentApprovedAtUtc);
 
             // Deleting the invitation or the account must never take the
             // agreement record with it — only the link is cleared.

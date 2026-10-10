@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -19,6 +20,7 @@ public class InvitationsController(
     ZarifyDbContext db,
     IEmailQueue emails,
     EmailComposer composer,
+    InvitationThrottle throttle,
     ILogger<InvitationsController> logger) : ControllerBase
 {
     private const int MaxCreateAttempts = 5;
@@ -32,7 +34,8 @@ public class InvitationsController(
     /// order here, and the accepted contract is recorded in its own
     /// SalesAgreement row, which outlives the invitation. The owner is
     /// emailed the payment details, and the admin (Email:AdminAddress) a
-    /// new-order notice.
+    /// new-order notice. Limited per account: RateLimitPolicies caps how
+    /// many orders an hour and how many may sit unpaid at once.
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<InvitationDto>> Create(
@@ -52,6 +55,18 @@ public class InvitationsController(
         if (buyer is null)
         {
             return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
+        }
+
+        if (throttle.TryCreate(userId) is { } wait)
+        {
+            await RateLimitPolicies.WriteTooManyRequests(HttpContext, wait, ct);
+            return new EmptyResult();
+        }
+        var pending = await db.Invitations
+            .CountAsync(i => i.UserId == userId && i.Status == InvitationStatus.PendingPayment, ct);
+        if (pending >= RateLimitPolicies.MaxPendingOrdersPerUser)
+        {
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.TooManyPendingOrders);
         }
 
         // No order without a price: the amount accepted in the contract is
@@ -145,8 +160,10 @@ public class InvitationsController(
 
     /// Updates one of the signed-in owner's invitations in place. The slug
     /// (and so every share link already sent) stays the same even if the
-    /// names change. Another user's invitation id gets the same 404 as a
-    /// nonexistent one.
+    /// names change. Once the invitation is paid for, the couple's names are
+    /// fixed — a request that changes them is refused (an admin corrects
+    /// typos), everything else stays editable. Another user's invitation id
+    /// gets the same 404 as a nonexistent one.
     [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<InvitationDto>> Update(Guid id, UpdateInvitationRequest request, CancellationToken ct)
@@ -155,11 +172,23 @@ public class InvitationsController(
         {
             return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.SessionExpired);
         }
+        if (throttle.TryUpdate(userId) is { } wait)
+        {
+            await RateLimitPolicies.WriteTooManyRequests(HttpContext, wait, ct);
+            return new EmptyResult();
+        }
 
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Id == id && i.UserId == userId, ct);
         if (invitation is null)
         {
             return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
+        }
+
+        var namesChanged = request.BrideName.Trim() != invitation.BrideName
+            || request.GroomName.Trim() != invitation.GroomName;
+        if (invitation.IsPaid && namesChanged)
+        {
+            return this.Error(StatusCodes.Status409Conflict, ErrorCodes.NamesLocked);
         }
 
         ApplyFields(invitation, request);
@@ -228,7 +257,9 @@ public class InvitationsController(
     /// the invitation only once it's Published. The owner (if their token
     /// comes along) can see their own invitation in any status, e.g. to
     /// preview it while the payment is pending — and so can an admin.
+    /// Throttled per IP: slugs are guessable.
     [HttpGet("{slug:maxlength(160)}")]
+    [EnableRateLimiting(RateLimitPolicies.InvitationLookup)]
     public async Task<ActionResult<InvitationDto>> GetBySlug(string slug, CancellationToken ct)
     {
         var invitation = await db.Invitations.SingleOrDefaultAsync(i => i.Slug == slug, ct);
@@ -242,9 +273,13 @@ public class InvitationsController(
         var isAdmin = User.IsInRole(nameof(UserRole.Admin));
         if (invitation.Status != InvitationStatus.Published && !isOwner && !isAdmin)
         {
-            // Distinguishable from an unknown slug so the page can say
-            // "not published yet" rather than "this link is wrong".
-            return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotPublished);
+            // An unpaid invitation is indistinguishable from an unknown slug,
+            // so the endpoint doesn't confirm which names have orders. One an
+            // admin took offline was public until then — guests are told
+            // plainly that it isn't available.
+            return invitation.Status == InvitationStatus.Removed
+                ? this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationRemoved)
+                : this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
 
         return Ok(InvitationDto.FromEntity(invitation));
@@ -268,7 +303,7 @@ public class InvitationsController(
         {
             return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
-        if (invitation.Status == InvitationStatus.Published)
+        if (invitation.IsPaid)
         {
             return this.Error(StatusCodes.Status409Conflict, ErrorCodes.PaymentAlreadyApproved);
         }
@@ -331,7 +366,7 @@ public class InvitationsController(
         {
             return this.Error(StatusCodes.Status404NotFound, ErrorCodes.InvitationNotFound);
         }
-        if (invitation.Status == InvitationStatus.Published)
+        if (invitation.IsPaid)
         {
             return this.Error(StatusCodes.Status409Conflict, ErrorCodes.CannotCancelPublished);
         }

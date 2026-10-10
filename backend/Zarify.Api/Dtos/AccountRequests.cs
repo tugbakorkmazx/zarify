@@ -32,3 +32,20 @@ public class RejectPaymentRequest
     [Required, MaxLength(500)]
     public required string Note { get; set; }
 }
+
+/// Taking an invitation offline or suspending an account: the reason is
+/// required — it's emailed to the owner (removal) and kept in the log.
+public class AdminNoteRequest
+{
+    [Required, MaxLength(500)]
+    public required string Note { get; set; }
+}
+
+public class CorrectNamesRequest
+{
+    [Required, MaxLength(100)]
+    public required string BrideName { get; set; }
+
+    [Required, MaxLength(100)]
+    public required string GroomName { get; set; }
+}

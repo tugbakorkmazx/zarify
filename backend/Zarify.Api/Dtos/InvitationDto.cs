@@ -28,13 +28,27 @@ public record InvitationDto(
     /// Only on a PendingPayment invitation whose transfer an admin
     /// couldn't confirm; cleared on approval, so guests never see it.
     DateTime? PaymentRejectedAtUtc,
-    string? PaymentRejectionNote)
+    string? PaymentRejectionNote,
+    /// Only while an admin has taken the invitation offline — guests never
+    /// get a Removed invitation, only its owner and admins do.
+    DateTime? RemovedAtUtc,
+    string? RemovalNote)
 {
     public static string StatusToWire(InvitationStatus status) => status switch
     {
         InvitationStatus.Draft => "draft",
         InvitationStatus.PendingPayment => "pendingPayment",
+        InvitationStatus.Removed => "removed",
         _ => "published",
+    };
+
+    public static InvitationStatus? StatusFromWire(string? status) => status switch
+    {
+        "draft" => InvitationStatus.Draft,
+        "pendingPayment" => InvitationStatus.PendingPayment,
+        "published" => InvitationStatus.Published,
+        "removed" => InvitationStatus.Removed,
+        _ => null,
     };
 
     public static InvitationDto FromEntity(Invitation invitation) => new(
@@ -59,5 +73,7 @@ public record InvitationDto(
         invitation.CreatedAtUtc,
         invitation.UpdatedAtUtc,
         invitation.PaymentRejectedAtUtc,
-        invitation.PaymentRejectionNote);
+        invitation.PaymentRejectionNote,
+        invitation.RemovedAtUtc,
+        invitation.RemovalNote);
 }

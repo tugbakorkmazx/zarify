@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -76,6 +76,7 @@ if (Encoding.UTF8.GetByteCount(jwtOptions.Key) < 32)
 
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<AuthThrottle>();
+builder.Services.AddSingleton<InvitationThrottle>();
 builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
 
 // Links in emails point at the frontend. Development falls back to the
@@ -231,7 +232,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Public and auth endpoints are throttled per client IP (the real one, via
 // ForwardedHeaders above); login and register are additionally limited per
-// email inside AuthController. Numbers live in RateLimitPolicies.
+// email inside AuthController, invitation create/update per account inside
+// InvitationsController. Numbers live in RateLimitPolicies.
 static string ClientIp(HttpContext context) => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
 builder.Services.AddRateLimiter(options =>
@@ -247,6 +249,8 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ForgotPasswordPerIp));
     options.AddPolicy(RateLimitPolicies.ResetPassword, context =>
         RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.ResetPasswordPerIp));
+    options.AddPolicy(RateLimitPolicies.InvitationLookup, context =>
+        RateLimitPartition.GetFixedWindowLimiter(ClientIp(context), _ => RateLimitPolicies.InvitationLookupPerIp));
     options.OnRejected = (context, ct) =>
     {
         TimeSpan? retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait) ? wait : null;

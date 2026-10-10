@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -78,6 +78,12 @@ public class AuthController(
         {
             return this.Error(StatusCodes.Status401Unauthorized, ErrorCodes.InvalidCredentials);
         }
+        // Only after the password checks out, so this doesn't tell a
+        // stranger which addresses are suspended.
+        if (user.SuspendedAtUtc is not null)
+        {
+            return this.Error(StatusCodes.Status403Forbidden, ErrorCodes.AccountSuspended);
+        }
 
         var (token, expiresAtUtc) = tokenService.CreateToken(user);
         return Ok(new AuthResponse(token, expiresAtUtc, UserDto.FromEntity(user)));
@@ -115,7 +121,9 @@ public class AuthController(
         }
 
         var user = await db.Users.SingleOrDefaultAsync(u => u.Email == normalizedEmail, ct);
-        if (user is not null)
+        // A suspended account gets no link either (it couldn't sign in with
+        // the new password anyway) — and the same 202 as everyone else.
+        if (user is not null && user.SuspendedAtUtc is null)
         {
             await db.PasswordResetTokens.Where(t => t.UserId == user.Id).ExecuteDeleteAsync(ct);
 
@@ -201,7 +209,8 @@ public class AuthController(
 
         var now = DateTime.UtcNow;
         var unpublishedIds = await db.Invitations
-            .Where(i => i.UserId == userId && i.Status != InvitationStatus.Published)
+            .Where(i => i.UserId == userId
+                && i.Status != InvitationStatus.Published && i.Status != InvitationStatus.Removed)
             .Select(i => i.Id)
             .ToListAsync(ct);
         var openAgreements = await db.SalesAgreements

@@ -26,5 +26,10 @@ public class User
 
     public static string NewSecurityStamp() => Guid.NewGuid().ToString("N");
 
+    /// Set while an admin has suspended the account: it can't sign in, and
+    /// the SecurityStamp is rotated at suspension so open sessions end too.
+    public DateTime? SuspendedAtUtc { get; set; }
+    public string? SuspensionNote { get; set; }
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

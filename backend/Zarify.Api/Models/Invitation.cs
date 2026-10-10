@@ -1,15 +1,18 @@
-﻿namespace Zarify.Api.Models;
+namespace Zarify.Api.Models;
 
-/// Draft → PendingPayment → Published. Only Published invitations are
-/// visible to guests (and accept RSVPs); the owner can always see and edit
-/// their own. Draft is reserved for server-side drafts — today the create
-/// flow keeps drafts in the browser and publishing creates the invitation
-/// directly as PendingPayment.
+/// Draft → PendingPayment → Published (⇄ Removed). Only Published
+/// invitations are visible to guests (and accept RSVPs); the owner can
+/// always see and edit their own. Draft is reserved for server-side drafts —
+/// today the create flow keeps drafts in the browser and publishing creates
+/// the invitation directly as PendingPayment. Removed is a paid invitation
+/// an admin took offline (inappropriate content, Kullanım Şartları); nothing
+/// is deleted and an admin can put it back.
 public enum InvitationStatus
 {
     Draft,
     PendingPayment,
     Published,
+    Removed,
 }
 
 public class Invitation
@@ -64,6 +67,16 @@ public class Invitation
     /// PendingPayment so the couple can fix it; approving clears both.
     public DateTime? PaymentRejectedAtUtc { get; set; }
     public string? PaymentRejectionNote { get; set; }
+
+    /// Set while an admin has taken a published invitation offline, with
+    /// the reason the owner was emailed. Republishing clears both.
+    public DateTime? RemovedAtUtc { get; set; }
+    public string? RemovalNote { get; set; }
+
+    /// Paid for — Published, or Removed by an admin after it was. The
+    /// couple's names are fixed then (only an admin corrects them), and the
+    /// order can no longer be cancelled.
+    public bool IsPaid => Status is InvitationStatus.Published or InvitationStatus.Removed;
 
     /// When the owner ticked "I've read the Pre-Contract Information Form and
     /// the Distance Sales Contract" before publishing — the server's clock,

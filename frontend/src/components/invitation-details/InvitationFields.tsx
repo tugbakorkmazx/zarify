@@ -5,7 +5,8 @@ import { TextAreaField } from "@/components/forms/TextAreaField";
 import { ToggleField } from "@/components/forms/ToggleField";
 import { ScheduleEditor } from "./ScheduleEditor";
 import type { InvitationFormValues } from "@/lib/invitationForm";
-import { BUTTON_PRIMARY } from "@/lib/ui";
+import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
+import { business } from "@/lib/legal";
 
 function SectionHeading({ title, note }: { title: string; note?: string }) {
   return (
@@ -26,6 +27,7 @@ export function InvitationFields({
   submitLabel,
   submitting = false,
   error,
+  namesLocked = false,
 }: {
   values: InvitationFormValues;
   onChange: (values: InvitationFormValues) => void;
@@ -33,6 +35,9 @@ export function InvitationFields({
   submitLabel: string;
   submitting?: boolean;
   error?: string | null;
+  /** The invitation is paid for: the couple's names are fixed (only an
+   * admin corrects a typo), every other field stays editable. */
+  namesLocked?: boolean;
 }) {
   const set = <K extends keyof InvitationFormValues>(key: K, value: InvitationFormValues[K]) =>
     onChange({ ...values, [key]: value });
@@ -44,23 +49,42 @@ export function InvitationFields({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          label="Gelin Adı"
-          type="text"
-          required
-          maxLength={100}
-          value={values.brideName}
-          onChange={(e) => set("brideName", e.target.value)}
-        />
-        <FormField
-          label="Damat Adı"
-          type="text"
-          required
-          maxLength={100}
-          value={values.groomName}
-          onChange={(e) => set("groomName", e.target.value)}
-        />
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            label="Gelin Adı"
+            type="text"
+            required
+            maxLength={100}
+            readOnly={namesLocked}
+            aria-describedby={namesLocked ? "names-locked-note" : undefined}
+            value={values.brideName}
+            onChange={(e) => set("brideName", e.target.value)}
+          />
+          <FormField
+            label="Damat Adı"
+            type="text"
+            required
+            maxLength={100}
+            readOnly={namesLocked}
+            aria-describedby={namesLocked ? "names-locked-note" : undefined}
+            value={values.groomName}
+            onChange={(e) => set("groomName", e.target.value)}
+          />
+        </div>
+        {namesLocked && (
+          <p id="names-locked-note" className="font-body text-sm italic text-soot-soft">
+            Yayındaki davetiyede çift adları değiştirilemez. Yazım hatası mı?{" "}
+            {business.email ? (
+              <a href={`mailto:${business.email}`} className={`not-italic ${TEXT_LINK}`}>
+                Bize ulaşın
+              </a>
+            ) : (
+              "Bize ulaşın"
+            )}
+            , düzeltelim.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

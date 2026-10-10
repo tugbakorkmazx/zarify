@@ -13,15 +13,13 @@ public class EmailComposer(
     IOptions<PaymentOptions> payment)
 {
     private const string Lang = EmailTexts.DefaultLanguage;
-    private static readonly TimeZoneInfo Turkey = FindTurkey();
 
     private string T(string key, params object[] args) => EmailTexts.Get(Lang, key, args);
     private string Link(string path) => site.Value.Link(path);
     private string Money(decimal amount) => amount.ToString("C", EmailTexts.Culture(Lang));
     private string Date(DateOnly date) => date.ToString("d MMMM yyyy dddd", EmailTexts.Culture(Lang));
     private string Moment(DateTime utc) =>
-        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Turkey)
-            .ToString("d MMMM yyyy HH:mm", EmailTexts.Culture(Lang));
+        TurkeyTime.FromUtc(utc).ToString("d MMMM yyyy HH:mm", EmailTexts.Culture(Lang));
 
     private static string Couple(Invitation i) => $"{i.BrideName} & {i.GroomName}";
 
@@ -115,6 +113,32 @@ public class EmailComposer(
             [T("rejected.p2")]));
     }
 
+    /// An admin took the published invitation offline; the note says why.
+    public EmailMessage InvitationRemoved(User user, Invitation invitation, string note) =>
+        Build(user.Email, Name(user), "invitation-removed", new EmailContent(
+            T("removed.subject", Couple(invitation)),
+            T("removed.preheader"),
+            T("removed.eyebrow"),
+            Couple(invitation),
+            [T("removed.p1")],
+            [new EmailDetail(T("removed.note"), note)],
+            new EmailButton(T("removed.button"), Link($"/davetiyem/{invitation.Slug}")),
+            [T("removed.p2"), T("removed.p3")]));
+
+    public EmailMessage InvitationRepublished(User user, Invitation invitation)
+    {
+        var shareUrl = Link($"/davetiye/{invitation.Slug}");
+        return Build(user.Email, Name(user), "invitation-republished", new EmailContent(
+            T("republished.subject", Couple(invitation)),
+            T("republished.preheader"),
+            T("republished.eyebrow"),
+            Couple(invitation),
+            [T("republished.p1")],
+            [new EmailDetail(T("approved.link"), shareUrl, Mono: true)],
+            new EmailButton(T("approved.button"), shareUrl),
+            []));
+    }
+
     public EmailMessage PasswordReset(User user, string token) => Build(user.Email, Name(user), "password-reset", new EmailContent(
         T("reset.subject"),
         T("reset.preheader"),
@@ -155,15 +179,5 @@ public class EmailComposer(
         var (html, text) = EmailLayout.Render(content, Lang, siteUrl, T("footer"));
         var links = content.Button is { } b ? new[] { b.Url } : [];
         return new EmailMessage(to, toName, content.Subject, html, text, kind, links);
-    }
-
-    private static TimeZoneInfo FindTurkey()
-    {
-        foreach (var id in new[] { "Europe/Istanbul", "Turkey Standard Time" })
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
-            catch (TimeZoneNotFoundException) { }
-        }
-        return TimeZoneInfo.CreateCustomTimeZone("TRT", TimeSpan.FromHours(3), "Türkiye", "Türkiye");
     }
 }

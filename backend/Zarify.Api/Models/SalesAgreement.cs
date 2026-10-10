@@ -37,4 +37,9 @@ public class SalesAgreement
     /// Set when the owner cancelled the order before it was published. The
     /// invitation itself is deleted then; this row stays.
     public DateTime? CancelledAtUtc { get; set; }
+
+    /// When an admin confirmed the bank transfer for this order. Kept here,
+    /// on the row that outlives the invitation and the account, so the
+    /// accountant's export of approved orders stays complete.
+    public DateTime? PaymentApprovedAtUtc { get; set; }
 }

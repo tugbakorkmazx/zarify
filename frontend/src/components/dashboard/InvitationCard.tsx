@@ -83,6 +83,9 @@ export function InvitationCard({
 
   const totalResponses = rsvp.attendingResponses + rsvp.maybeResponses + rsvp.notAttendingResponses;
   const isLive = inv.status === "published";
+  const isRemoved = inv.status === "removed";
+  // Not paid yet — what the payment button and order cancellation are for.
+  const isPending = !isLive && !isRemoved;
 
   async function toggleReplies() {
     const next = !open;
@@ -126,10 +129,10 @@ export function InvitationCard({
             <p className="apparatus flex items-center justify-center gap-2 text-sm">
               <span
                 aria-hidden="true"
-                className={`inline-block h-2 w-2 ${isLive ? "bg-olive" : "bg-wine"}`}
+                className={`inline-block h-2 w-2 ${isLive ? "bg-olive" : isRemoved ? "bg-soot" : "bg-wine"}`}
               />
-              <span className={isLive ? "text-olive" : "text-wine"}>
-                {isLive ? "Yayında" : "Ödeme bekleniyor"}
+              <span className={isLive ? "text-olive" : isRemoved ? "text-soot" : "text-wine"}>
+                {isLive ? "Yayında" : isRemoved ? "Yayından kaldırıldı" : "Ödeme bekleniyor"}
               </span>
             </p>
             <h2 className="mt-2 font-display text-3xl leading-tight text-soot sm:text-4xl">
@@ -141,7 +144,7 @@ export function InvitationCard({
           <div className="flex flex-wrap justify-center gap-2">
             {/* While payment is pending, paying is the one thing to do next —
                 it gets the primary button; previewing drops to secondary. */}
-            {!isLive && (
+            {isPending && (
               <Link href={`/davetiyem/${inv.slug}`} className={BUTTON_PRIMARY_SM}>
                 Ödeme Bilgileri
               </Link>
@@ -156,7 +159,7 @@ export function InvitationCard({
               Düzenle
             </Link>
             {/* Only before publishing — a live invitation's link is already out. */}
-            {!isLive && (
+            {isPending && (
               <button
                 type="button"
                 onClick={() => {
@@ -178,7 +181,21 @@ export function InvitationCard({
         </div>
 
         <div className="mt-8">
-          {!isLive && inv.paymentRejectionNote ? (
+          {isRemoved ? (
+            <div className="mx-auto max-w-2xl border-l-2 border-wine/60 bg-paper-deep px-5 py-4 text-left">
+              <p className="font-body text-lg leading-relaxed text-soot">
+                Davetiyeniz Kullanım Şartları&apos;na uygun olmadığı değerlendirilen içerik nedeniyle yayından
+                kaldırıldı; misafirleriniz şu anda göremiyor. Yanıtlarınız silinmedi.
+              </p>
+              {inv.removalNote && (
+                <p className="mt-2 font-body text-base text-soot">
+                  <span className="apparatus text-xs text-soot-soft">Gerekçe</span>
+                  <br />
+                  {inv.removalNote}
+                </p>
+              )}
+            </div>
+          ) : !isLive && inv.paymentRejectionNote ? (
             <div className="mx-auto max-w-2xl">
               <RejectionNotice invitation={inv} />
             </div>
@@ -292,7 +309,7 @@ export function InvitationCard({
         </div>
       </div>
 
-      {!isLive && (
+      {isPending && (
         <CancelOrderDialog
           open={cancelOpen}
           busy={cancelling}

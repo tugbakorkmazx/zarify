@@ -14,7 +14,7 @@ export function FormField({
       </span>
       <input
         {...inputProps}
-        className={LINE_INPUT}
+        className={`${LINE_INPUT} read-only:cursor-not-allowed read-only:border-dotted read-only:text-soot-soft read-only:focus:border-soot-soft/60 read-only:focus:shadow-none`}
       />
       {hint && (
         <span className="font-body text-sm text-soot-soft">{hint}</span>

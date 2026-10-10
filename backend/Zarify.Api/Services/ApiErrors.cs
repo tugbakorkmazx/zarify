@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Zarify.Api.Services;
@@ -18,10 +18,10 @@ public static class ErrorCodes
     public const string SessionExpired = "SESSION_EXPIRED";
     public const string ResetTokenInvalid = "RESET_TOKEN_INVALID";
     public const string PasswordIncorrect = "PASSWORD_INCORRECT";
+    public const string AccountSuspended = "ACCOUNT_SUSPENDED";
 
     // Invitations and payment
     public const string InvitationNotFound = "INVITATION_NOT_FOUND";
-    public const string InvitationNotPublished = "INVITATION_NOT_PUBLISHED";
     public const string InvitationLinkFailed = "INVITATION_LINK_FAILED";
     public const string PaymentAlreadyApproved = "PAYMENT_ALREADY_APPROVED";
     public const string PaymentNotConfigured = "PAYMENT_NOT_CONFIGURED";
@@ -29,6 +29,19 @@ public static class ErrorCodes
     public const string DistanceSalesNotAccepted = "DISTANCE_SALES_NOT_ACCEPTED";
     public const string CannotCancelPublished = "CANNOT_CANCEL_PUBLISHED";
     public const string RejectionNoteInvalid = "REJECTION_NOTE_INVALID";
+    public const string InvitationRemoved = "INVITATION_REMOVED";
+    public const string NamesLocked = "NAMES_LOCKED";
+    public const string TooManyPendingOrders = "TOO_MANY_PENDING_ORDERS";
+
+    // Admin
+    public const string NoteInvalid = "NOTE_INVALID";
+    public const string NotPublished = "NOT_PUBLISHED";
+    public const string NotRemoved = "NOT_REMOVED";
+    public const string UserNotFound = "USER_NOT_FOUND";
+    public const string CannotSuspendAdmin = "CANNOT_SUSPEND_ADMIN";
+    public const string AlreadySuspended = "ALREADY_SUSPENDED";
+    public const string NotSuspended = "NOT_SUSPENDED";
+    public const string ExportRangeInvalid = "EXPORT_RANGE_INVALID";
 
     // RSVP
     public const string RsvpClosed = "RSVP_CLOSED";
@@ -59,10 +72,21 @@ public static class ApiErrors
         [ErrorCodes.ResetTokenInvalid] = ("Bu şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Lütfen yeni bir bağlantı isteyin.", "This password reset link is invalid or has expired. Please request a new one."),
         [ErrorCodes.PasswordIncorrect] = ("Şifre hatalı.", "Incorrect password."),
         [ErrorCodes.RejectionNoteInvalid] = ("Lütfen reddetme sebebini yazın (en fazla 500 karakter).", "Please write why the payment is rejected (up to 500 characters)."),
+        [ErrorCodes.AccountSuspended] = ("Hesabınız askıya alındı. Bilgi için lütfen bizimle iletişime geçin.", "Your account has been suspended. Please contact us for details."),
+        [ErrorCodes.InvitationRemoved] = ("Bu davetiye yayında değil.", "This invitation isn't available."),
+        [ErrorCodes.NamesLocked] = ("Yayındaki bir davetiyede çift adları değiştirilemez. Yazım hatası varsa lütfen bize ulaşın.", "The couple's names can't be changed on a published invitation. If there's a typo, please contact us."),
+        [ErrorCodes.TooManyPendingOrders] = ("Ödeme bekleyen en fazla 5 davetiyeniz olabilir. Yeni bir davetiye için önce bekleyenlerden birini ödeyin ya da iptal edin.", "You can have at most 5 invitations awaiting payment. Pay for or cancel one of them first."),
+        [ErrorCodes.NoteInvalid] = ("Lütfen bir gerekçe yazın (en fazla 500 karakter).", "Please write a reason (up to 500 characters)."),
+        [ErrorCodes.NotPublished] = ("Yalnızca yayındaki bir davetiye yayından kaldırılabilir.", "Only a published invitation can be taken offline."),
+        [ErrorCodes.NotRemoved] = ("Bu davetiye yayından kaldırılmış değil.", "This invitation hasn't been taken offline."),
+        [ErrorCodes.UserNotFound] = ("Kullanıcı bulunamadı.", "User not found."),
+        [ErrorCodes.CannotSuspendAdmin] = ("Yönetici hesapları askıya alınamaz.", "Admin accounts can't be suspended."),
+        [ErrorCodes.AlreadySuspended] = ("Bu hesap zaten askıda.", "This account is already suspended."),
+        [ErrorCodes.NotSuspended] = ("Bu hesap askıda değil.", "This account isn't suspended."),
+        [ErrorCodes.ExportRangeInvalid] = ("Geçerli bir tarih aralığı seçin (başlangıç bitişten sonra olamaz, en fazla 3 yıl).", "Choose a valid date range (start not after end, at most 3 years)."),
         [ErrorCodes.EmailTaken] = ("Bu e-posta adresi zaten kayıtlı.", "This email address is already registered."),
         [ErrorCodes.SessionExpired] = ("Oturumunuz artık geçerli değil. Lütfen tekrar giriş yapın.", "Your session has expired. Please sign in again."),
         [ErrorCodes.InvitationNotFound] = ("Davetiye bulunamadı.", "Invitation not found."),
-        [ErrorCodes.InvitationNotPublished] = ("Bu davetiye henüz yayında değil.", "This invitation isn't published yet."),
         [ErrorCodes.InvitationLinkFailed] = ("Davetiye linki oluşturulamadı. Lütfen tekrar deneyin.", "Couldn't create the invitation link. Please try again."),
         [ErrorCodes.PaymentAlreadyApproved] = ("Bu davetiyenin ödemesi zaten onaylandı.", "Payment for this invitation is already approved."),
         [ErrorCodes.PaymentNotConfigured] = ("Ödeme bilgileri henüz tanımlanmadı. Lütfen bizimle iletişime geçin.", "Payment details aren't set up yet. Please contact us."),
@@ -132,7 +156,7 @@ public static class ApiErrors
             "schedule" => ErrorCodes.ScheduleTooLong,
             "rsvpdeadline" => ErrorCodes.RsvpDeadlineAfterWedding,
             "token" => ErrorCodes.ResetTokenInvalid,
-            "note" => ErrorCodes.RejectionNoteInvalid,
+            "note" => ErrorCodes.NoteInvalid,
             _ => ErrorCodes.ValidationFailed,
         };
     }

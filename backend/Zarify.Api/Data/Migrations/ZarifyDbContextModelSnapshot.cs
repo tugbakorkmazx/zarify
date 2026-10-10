@@ -22,6 +22,56 @@ namespace Zarify.Api.Data.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Zarify.Api.Models.AdminAuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("AdminEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<Guid?>("AdminUserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("TargetLabel")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminUserId");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("TargetType", "TargetId");
+
+                    b.ToTable("AdminAuditLogs");
+                });
+
             modelBuilder.Entity("Zarify.Api.Models.Invitation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -76,6 +126,13 @@ namespace Zarify.Api.Data.Migrations
                         .HasColumnType("varchar(500)");
 
                     b.Property<DateTime?>("PublishedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("RemovalNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime?>("RemovedAtUtc")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateOnly?>("RsvpDeadline")
@@ -259,6 +316,9 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(160)
                         .HasColumnType("varchar(160)");
 
+                    b.Property<DateTime?>("PaymentApprovedAtUtc")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("PaymentReference")
                         .HasMaxLength(16)
                         .HasColumnType("varchar(16)");
@@ -290,6 +350,8 @@ namespace Zarify.Api.Data.Migrations
                     b.HasIndex("CancelledAtUtc");
 
                     b.HasIndex("InvitationId");
+
+                    b.HasIndex("PaymentApprovedAtUtc");
 
                     b.HasIndex("UserId");
 
@@ -334,12 +396,29 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<DateTime?>("SuspendedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("SuspensionNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Zarify.Api.Models.AdminAuditLog", b =>
+                {
+                    b.HasOne("Zarify.Api.Models.User", "AdminUser")
+                        .WithMany()
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AdminUser");
                 });
 
             modelBuilder.Entity("Zarify.Api.Models.Invitation", b =>

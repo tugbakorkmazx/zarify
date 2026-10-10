@@ -1,4 +1,4 @@
-﻿using System.Threading.RateLimiting;
+using System.Threading.RateLimiting;
 
 namespace Zarify.Api.Services;
 
@@ -18,6 +18,7 @@ public static class RateLimitPolicies
     public const string Register = "register";
     public const string ForgotPassword = "forgot-password";
     public const string ResetPassword = "reset-password";
+    public const string InvitationLookup = "invitation-lookup";
 
     /// Guest RSVP: a household sharing one connection still fits.
     public static readonly FixedWindowRateLimiterOptions RsvpPerIp = Window(5, TimeSpan.FromMinutes(1));
@@ -37,6 +38,21 @@ public static class RateLimitPolicies
 
     /// Submitting a new password with a link's token.
     public static readonly FixedWindowRateLimiterOptions ResetPasswordPerIp = Window(10, TimeSpan.FromMinutes(15));
+
+    /// The public slug lookup behind every guest page. Slugs are guessable
+    /// ("gelin-damat"), so this caps scanning; a guest opening the page a
+    /// few times, or a family on one connection, stays far below it.
+    public static readonly FixedWindowRateLimiterOptions InvitationLookupPerIp = Window(60, TimeSpan.FromMinutes(1));
+
+    /// Creating an invitation places an order and draws a payment reference
+    /// from a finite pool, so it's limited per account (InvitationThrottle)…
+    public static readonly FixedWindowRateLimiterOptions InvitationCreatePerUser = Window(10, TimeSpan.FromHours(1));
+
+    /// …and an account may hold only this many unpaid orders at once.
+    public const int MaxPendingOrdersPerUser = 5;
+
+    /// Saving edits: generous for someone fixing details, a wall for a script.
+    public static readonly FixedWindowRateLimiterOptions InvitationUpdatePerUser = Window(30, TimeSpan.FromMinutes(10));
 
     private static FixedWindowRateLimiterOptions Window(int permits, TimeSpan window) => new()
     {

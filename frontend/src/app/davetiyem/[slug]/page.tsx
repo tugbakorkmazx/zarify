@@ -34,6 +34,10 @@ export default function InvitationReadyPage() {
   const router = useRouter();
   const [invitation, setInvitation] = useState<InvitationDto | null>(null);
   const [notFound, setNotFound] = useState(false);
+  // A failed request (offline, server down) — not the same as "no such
+  // invitation", and worth a retry.
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState(false);
   const origin = useSyncExternalStore(subscribeNever, getOrigin, getServerOrigin);
   const shareUrl = origin ? `${origin}/davetiye/${slug}` : "";
@@ -49,16 +53,17 @@ export default function InvitationReadyPage() {
     getInvitationBySlug(slug, token)
       .then((result) => {
         if (cancelled) return;
+        setLoadError(false);
         if (result.kind === "found") setInvitation(result.invitation);
         else setNotFound(true);
       })
       .catch(() => {
-        if (!cancelled) setNotFound(true);
+        if (!cancelled) setLoadError(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [slug, ready, token, router]);
+  }, [slug, ready, token, router, attempt]);
 
   async function handleCopy() {
     try {
@@ -81,11 +86,38 @@ export default function InvitationReadyPage() {
     );
   }
 
+  if (loadError && !invitation) {
+    return (
+      <AuthLayout eyebrow="Davetiyelerim" title="Davetiyeniz şu anda yüklenemedi.">
+        <p className="mb-8 font-body text-lg leading-relaxed text-soot-soft">
+          Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.
+        </p>
+        <div className="flex flex-wrap items-center gap-6">
+          <button type="button" onClick={() => setAttempt((n) => n + 1)} className={BUTTON_PRIMARY}>
+            Tekrar Dene
+          </button>
+          <Link href="/davetiyelerim" className={`apparatus text-sm ${TEXT_LINK}`}>
+            ← Davetiyelerim
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
   const isLive = invitation?.status === "published";
+  const isRemoved = invitation?.status === "removed";
 
   return (
     <AuthLayout
-      eyebrow={!invitation ? "Davetiyeniz" : isLive ? "Davetiyeniz yayında" : "Ödeme bekleniyor"}
+      eyebrow={
+        !invitation
+          ? "Davetiyeniz"
+          : isLive
+            ? "Davetiyeniz yayında"
+            : isRemoved
+              ? "Yayından kaldırıldı"
+              : "Ödeme bekleniyor"
+      }
       title={invitation ? `${invitation.brideName} & ${invitation.groomName}` : "Davetiyeniz yükleniyor…"}
       wide
       footer={
@@ -96,13 +128,31 @@ export default function InvitationReadyPage() {
         </p>
       }
     >
-      {invitation && invitation.paymentRejectionNote && !isLive && (
+      {invitation && isRemoved && (
+        <div role="status" className="mb-10 border-l-2 border-wine/60 bg-paper-deep px-5 py-4">
+          <p className="apparatus text-sm text-wine">Davetiyeniz şu anda misafirlerinize kapalı</p>
+          <p className="mt-2 font-body text-lg leading-relaxed text-soot">
+            Davetiyeniz, Kullanım Şartları&apos;na uygun olmadığı değerlendirilen içerik nedeniyle yayından kaldırıldı.
+            Linkiniz misafirlerinize “Bu davetiye yayında değil” gösteriyor. Davetiyeniz ve katılım yanıtları
+            silinmedi; içeriği düzenleyip bize ulaştığınızda yeniden inceleyebiliriz.
+          </p>
+          {invitation.removalNote && (
+            <p className="mt-3 font-body text-base text-soot">
+              <span className="apparatus text-xs text-soot-soft">Gerekçe</span>
+              <br />
+              {invitation.removalNote}
+            </p>
+          )}
+        </div>
+      )}
+
+      {invitation && invitation.paymentRejectionNote && !isLive && !isRemoved && (
         <div className="mb-8">
           <RejectionNotice invitation={invitation} />
         </div>
       )}
 
-      {invitation && token && !isLive && (
+      {invitation && token && !isLive && !isRemoved && (
         <div className="mb-10">
           <PaymentInstructionsPanel token={token} invitationId={invitation.id} />
         </div>

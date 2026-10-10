@@ -8,6 +8,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { InvitationFields } from "@/components/invitation-details/InvitationFields";
 import {
   getMyInvitations,
+  isPaid,
   updateInvitation,
   type InvitationDto,
 } from "@/lib/invitations";
@@ -19,7 +20,8 @@ type Status = "loading" | "ready" | "not-found" | "error";
 
 /** Editing a published invitation: loads it from the owner's own list (so
  * someone else's id simply isn't found), saves with PUT, and keeps the same
- * slug — every link already shared with guests keeps working. */
+ * slug — every link already shared with guests keeps working. Once it's
+ * paid for, the couple's names are locked (the API refuses a change too). */
 export default function EditInvitationPage() {
   const { id } = useParams<{ id: string }>();
   const { ready, token, logout } = useAuth();
@@ -166,6 +168,7 @@ function EditForm({
         submitLabel={saving ? "Kaydediliyor…" : "Değişiklikleri Kaydet"}
         submitting={saving}
         error={error}
+        namesLocked={isPaid(invitation.status)}
       />
 
       <p className="mt-12 border-t border-soot/20 pt-6">

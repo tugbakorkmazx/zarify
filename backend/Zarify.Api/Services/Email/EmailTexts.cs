@@ -64,6 +64,20 @@ public static class EmailTexts
         ["rejected.p2"] = "Davetiyeniz silinmedi; ödeme bekliyor durumunda kalıyor. Nottaki konuyu düzelttiğinizde ödemenizi yeniden inceleyip onaylayacağız.",
         ["rejected.button"] = "Ödeme Bilgilerini Görüntüle",
 
+        ["removed.subject"] = "Davetiyeniz yayından kaldırıldı — {0}",
+        ["removed.preheader"] = "Davetiyeniz şu anda misafirlerinize kapalı.",
+        ["removed.eyebrow"] = "Davetiye yayında değil",
+        ["removed.p1"] = "Davetiyeniz, Kullanım Şartları'na uygun olmadığı değerlendirilen içerik nedeniyle yayından kaldırıldı. Davetiye linkiniz şu anda misafirlerinize \"Bu davetiye yayında değil\" mesajını gösteriyor.",
+        ["removed.note"] = "Gerekçe",
+        ["removed.p2"] = "Davetiyeniz ve misafirlerinizin katılım yanıtları silinmedi. İlgili içeriği düzenleyip bize yazdığınızda davetiyenizi yeniden inceleyip yayına alabiliriz.",
+        ["removed.p3"] = "Bir yanlışlık olduğunu düşünüyorsanız lütfen bizimle iletişime geçin.",
+        ["removed.button"] = "Davetiyemi Görüntüle",
+
+        ["republished.subject"] = "Davetiyeniz yeniden yayında — {0}",
+        ["republished.preheader"] = "Davetiye linkiniz misafirlerinize yeniden açıldı.",
+        ["republished.eyebrow"] = "Yeniden yayında",
+        ["republished.p1"] = "Davetiyeniz yeniden yayına alındı. Daha önce paylaştığınız link değişmedi ve misafirleriniz için yeniden çalışıyor.",
+
         ["reset.subject"] = "Şifre sıfırlama isteğiniz",
         ["reset.preheader"] = "Yeni şifrenizi belirlemek için bağlantı 1 saat geçerlidir.",
         ["reset.eyebrow"] = "Şifre sıfırlama",

@@ -41,9 +41,21 @@ export interface InvitationDto {
    * admin's note to the couple. Cleared when the payment is approved. */
   paymentRejectedAtUtc: string | null;
   paymentRejectionNote: string | null;
+  /** Set while an admin has taken the invitation offline, with the reason
+   * the owner was emailed. Only the owner and admins ever see these. */
+  removedAtUtc: string | null;
+  removalNote: string | null;
 }
 
-export type InvitationStatus = "draft" | "pendingPayment" | "published";
+/** "removed": paid for, then taken offline by an admin (inappropriate
+ * content); guests see "Bu davetiye yayında değil" until it's republished. */
+export type InvitationStatus = "draft" | "pendingPayment" | "published" | "removed";
+
+/** Paid for (live, or taken offline after) — the couple's names are fixed
+ * and the order can't be cancelled. */
+export function isPaid(status: InvitationStatus): boolean {
+  return status === "published" || status === "removed";
+}
 
 /** Everything an owner can set — the body of both create and update. */
 export interface InvitationFieldsInput {
@@ -116,13 +128,14 @@ export async function updateInvitation(
 export type InvitationLookup =
   | { kind: "found"; invitation: InvitationDto }
   | { kind: "not-found" }
-  | { kind: "not-published" };
+  | { kind: "removed" };
 
 /** Lookup by slug for the guest-facing /davetiye/[slug] page — no auth
  * needed. Guests only get Published invitations; pass the owner's token and
  * the owner also gets their own invitation in any status (preview while the
- * payment is pending). "Unknown slug" and "exists but not live yet" are
- * distinct, expected outcomes rather than errors. */
+ * payment is pending). An unpaid invitation looks exactly like an unknown
+ * slug; one an admin took offline answers "removed". Both are expected
+ * outcomes, not errors. */
 export async function getInvitationBySlug(slug: string, token?: string | null): Promise<InvitationLookup> {
   const res = await fetch(`${API_URL}/api/invitations/${encodeURIComponent(slug)}`, {
     cache: "no-store",
@@ -130,7 +143,7 @@ export async function getInvitationBySlug(slug: string, token?: string | null): 
   });
   if (res.status === 404) {
     const body = await res.json().catch(() => null);
-    return body?.code === "INVITATION_NOT_PUBLISHED" ? { kind: "not-published" } : { kind: "not-found" };
+    return body?.code === "INVITATION_REMOVED" ? { kind: "removed" } : { kind: "not-found" };
   }
   if (!res.ok) {
     throw await apiErrorFrom(res);

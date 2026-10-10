@@ -25,6 +25,15 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 | `GET /api/pricing` (`lib/pricing.ts`) | `PricingController` | ✅ |
 | `GET /api/admin/invitations/pending-payment`, `POST …/approve-payment` (`lib/admin.ts`) | `AdminController` | ✅ |
 
+### ✅ Yönetim paneli turunda eklenenler (10 Ekim 2026)
+- **Yeni migration:** `20261010092523_AdminPanelAuditSuspension` (bu turun tek migration'ı). Değişiklikleri:
+  - `AdminAuditLogs` tablosu.
+  - `Invitations.RemovedAtUtc` ve `RemovalNote` kolonları. Yeni durum: `Removed`.
+  - `Users.SuspendedAtUtc` ve `SuspensionNote` kolonları.
+  - `SalesAgreements.PaymentApprovedAtUtc` kolonu ve index'i. Daha önce yayına alınmış siparişler için yayın zamanı onay zamanı olarak dolduruldu.
+- `/yonetim` artık sekmeli: Özet, Ödemeler, Davetiyeler, Kullanıcılar, İptal Edilenler, İşlem Geçmişi. Sekme, açık kayıt, filtre ve sayfa URL'de tutuluyor (`?sekme=…&id=…`).
+- Kapanan maddeler: #16, #17, #25, #32 ve #39.
+
 ### ✅ E-posta turunda eklenenler (9 Ekim 2026)
 - **Yeni migration:** `20261009151109_EmailPasswordResetAccountDeletion`. Değişiklikleri:
   - `Users.SecurityStamp` kolonu (mevcut kullanıcılara rastgele değer dolduruldu; eski token'lar bir kez geçersiz kalır).
@@ -151,9 +160,17 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 
 ### Admin paneli (`/yonetim`)
 
+**Güncel durum (10 Ekim 2026):** Panel sekmeli. Özet, ödeme onay/ret, tüm davetiyeler (filtre, arama, sayfalama, detay), yayından kaldırma ve yeniden yayına alma, çift adı düzeltme, kullanıcı listesi ve askıya alma, iptal edilen siparişler, işlem geçmişi ve muhasebe CSV'si var. Aşağıdaki "Var olanlar" paragrafı raporun ilk halini anlatıyor.
+
 **Var olanlar:** ödeme bekleyen davetiyelerin listesi (referans kodu, çift, sahip, e-posta, oluşturulma zamanı), davetiyeye bakma bağlantısı ve iki adımlı "Ödemeyi Onayla" düğmesi. **Yetki kontrolü:** backend tarafı doğru; controller düzeyinde `[Authorize(Roles = "Admin")]` var (`AdminController.cs:16`) ve rol token'dan okunuyor. Frontend tarafında yalnızca oturum kontrolü yapılıyor; rol kontrolünü API'nin 403 cevabına bırakıyor ve 403 gelince "yetkiniz yok" mesajı gösteriyor. Menüdeki bağlantı yalnızca admin'e görünüyor (`OwnerShell.tsx:58`). Bu yapı yeterli.
 
-#### ◐ 16. Admin panelinde temel işlemler eksik
+#### ✅ 16. Admin panelinde temel işlemler eksik
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Davetiyeler sekmesi:** her durumdaki davetiyeler, durum filtresi, arama (ZRF kodu, link, çift adı, sahibin e-postası), 20'lik sayfalama. Detayda bilgiler, RSVP sayıları, sözleşme kaydı, işlem geçmişi ve "Davetiyeyi aç" linki var.
+  - **Yayından kaldırma** (`POST /api/admin/invitations/{id}/remove`, gerekçe zorunlu): davetiye silinmiyor, `Removed` durumuna geçiyor. Misafir "Bu davetiye yayında değil" görüyor, RSVP kapanıyor, sahibine gerekçeyle e-posta gidiyor.
+  - **Yeniden yayına alma** (`…/republish`): aynı link geri açılıyor, sahibine e-posta gidiyor.
+  - **Kullanıcılar sekmesi:** liste, arama, kullanıcının davetiyeleri, askıya alma ve geri açma. Askıdaki kullanıcı giriş yapamıyor (`ACCOUNT_SUSPENDED`, yalnızca şifre doğruysa söyleniyor). SecurityStamp değiştiği için açık oturumları hemen kapanıyor; şifre sıfırlama e-postası da gitmiyor. Yönetici hesapları askıya alınamıyor.
+  - Bilinçli olarak yapılmayanlar: askıya alınan kullanıcının yayındaki davetiyeleri otomatik kaldırılmıyor, bu ayrı bir karar. İade edildi olarak işaretleme de yok.
 - **◐ Kısmen çözüldü (9 Ekim 2026, e-posta turu):** Ödemeyi **not ile reddetme** eklendi (`POST /api/admin/invitations/{id}/reject-payment`). Sipariş silinmiyor, ödeme bekliyor olarak kalıyor; not sahibine e-postayla gidiyor ve ödeme sayfasında görünüyor, onaylanınca temizleniyor. **Kalan:** yayındaki davetiyelerin listesi, arama, kullanıcı listesi, yayından kaldırma.
 - **Eksik olanlar:**
   - Ödemeyi **reddetme**, iptal etme, iade edildi olarak işaretleme yok.
@@ -164,7 +181,12 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Dosya:** `Controllers/AdminController.cs`, `app/yonetim/page.tsx`, `lib/admin.ts`
 - **İş:** Büyük
 
-#### ◐ 17. Ödeme kaydı tutulmuyor
+#### ✅ 17. Ödeme kaydı tutulmuyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **`AdminAuditLogs` tablosu:** admin, işlem, hedef, not ve zaman. Onay, ret, yayından kaldırma, yeniden yayın, çift adı düzeltme, askıya alma ve geri açma kaydediliyor. Satırlar admin, davetiye ya da kullanıcı silinse de okunur kalıyor. Panelde "İşlem Geçmişi" sekmesi ve her kaydın detayında kendi geçmişi var.
+  - **Onay zamanı:** sözleşme kaydına (`SalesAgreements.PaymentApprovedAtUtc`) da yazılıyor.
+  - **Muhasebe CSV'si** (`GET /api/admin/orders/approved.csv?from=&to=`, Özet sekmesinde): tarih aralığındaki onaylı siparişler. Kolonlar: onay tarihi, referans, ad, soyad, e-posta, tutar, çift, sipariş tarihi. Excel'in Türkçe ayarına uygun (noktalı virgül, BOM, virgüllü ondalık). Formül enjeksiyonuna karşı korumalı. Davetiye ya da hesap sonradan silinse de satır kalıyor.
+  - **Fatura süreci:** şimdilik elle. Bu dosya müşavire veriliyor.
 - **◐ Kısmen çözüldü (9 Ekim 2026):** Sipariş tutarı ve sözleşme kaydı artık veritabanında (#15, #19). **Kalan:** admin onayının (kim, ne zaman) ayrıca kaydedilmesi ve fatura süreci.
 - **Sorun:** Onayı kimin, ne zaman, hangi tutarla verdiği yalnızca uygulama log'una yazılıyor (`AdminController.cs:55-57`). Veritabanında ödeme tablosu yok. KVKK metni "ödeme ve faturalandırma kayıtları 5–10 yıl" saklanacağını söylüyor. Fatura / e-Arşiv akışı da kodda yok; şimdilik elle yürütülecekse bu bir süreç olarak yazılmalı.
 - **Dosya:** `Controllers/AdminController.cs`, `components/legal/docs/KvkkNotice.tsx:143`
@@ -224,7 +246,13 @@ _Tarih: 8 Ekim 2026 · Kapsam: `frontend/`, `backend/Zarify.Api/`, migration'lar
 - **Yapılacak:** İlk yanıtta tarayıcıya bir düzenleme token'ı verilmesi veya değişiklik geçmişinin tutulması.
 - **İş:** Orta
 
-#### 25. Davetiye oluşturma, güncelleme ve slug sorgusunda rate limit yok
+#### ✅ 25. Davetiye oluşturma, güncelleme ve slug sorgusunda rate limit yok
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Oluşturma:** kullanıcı başına saatte 10. Aynı anda en fazla 5 `PendingPayment` olabiliyor (`TOO_MANY_PENDING_ORDERS`).
+  - **Güncelleme:** kullanıcı başına 10 dakikada 30.
+  - **Slug sorgusu:** IP başına dakikada 60. Rakamlar `RateLimitPolicies`'te, kullanıcı başına olanlar `InvitationThrottle`'da.
+  - **404 ayrımı:** yayınlanmamış davetiye sahibi ya da admin dışındakilere artık `INVITATION_NOT_FOUND` dönüyor; `INVITATION_NOT_PUBLISHED` kaldırıldı. Yalnızca admin'in kaldırdığı (önceden zaten yayında olan) davetiye `INVITATION_REMOVED` dönüyor.
+  - **Not:** Next sunucusunun paylaşım önizlemesi istekleri de aynı IP limitine giriyor. 5 dakika önbellekli olduğu için sorun beklenmiyor; trafik büyürse gözden geçirilmeli.
 - **Sorun:** Giriş yapmış bir kullanıcı sınırsız sayıda `PendingPayment` davetiye oluşturabiliyor; her biri yaklaşık 1 milyonluk referans kodu havuzundan bir kod tüketiyor ve admin kuyruğunu dolduruyor. `GET /api/invitations/{slug}` sınırsız çağrılabiliyor; slug'lar tahmin edilebilir (`gelin-damat`). Yayınlanmamış davetiyede API'nin `NOT_PUBLISHED` cevabı, davetiyenin var olduğunu da doğruluyor.
 - **Dosya:** `Controllers/InvitationsController.cs:27-29, 111, 191`, `Services/RateLimitPolicies.cs`
 - **İş:** Küçük
@@ -265,7 +293,12 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 - **Dosya:** `lib/formatDateLine.ts`, `app/davetiye/[slug]/page.tsx:117`
 - **İş:** Küçük
 
-#### 32. Yönetim ve davetiye sayfalarında küçük tutarsızlıklar
+#### ✅ 32. Yönetim ve davetiye sayfalarında küçük tutarsızlıklar
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Yönetim tasarımı:** ortalanmış tek eksenli düzen; geniş ekranda ortalanmış tablo, dar ekranda kart. 390 px'te yatay taşma yok.
+  - **Admin önizlemesi:** "Ödeme bilgileri" linki yerine "Yönetici önizlemesi" bandı ve davetiyenin yönetim detayına link çıkıyor.
+  - **Ağ hatası:** `/davetiyem/[slug]` ağ hatasında ayrı mesaj ve "Tekrar Dene" gösteriyor.
+  - **Kalan:** yönetim sayfası metinleri hâlâ yalnızca Türkçe; yalnızca operatör kullandığı için şimdilik kabul edildi.
 - **Sorunlar:**
   - Yönetim satırı geniş ekranda soldan hizalı 12 kolonluk tablo; DESIGN.md'deki "Centred Axis Rule"a aykırı (`app/yonetim/page.tsx:154`).
   - Yönetim sayfası metinleri sabit Türkçe.
@@ -317,7 +350,12 @@ Tüm sayfalar yeni temaya geçmiş durumda: landing, şablonlar, auth, panel, y�
 - **Dosya:** `app/davetiyelerim/[id]/duzenle/page.tsx`
 - **İş:** Orta
 
-#### 39. Yayındaki davetiyede çift adları sınırsız değiştirilebiliyor
+#### ✅ 39. Yayındaki davetiyede çift adları sınırsız değiştirilebiliyor
+- **✅ Çözüldü (10 Ekim 2026):**
+  - **Kilit:** ödenmiş (yayında ya da kaldırılmış) davetiyede gelin ve damat alanları düzenleme formunda kilitli, yanında "Yazım hatası mı? Bize ulaşın" notu var. API de değişikliği `NAMES_LOCKED` ile reddediyor.
+  - **Düzeltme:** admin panelinden yapılabiliyor (`PUT /api/admin/invitations/{id}/names`); eski → yeni ad işlem geçmişine yazılıyor.
+  - **Serbest kalan alanlar:** tarih, saat, mekân, program ve metinler.
+  - **Not:** "Bize ulaşın" `legal.ts`'teki `business.email` doldurulunca mailto linki oluyor; şimdilik düz metin.
 - Ödemesi yapılmış bir davetiye tamamen başka bir çift için yeniden kullanılabilir. İş modeli açısından bilinçli bir karar olarak kabul edilmeli ya da yayın sonrası değişiklikler sınırlanmalı.
 - **Dosya:** `Controllers/InvitationsController.cs:111-130`
 - **İş:** Küçük

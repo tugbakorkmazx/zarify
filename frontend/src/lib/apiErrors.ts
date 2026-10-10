@@ -18,6 +18,10 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
     en: "This password reset link is invalid or has expired. Please request a new one.",
   },
   PASSWORD_INCORRECT: { tr: "Şifre hatalı.", en: "Incorrect password." },
+  ACCOUNT_SUSPENDED: {
+    tr: "Hesabınız askıya alındı. Bilgi için lütfen bizimle iletişime geçin.",
+    en: "Your account has been suspended. Please contact us for details.",
+  },
   REJECTION_NOTE_INVALID: {
     tr: "Lütfen reddetme sebebini yazın (en fazla 500 karakter).",
     en: "Please write why the payment is rejected (up to 500 characters).",
@@ -26,7 +30,15 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
 
   // Invitations and payment
   INVITATION_NOT_FOUND: { tr: "Davetiye bulunamadı.", en: "Invitation not found." },
-  INVITATION_NOT_PUBLISHED: { tr: "Bu davetiye henüz yayında değil.", en: "This invitation isn't published yet." },
+  INVITATION_REMOVED: { tr: "Bu davetiye yayında değil.", en: "This invitation isn't available." },
+  NAMES_LOCKED: {
+    tr: "Yayındaki bir davetiyede çift adları değiştirilemez. Yazım hatası varsa lütfen bize ulaşın.",
+    en: "The couple's names can't be changed on a published invitation. If there's a typo, please contact us.",
+  },
+  TOO_MANY_PENDING_ORDERS: {
+    tr: "Ödeme bekleyen en fazla 5 davetiyeniz olabilir. Yeni bir davetiye için önce bekleyenlerden birini ödeyin ya da iptal edin.",
+    en: "You can have at most 5 invitations awaiting payment. Pay for or cancel one of them first.",
+  },
   INVITATION_LINK_FAILED: {
     tr: "Davetiye linki oluşturulamadı. Lütfen tekrar deneyin.",
     en: "Couldn't create the invitation link. Please try again.",
@@ -47,6 +59,22 @@ const MESSAGES: Record<string, Record<Lang, string>> = {
   DISTANCE_SALES_NOT_ACCEPTED: {
     tr: "Devam etmek için Ön Bilgilendirme Formu'nu ve Mesafeli Satış Sözleşmesi'ni onaylamanız gerekir.",
     en: "To continue, please confirm the Pre-Contract Information Form and the Distance Sales Contract.",
+  },
+
+  // Admin
+  NOTE_INVALID: { tr: "Lütfen bir gerekçe yazın (en fazla 500 karakter).", en: "Please write a reason (up to 500 characters)." },
+  NOT_PUBLISHED: {
+    tr: "Yalnızca yayındaki bir davetiye yayından kaldırılabilir.",
+    en: "Only a published invitation can be taken offline.",
+  },
+  NOT_REMOVED: { tr: "Bu davetiye yayından kaldırılmış değil.", en: "This invitation hasn't been taken offline." },
+  USER_NOT_FOUND: { tr: "Kullanıcı bulunamadı.", en: "User not found." },
+  CANNOT_SUSPEND_ADMIN: { tr: "Yönetici hesapları askıya alınamaz.", en: "Admin accounts can't be suspended." },
+  ALREADY_SUSPENDED: { tr: "Bu hesap zaten askıda.", en: "This account is already suspended." },
+  NOT_SUSPENDED: { tr: "Bu hesap askıda değil.", en: "This account isn't suspended." },
+  EXPORT_RANGE_INVALID: {
+    tr: "Geçerli bir tarih aralığı seçin (başlangıç bitişten sonra olamaz, en fazla 3 yıl).",
+    en: "Choose a valid date range (start not after end, at most 3 years).",
   },
 
   // RSVP
