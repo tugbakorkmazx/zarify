@@ -44,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           position: "relative",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- Satori renders plain <img> only */}
+        {/* Satori renders plain <img> only */}
         <img
           src={await background}
           alt=""
