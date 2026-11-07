@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/invitation/LanguageToggle";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
 import { SectionHeading } from "@/components/art/SectionHeading";
 import { useInvitationDraft } from "@/lib/invitationDraft";
-import { CategoryIllustration } from "@/components/templates/CategoryIllustration";
+import { BotanicalCategoryArt } from "@/components/templates/BotanicalCategoryArt";
 
 export function TemplateGalleryBody() {
   const { t } = useI18n();
@@ -42,30 +42,36 @@ export function TemplateGalleryBody() {
           <p className="mb-5 text-center font-body text-xs uppercase tracking-[0.2em] text-soot-soft">
             Davet türünüzü seçin
           </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            {eventCategories.map((category, index) => {
-              return (
-                <Link
-                  key={category.slug}
-                  href={`/sablonlar/kategori/${category.slug}`}
-                  onClick={() => {
-                    if (draft) saveDraft({ ...draft, eventType: category.slug });
-                  }}
-                  className="group relative flex min-h-28 flex-col items-start justify-between rounded-xl border border-soot/15 bg-white/50 px-4 py-4 text-left text-soot transition-all duration-200 hover:border-wine/70 hover:bg-white/80 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wine sm:min-h-32 sm:px-5 sm:py-5"                >
-                  <span className="font-body text-xs tracking-[0.16em] text-soot-soft/70">{String(index + 1).padStart(2, "0")}</span>
-                  <div className="mt-3 flex w-full items-end justify-between gap-2">
-                    <span className="font-display text-lg leading-snug sm:text-xl">
-                      {category.name}
-                    </span>
-                    <CategoryIllustration
-                      category={category.slug}
-                      className="h-12 w-12 shrink-0 text-wine/75 transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14"
-                    />
+          <div className="grid grid-cols-1 gap-x-7 gap-y-5 sm:grid-cols-2">
+            {eventCategories.map((category, index) => (
+              <Link
+                key={category.slug}
+                href={`/sablonlar/kategori/${category.slug}`}
+                onClick={() => {
+                  if (draft) saveDraft({ ...draft, eventType: category.slug });
+                }}
+                className="group relative flex min-h-44 items-center overflow-hidden border border-[#C9BEAB]/65 bg-[#F7F3EB]/65 text-soot transition-colors duration-300 hover:border-[#947B70] hover:bg-[#F8F4EE] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wine sm:min-h-48"
+              >
+                <div className="relative flex h-44 w-[42%] shrink-0 items-center justify-center overflow-hidden bg-[#EAE6DA]/45 px-4 sm:h-48">
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-3 border border-[#C5BBA9]/30" />
+                  <div className="h-36 w-36 max-w-full opacity-90 transition-transform duration-500 group-hover:scale-[1.04]">
+                    <BotanicalCategoryArt category={category.slug} />
                   </div>
-                  <span aria-hidden="true" className="absolute right-4 top-4 text-base text-wine/50 transition-transform group-hover:translate-x-0.5">↗</span>
-                </Link>
-              );
-            })}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col items-start px-4 py-5 sm:px-6">
+                  <span className="font-body text-[10px] tracking-[0.22em] text-[#9A8B7C]">
+                    ZARIFY · {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mt-4 font-display text-2xl leading-snug text-[#51313B] sm:text-[27px]">
+                    {category.name}
+                  </span>
+                  <span className="mt-4 h-px w-9 bg-[#B6A58E] transition-all duration-300 group-hover:w-14" />
+                  <span className="mt-3 font-body text-xs tracking-[0.06em] text-[#8E8175]">
+                    Şablonları keşfet <span aria-hidden="true">↗</span>
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </nav>
 
