@@ -18,7 +18,9 @@ export function CategoryIllustration({ category, ...props }: { category: string 
   };
 
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+      <circle cx="12" cy="12" r="10.5" fill="#D6B7AF" fillOpacity=".25" stroke="none" />
+      <circle cx="12" cy="12" r="8.6" fill="#F5EDE3" fillOpacity=".7" stroke="none" />
       {illustrations[category] ?? <circle cx="12" cy="12" r="8" />}
     </svg>
   );
