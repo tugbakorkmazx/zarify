@@ -27,6 +27,12 @@ export interface TemplateSummary {
 
 export const templates: TemplateSummary[] = [
   {
+    slug: "hikaye-kitabi",
+    name: "Hikâye Kitabı",
+    description: "Açılan kitap ve çevrilen sayfalarla anlatılan romantik bir davetiye. Etkileşimli tasarım prototipi.",
+    categorySlug: "dugun",
+  },
+  {
     slug: "nikah-tezhibi",
     name: "Herbaryum",
     description:
