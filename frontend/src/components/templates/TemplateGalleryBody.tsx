@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { eventCategories, templates } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
@@ -15,6 +15,7 @@ export function TemplateGalleryBody() {
   const l = t.landing.gallery;
   const { draft, saveDraft } = useInvitationDraft();
   const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const selectedCategory = categoryOverride ?? draft?.eventType ?? "dugun";
   const visibleTemplates = templates.filter(
     (template) => template.categorySlug === selectedCategory,
@@ -61,6 +62,12 @@ export function TemplateGalleryBody() {
                   onClick={() => {
                     setCategoryOverride(category.slug);
                     if (draft) saveDraft({ ...draft, eventType: category.slug });
+                    resultsRef.current?.scrollIntoView({
+                      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                        ? "instant"
+                        : "smooth",
+                      block: "start",
+                    });
                   }}
                   aria-pressed={isSelected}
                   className={`group relative flex min-h-28 flex-col items-start justify-between rounded-xl border px-4 py-4 text-left transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wine sm:min-h-32 sm:px-5 sm:py-5 ${
@@ -91,7 +98,7 @@ export function TemplateGalleryBody() {
           </div>
         </nav>
 
-        <div className="mx-auto mt-12 grid max-w-3xl gap-8">
+        <div ref={resultsRef} className="mx-auto mt-12 grid max-w-3xl scroll-mt-8 gap-8">
           {visibleTemplates.length > 0 ? (
             visibleTemplates.map((template) => (
               <TemplateCard key={template.slug} template={template} />
