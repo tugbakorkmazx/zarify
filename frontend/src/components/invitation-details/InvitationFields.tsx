@@ -28,6 +28,7 @@ export function InvitationFields({
   submitting = false,
   error,
   namesLocked = false,
+  allowEventTypeChange = false,
   savedWeddingDate,
 }: {
   values: InvitationFormValues;
@@ -39,6 +40,8 @@ export function InvitationFields({
   /** The invitation is paid for: the couple's names are fixed (only an
    * admin corrects a typo), every other field stays editable. */
   namesLocked?: boolean;
+  /** Only the initial draft flow may choose a category; an existing invitation keeps its template/category pairing. */
+  allowEventTypeChange?: boolean;
   /** Editing: the date already saved. A wedding can't be moved into the
    * past, but an invitation whose date has passed can still be edited. */
   savedWeddingDate?: string;
@@ -60,6 +63,7 @@ export function InvitationFields({
         <label htmlFor="eventType" className="font-body text-sm text-soot">Davet Kategorisi</label>
         <select
           id="eventType"
+          disabled={!allowEventTypeChange}
           value={values.eventType}
           onChange={(e) => set("eventType", e.target.value)}
           className="w-full rounded-md border border-soot/25 bg-white px-3 py-3 font-body text-base text-soot focus:border-wine focus:outline-none"
