@@ -71,6 +71,7 @@ function DraftForm({
       </p>
 
       <InvitationFields
+        allowEventTypeChange
         values={form}
         onChange={setForm}
         onSubmit={() => onSave(form)}
