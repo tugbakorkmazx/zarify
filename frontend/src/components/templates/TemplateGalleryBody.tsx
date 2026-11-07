@@ -1,10 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
 import Link from "next/link";
-import { eventCategories, templates } from "@/lib/templates";
+import { eventCategories } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
-import { TemplateCard } from "@/components/templates/TemplateCard";
 import { LanguageToggle } from "@/components/invitation/LanguageToggle";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
 import { SectionHeading } from "@/components/art/SectionHeading";
@@ -14,15 +12,6 @@ export function TemplateGalleryBody() {
   const { t } = useI18n();
   const l = t.landing.gallery;
   const { draft, saveDraft } = useInvitationDraft();
-  const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const selectedCategory = categoryOverride ?? draft?.eventType ?? "dugun";
-  const visibleTemplates = templates.filter(
-    (template) => template.categorySlug === selectedCategory,
-  );
-  const selectedCategoryName =
-    eventCategories.find((category) => category.slug === selectedCategory)?.name ??
-    "Davet";
 
   return (
     <main className="paper-ground min-h-svh px-5 pt-5 pb-24 sm:px-10 sm:pt-7">
@@ -54,67 +43,26 @@ export function TemplateGalleryBody() {
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             {eventCategories.map((category, index) => {
-              const isSelected = selectedCategory === category.slug;
               return (
-                <button
+                <Link
                   key={category.slug}
-                  type="button"
+                  href={`/sablonlar/kategori/${category.slug}`}
                   onClick={() => {
-                    setCategoryOverride(category.slug);
                     if (draft) saveDraft({ ...draft, eventType: category.slug });
-                    resultsRef.current?.scrollIntoView({
-                      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                        ? "instant"
-                        : "smooth",
-                      block: "start",
-                    });
                   }}
-                  aria-pressed={isSelected}
-                  className={`group relative flex min-h-28 flex-col items-start justify-between rounded-xl border px-4 py-4 text-left transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wine sm:min-h-32 sm:px-5 sm:py-5 ${
-                    isSelected
-                      ? "border-wine bg-wine text-white shadow-md"
-                      : "border-soot/15 bg-white/50 text-soot hover:border-wine/70 hover:bg-white/80 hover:shadow-sm"
-                  }`}
-                >
-                  <span className={`font-body text-xs tracking-[0.16em] ${
-                    isSelected ? "text-white/70" : "text-soot-soft/70"
-                  }`}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+                  className="group relative flex min-h-28 flex-col items-start justify-between rounded-xl border border-soot/15 bg-white/50 px-4 py-4 text-left text-soot transition-all duration-200 hover:border-wine/70 hover:bg-white/80 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wine sm:min-h-32 sm:px-5 sm:py-5"                >
+                  <span className="font-body text-xs tracking-[0.16em] text-soot-soft/70">{String(index + 1).padStart(2, "0")}</span>
                   <span className="mt-4 pr-4 font-display text-lg leading-snug sm:text-xl">
                     {category.name}
                   </span>
-                  <span
-                    aria-hidden="true"
-                    className={`absolute right-4 top-4 text-base transition-transform group-hover:translate-x-0.5 ${
-                      isSelected ? "text-white" : "text-wine/50"
-                    }`}
-                  >
-                    {isSelected ? "✓" : "↗"}
-                  </span>
-                </button>
+                  <span aria-hidden="true" className="absolute right-4 top-4 text-base text-wine/50 transition-transform group-hover:translate-x-0.5">↗</span>
+                </Link>
               );
             })}
           </div>
         </nav>
 
-        <div ref={resultsRef} className="mx-auto mt-12 grid max-w-3xl scroll-mt-8 gap-8">
-          {visibleTemplates.length > 0 ? (
-            visibleTemplates.map((template) => (
-              <TemplateCard key={template.slug} template={template} />
-            ))
-          ) : (
-            <div className="rounded-2xl border border-soot/15 bg-white/40 px-6 py-12 text-center">
-              <p className="font-display text-2xl text-soot">
-                {selectedCategoryName}
-              </p>
-              <p className="mx-auto mt-3 max-w-md font-body text-base leading-relaxed text-soot-soft">
-                Bu kategori için şablonlarımız hazırlanıyor. Yeni tasarımlar
-                eklendiğinde burada görünecek.
-              </p>
-            </div>
-          )}
-        </div>
+
       </div>
     </main>
   );
