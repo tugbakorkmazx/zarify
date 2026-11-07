@@ -14,6 +14,7 @@ export interface InvitationDto {
   id: string;
   slug: string;
   templateSlug: string;
+  eventType: string;
   brideName: string;
   groomName: string;
   /** "2027-10-10" */
@@ -63,6 +64,7 @@ export function isPaid(status: InvitationStatus): boolean {
 
 /** Everything an owner can set — the body of both create and update. */
 export interface InvitationFieldsInput {
+  eventType: string;
   brideName: string;
   groomName: string;
   weddingDate: string;
