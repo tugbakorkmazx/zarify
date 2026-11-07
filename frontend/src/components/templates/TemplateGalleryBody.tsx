@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { eventCategories, templates } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
@@ -8,11 +8,17 @@ import { TemplateCard } from "@/components/templates/TemplateCard";
 import { LanguageToggle } from "@/components/invitation/LanguageToggle";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
 import { SectionHeading } from "@/components/art/SectionHeading";
+import { useInvitationDraft } from "@/lib/invitationDraft";
 
 export function TemplateGalleryBody() {
   const { t } = useI18n();
   const l = t.landing.gallery;
+  const { draft, saveDraft } = useInvitationDraft();
   const [selectedCategory, setSelectedCategory] = useState("dugun");
+
+  useEffect(() => {
+    if (draft?.eventType) setSelectedCategory(draft.eventType);
+  }, [draft?.eventType]);
   const visibleTemplates = templates.filter(
     (template) => template.categorySlug === selectedCategory,
   );
@@ -51,7 +57,10 @@ export function TemplateGalleryBody() {
               <button
                 key={category.slug}
                 type="button"
-                onClick={() => setSelectedCategory(category.slug)}
+                onClick={() => {
+                  setSelectedCategory(category.slug);
+                  if (draft) saveDraft({ ...draft, eventType: category.slug });
+                }}
                 aria-pressed={isSelected}
                 className={`rounded-full border px-4 py-2 font-body text-sm transition-colors ${
                   isSelected
