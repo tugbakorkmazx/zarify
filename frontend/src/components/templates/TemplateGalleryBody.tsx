@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { eventCategories, templates } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
@@ -14,11 +14,8 @@ export function TemplateGalleryBody() {
   const { t } = useI18n();
   const l = t.landing.gallery;
   const { draft, saveDraft } = useInvitationDraft();
-  const [selectedCategory, setSelectedCategory] = useState("dugun");
-
-  useEffect(() => {
-    if (draft?.eventType) setSelectedCategory(draft.eventType);
-  }, [draft?.eventType]);
+  const [categoryOverride, setCategoryOverride] = useState<string | null>(null);
+  const selectedCategory = categoryOverride ?? draft?.eventType ?? "dugun";
   const visibleTemplates = templates.filter(
     (template) => template.categorySlug === selectedCategory,
   );
@@ -58,7 +55,7 @@ export function TemplateGalleryBody() {
                 key={category.slug}
                 type="button"
                 onClick={() => {
-                  setSelectedCategory(category.slug);
+                  setCategoryOverride(category.slug);
                   if (draft) saveDraft({ ...draft, eventType: category.slug });
                 }}
                 aria-pressed={isSelected}
