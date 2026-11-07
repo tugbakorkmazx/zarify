@@ -11,6 +11,7 @@ export interface ScheduleRow {
  * the locally saved draft) and the edit page. Optional fields are "" when
  * blank; they become null only at the API boundary. */
 export interface InvitationFormValues {
+  eventType: string;
   brideName: string;
   groomName: string;
   weddingDate: string;
@@ -27,6 +28,7 @@ export interface InvitationFormValues {
 }
 
 export const EMPTY_FORM: InvitationFormValues = {
+  eventType: "dugun",
   brideName: "",
   groomName: "",
   weddingDate: "",
@@ -57,6 +59,7 @@ function filledRows(rows: ScheduleRow[]) {
 
 export function toApiFields(values: InvitationFormValues): InvitationFieldsInput {
   return {
+    eventType: values.eventType,
     brideName: values.brideName.trim(),
     groomName: values.groomName.trim(),
     weddingDate: values.weddingDate,
@@ -79,6 +82,7 @@ export function toApiFields(values: InvitationFormValues): InvitationFieldsInput
 
 export function fromInvitation(inv: InvitationDto): InvitationFormValues {
   return {
+    eventType: inv.eventType || "dugun",
     brideName: inv.brideName,
     groomName: inv.groomName,
     weddingDate: inv.weddingDate,
