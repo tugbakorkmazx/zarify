@@ -46,29 +46,49 @@ export function TemplateGalleryBody() {
 
         <nav
           aria-label="Davet kategorileri"
-          className="mx-auto mt-12 flex max-w-5xl flex-wrap justify-center gap-2"
+          className="mx-auto mt-12 max-w-5xl"
         >
-          {eventCategories.map((category) => {
-            const isSelected = selectedCategory === category.slug;
-            return (
-              <button
-                key={category.slug}
-                type="button"
-                onClick={() => {
-                  setCategoryOverride(category.slug);
-                  if (draft) saveDraft({ ...draft, eventType: category.slug });
-                }}
-                aria-pressed={isSelected}
-                className={`rounded-full border px-4 py-2 font-body text-sm transition-colors ${
-                  isSelected
-                    ? "border-wine bg-wine text-white"
-                    : "border-soot/20 bg-white/50 text-soot-soft hover:border-wine hover:text-wine"
-                }`}
-              >
-                {category.name}
-              </button>
-            );
-          })}
+          <p className="mb-5 text-center font-body text-xs uppercase tracking-[0.2em] text-soot-soft">
+            Davet türünüzü seçin
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            {eventCategories.map((category, index) => {
+              const isSelected = selectedCategory === category.slug;
+              return (
+                <button
+                  key={category.slug}
+                  type="button"
+                  onClick={() => {
+                    setCategoryOverride(category.slug);
+                    if (draft) saveDraft({ ...draft, eventType: category.slug });
+                  }}
+                  aria-pressed={isSelected}
+                  className={`group relative flex min-h-28 flex-col items-start justify-between rounded-xl border px-4 py-4 text-left transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wine sm:min-h-32 sm:px-5 sm:py-5 ${
+                    isSelected
+                      ? "border-wine bg-wine text-white shadow-md"
+                      : "border-soot/15 bg-white/50 text-soot hover:border-wine/70 hover:bg-white/80 hover:shadow-sm"
+                  }`}
+                >
+                  <span className={`font-body text-xs tracking-[0.16em] ${
+                    isSelected ? "text-white/70" : "text-soot-soft/70"
+                  }`}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mt-4 pr-4 font-display text-lg leading-snug sm:text-xl">
+                    {category.name}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`absolute right-4 top-4 text-base transition-transform group-hover:translate-x-0.5 ${
+                      isSelected ? "text-white" : "text-wine/50"
+                    }`}
+                  >
+                    {isSelected ? "✓" : "↗"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="mx-auto mt-12 grid max-w-3xl gap-8">
