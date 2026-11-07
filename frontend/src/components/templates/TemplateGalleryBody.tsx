@@ -7,7 +7,7 @@ import { LanguageToggle } from "@/components/invitation/LanguageToggle";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
 import { SectionHeading } from "@/components/art/SectionHeading";
 import { useInvitationDraft } from "@/lib/invitationDraft";
-import { BotanicalCategoryArt } from "@/components/templates/BotanicalCategoryArt";
+import { CategoryIllustration } from "@/components/templates/CategoryIllustration";
 
 export function TemplateGalleryBody() {
   const { t } = useI18n();
@@ -52,10 +52,10 @@ export function TemplateGalleryBody() {
                 }}
                 className="group relative flex min-h-44 items-center overflow-hidden border border-[#C9BEAB]/65 bg-[#F7F3EB]/65 text-soot transition-colors duration-300 hover:border-[#947B70] hover:bg-[#F8F4EE] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wine sm:min-h-48"
               >
-                <div className="relative flex h-44 w-[42%] shrink-0 items-center justify-center overflow-hidden bg-[#EAE6DA]/45 px-4 sm:h-48">
+                <div className="relative flex h-44 w-[36%] shrink-0 items-center justify-center overflow-hidden bg-[#EAE6DA]/35 px-4 sm:h-48">
                   <span aria-hidden="true" className="pointer-events-none absolute inset-3 border border-[#C5BBA9]/30" />
-                  <div className="h-36 w-36 max-w-full opacity-90 transition-transform duration-500 group-hover:scale-[1.04]">
-                    <BotanicalCategoryArt category={category.slug} />
+                  <div className="flex h-24 w-24 max-w-full items-center justify-center rounded-full bg-[#E8DDD0]/50 transition-transform duration-500 group-hover:scale-[1.04] sm:h-28 sm:w-28">
+                    <CategoryIllustration category={category.slug} className="h-16 w-16 text-[#795B5F] sm:h-[72px] sm:w-[72px]" />
                   </div>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col items-start px-4 py-5 sm:px-6">
