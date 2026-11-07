@@ -7,6 +7,7 @@ import { ScheduleEditor } from "./ScheduleEditor";
 import type { InvitationFormValues } from "@/lib/invitationForm";
 import { BUTTON_PRIMARY, TEXT_LINK } from "@/lib/ui";
 import { business } from "@/lib/legal";
+import { eventCategories } from "@/lib/templates";
 
 function SectionHeading({ title, note }: { title: string; note?: string }) {
   return (
@@ -68,18 +69,11 @@ export function InvitationFields({
           onChange={(e) => set("eventType", e.target.value)}
           className="w-full rounded-md border border-soot/25 bg-white px-3 py-3 font-body text-base text-soot focus:border-wine focus:outline-none"
         >
-          <option value="dugun">Düğün</option>
-          <option value="nisan">Nişan</option>
-          <option value="soz">Söz</option>
-          <option value="isteme">İsteme</option>
-          <option value="kina-gecesi">Kına gecesi</option>
-          <option value="sunnet">Sünnet</option>
-          <option value="dogum-gunu">Doğum günü</option>
-          <option value="baby-shower">Baby shower</option>
-          <option value="cinsiyet-partisi">Cinsiyet partisi</option>
-          <option value="mevlit">Mevlit</option>
-          <option value="kurumsal">Açılış / kurumsal davet</option>
-          <option value="yildonumu">Yıldönümü</option>
+          {eventCategories.map((category) => (
+            <option key={category.slug} value={category.slug}>
+              {category.name}
+            </option>
+          ))}
         </select>
         <p className="font-body text-sm italic text-soot-soft">
           Kategori davetiyenize kaydedilir. Mevcut bilgi alanları şu anki şablonla uyumludur.
