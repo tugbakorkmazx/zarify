@@ -14,14 +14,23 @@ export function TemplateCard({ template }: { template: TemplateSummary }) {
 
   return (
     <Link
-      href={`/sablonlar/${template.slug}`}
+      href={template.slug === "hikaye-kitabi" ? "/sablonlar/hikaye-kitabi" : `/sablonlar/${template.slug}`}
       className="group paper-card block bg-paper transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-[0.99]"
     >
-      <CoverMiniature
-        names={t.landing.hero.mockupNames}
-        sizes="(min-width: 768px) 48rem, 100vw"
-        className="aspect-[16/10]"
-      />
+      {template.slug === "hikaye-kitabi" ? (
+        <div className="flex aspect-[16/10] items-center justify-center bg-[#c5c2a8]">
+          <div className="flex aspect-[3/4] h-[75%] flex-col items-center justify-center border-[5px] border-[#35442f] bg-[#526248] font-serif text-[#e3d1a9] shadow-xl">
+            <span className="text-3xl">❦</span>
+            <span className="mt-3 text-center text-xl">Hikâye<br />Kitabı</span>
+          </div>
+        </div>
+      ) : (
+        <CoverMiniature
+          names={t.landing.hero.mockupNames}
+          sizes="(min-width: 768px) 48rem, 100vw"
+          className="aspect-[16/10]"
+        />
+      )}
       <div className="flex flex-col items-center gap-3 px-6 py-8 text-center sm:px-10">
         <h3 className="font-display text-3xl leading-tight text-soot sm:text-4xl">{template.name}</h3>
         <p className="max-w-[46ch] font-body text-lg leading-relaxed text-soot-soft">{template.description}</p>
