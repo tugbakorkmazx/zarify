@@ -57,6 +57,32 @@ export function InvitationFields({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
+        <label htmlFor="eventType" className="font-body text-sm text-soot">Davet Kategorisi</label>
+        <select
+          id="eventType"
+          value={values.eventType}
+          onChange={(e) => set("eventType", e.target.value)}
+          className="w-full rounded-md border border-soot/25 bg-white px-3 py-3 font-body text-base text-soot focus:border-wine focus:outline-none"
+        >
+          <option value="dugun">Düğün</option>
+          <option value="nisan">Nişan</option>
+          <option value="soz">Söz</option>
+          <option value="isteme">İsteme</option>
+          <option value="kina-gecesi">Kına gecesi</option>
+          <option value="sunnet">Sünnet</option>
+          <option value="dogum-gunu">Doğum günü</option>
+          <option value="baby-shower">Baby shower</option>
+          <option value="cinsiyet-partisi">Cinsiyet partisi</option>
+          <option value="mevlit">Mevlit</option>
+          <option value="kurumsal">Açılış / kurumsal davet</option>
+          <option value="yildonumu">Yıldönümü</option>
+        </select>
+        <p className="font-body text-sm italic text-soot-soft">
+          Kategori davetiyenize kaydedilir. Mevcut bilgi alanları şu anki şablonla uyumludur.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             label="Gelin Adı"
