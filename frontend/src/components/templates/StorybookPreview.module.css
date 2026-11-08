@@ -5,21 +5,30 @@
   --paper-edge: 1.25%;
   --paper-start: 0.5%;
   --paper-radius: 16px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .pageContent {
-  position: relative;
-  aspect-ratio: 420 / 595;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.pageScroll {
-  position: absolute;
-  overflow-y: auto;
+.pageContent::before {
+  content: "";
+  grid-area: 1 / 1;
+  height: 0;
+  padding-top: 141.6667%;
+}
+
+.pageBody {
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  min-width: 0;
+  margin: 3.57% var(--paper-edge) 3.81% var(--paper-start);
 }
 
 .paperSpread,
-.pageScroll,
 .coverPaper,
 .coverArt,
 .leaf,
@@ -28,7 +37,6 @@
 }
 
 .paperSpread,
-.pageScroll,
 .leaf,
 .pageShadow {
   inset-inline: var(--paper-start) var(--paper-edge);

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
+import { useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
 import { RsvpSection } from "@/components/invitation/RsvpSection";
 import { coupleInitials } from "@/lib/coupleInitials";
 import { venueDirectionsUrl } from "@/lib/mapUrl";
@@ -12,13 +12,6 @@ import { StorybookCover, STORYBOOK_SAMPLE_NAMES } from "./StorybookCover";
 import styles from "./StorybookPreview.module.css";
 
 const PAGE_ACTION = "apparatus mt-5 inline-flex min-h-11 items-center rounded-sm bg-[#53402d] px-4 text-sm text-[#fff6e5] hover:bg-[#392615] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#53402d]";
-const RSVP_ID = "storybook-rsvp";
-const rsvpChapter: Chapter = {
-  eyebrow: "RSVP",
-  heading: "Katılım bildirimi",
-  text: "Bu özel günde aramızda olup olamayacağınızı bize bildirin.",
-  extra: <a href={`#${RSVP_ID}`} className={PAGE_ACTION}>Katılımımı bildir</a>,
-};
 const sampleSchedule: InvitationContent["schedule"] = [
   { time: "18:30", title: "Karşılama", description: null },
   { time: "19:00", title: "Nikâh töreni", description: null },
@@ -31,10 +24,9 @@ const sampleChapters: Chapter[] = [
   { eyebrow: "TARİH", heading: "En güzel günümüz", text: "12 Haziran 2027 · Cumartesi · 19.00", extra: <Countdown date={new Date("2027-06-12T19:00:00+03:00")} /> },
   { eyebrow: "MEKÂN", heading: "Buluşma yeri", text: "Örnek konum · Üsküdar, İstanbul", extra: <Directions href={venueDirectionsUrl(null, "Üsküdar, İstanbul")} /> },
   { eyebrow: "PROGRAM", heading: "Günün programı", text: "Örnek akış", extra: <DaySchedule items={sampleSchedule} /> },
-  { ...rsvpChapter, text: "Örnek katılım formunu deneyebilirsiniz." },
 ];
 
-type Chapter = { eyebrow: string; heading: string; text?: string | null; extra?: ReactNode; dedication?: boolean };
+type Chapter = { eyebrow: string; heading: string; text?: string | null; extra?: ReactNode; dedication?: boolean; form?: boolean };
 
 function LeftPageArt() {
   return (
@@ -89,8 +81,8 @@ function DaySchedule({ items }: { items: InvitationContent["schedule"] }) {
 
 function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
   return (
-    <div className="relative isolate flex min-h-full min-w-0 flex-col items-center justify-center wrap-anywhere px-7 py-10 text-center">
-      {chapter.dedication ? (
+    <div className={`relative isolate flex min-w-0 flex-1 flex-col items-center justify-center wrap-anywhere text-center ${chapter.form ? "px-5 py-5" : "px-7 py-10"}`}>
+      {chapter.form ? null : chapter.dedication ? (
         <>
           <Image src="/storybook/lily.png" alt="" width={112} height={112} loading="eager" className="pointer-events-none absolute right-2 bottom-2 -z-10 size-24 object-contain opacity-60 sm:size-28" />
           <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center whitespace-nowrap rounded-full border border-[#a28b6a]/70 font-body text-lg italic text-[#725632]">
@@ -100,12 +92,12 @@ function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
       ) : (
         <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 shrink-0 object-contain opacity-85" />
       )}
-      <span className="apparatus mt-4 text-xs tracking-[0.22em] text-[#725632]">{chapter.eyebrow}</span>
-      <h2 className={`mt-4 text-balance font-display leading-tight ${chapter.dedication ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
-      <div className="my-5 h-px w-16 shrink-0 bg-[#a28b6a]" />
+      <span className={`apparatus text-xs tracking-[0.22em] text-[#725632] ${chapter.form ? "" : "mt-4"}`}>{chapter.eyebrow}</span>
+      <h2 className={`text-balance font-display leading-tight ${chapter.form ? "mt-2 text-2xl" : chapter.dedication ? "mt-4 text-4xl sm:text-5xl" : "mt-4 text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
+      <div className={`h-px w-16 shrink-0 bg-[#a28b6a] ${chapter.form ? "my-3" : "my-5"}`} />
       {chapter.text && <p className={`max-w-[30ch] whitespace-pre-line font-body text-xl leading-snug ${chapter.dedication ? "italic" : ""}`}>{chapter.text}</p>}
       {chapter.extra}
-      <span className="mt-8 text-xs text-[#927a5c]">{index + 1}</span>
+      <span className={`text-xs text-[#927a5c] ${chapter.form ? "mt-3" : "mt-8"}`}>{index + 1}</span>
     </div>
   );
 }
@@ -135,13 +127,19 @@ export function StorybookPreview({
     ...(content.dressCode ? [{ eyebrow: "DAVET NOTU", heading: "Kıyafet", text: content.dressCode }] : []),
     ...(content.giftNote ? [{ eyebrow: "DAVET NOTU", heading: "Hediye", text: content.giftNote }] : []),
     ...(content.accommodationNote ? [{ eyebrow: "DAVET NOTU", heading: "Konaklama", text: content.accommodationNote }] : []),
-    ...(rsvpEnabled ? [rsvpChapter] : []),
-  ] : sampleChapters;
+  ] : [...sampleChapters];
+  if (rsvpEnabled) {
+    chapters.push({
+      eyebrow: "RSVP",
+      heading: "Katılım bildirimi",
+      form: true,
+      extra: <RsvpSection bookPage names={names} invitationSlug={invitationSlug}
+        deadline={content?.rsvpDeadline} closesAtUtc={rsvpClosesAtUtc} />,
+    });
+  }
   const [opened, setOpened] = useState(false);
   const [pageIndex, setPage] = useState(0);
   const [turnTarget, setTurnTarget] = useState<number | null>(null);
-  const pageScroll = useRef<HTMLDivElement>(null);
-  const leavingScrollTop = useRef(0);
   const page = Math.min(pageIndex, chapters.length - 1);
   const target = turnTarget === null ? null : Math.min(turnTarget, chapters.length - 1);
   const forward = target !== null && target > page;
@@ -160,12 +158,11 @@ export function StorybookPreview({
       setPage(next);
       return;
     }
-    leavingScrollTop.current = pageScroll.current?.scrollTop ?? 0;
     setTurnTarget(next);
   }
 
   function turnFromPage(event: MouseEvent<HTMLDivElement>) {
-    if (!opened || (event.target as Element).closest("a, button") || window.getSelection()?.isCollapsed === false) return;
+    if (!opened || (event.target as Element).closest("a, button, form") || window.getSelection()?.isCollapsed === false) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const mobileBack = !window.matchMedia("(min-width: 40rem)").matches &&
       event.clientX < bounds.left + bounds.width / 2;
@@ -185,7 +182,7 @@ export function StorybookPreview({
             <div data-open={opened} className={`${styles.book} relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
               <div aria-hidden="true" className={styles.paperSpread} />
               <div inert={!opened || target !== null} className={`${styles.pageContent} transition-opacity duration-150 motion-reduce:transition-none ${opened ? "opacity-100" : "opacity-0"}`}>
-                <div key={standingPage} ref={pageScroll} onClick={turnFromPage} className={`${styles.pageScroll} touch-manipulation ${opened ? "cursor-pointer" : ""}`}>
+                <div key={standingPage} onClick={turnFromPage} className={`${styles.pageBody} touch-manipulation ${opened && !chapters[standingPage].form ? "cursor-pointer" : ""}`}>
                   <ChapterPage chapter={chapters[standingPage]} index={standingPage} />
                 </div>
               </div>
@@ -213,12 +210,7 @@ export function StorybookPreview({
                   }}
                 >
                   <div className={`${styles.rightPaper} absolute inset-0 [backface-visibility:hidden]`}>
-                    <div
-                      ref={(element) => {
-                        if (element && forward) element.scrollTop = leavingScrollTop.current;
-                      }}
-                      className="h-full overflow-hidden"
-                    >
+                    <div className="flex h-full flex-col">
                       <ChapterPage chapter={chapters[leafPage]} index={leafPage} />
                     </div>
                   </div>
@@ -257,12 +249,6 @@ export function StorybookPreview({
           Tasarım önizlemesi · Örnek davetiye bilgileri kullanılmıştır.
         </p>}
       </section>
-      {opened && (content || rsvpEnabled) && (
-        <div id={RSVP_ID}>
-          <RsvpSection enabled={rsvpEnabled} names={names} invitationSlug={invitationSlug}
-            deadline={content?.rsvpDeadline} closesAtUtc={rsvpClosesAtUtc} />
-        </div>
-      )}
     </>
   );
 }
