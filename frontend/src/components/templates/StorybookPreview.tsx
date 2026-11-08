@@ -32,8 +32,7 @@ type Chapter = { eyebrow: string; heading: string; text?: string | null; extra?:
 function LeftPageArt() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-      <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="absolute top-[12%] left-1/2 size-[36%] -translate-x-1/2 object-contain opacity-80" />
-      <Image src="/storybook/rings.png" alt="" width={96} height={96} loading="eager" className="absolute top-1/2 left-1/2 size-[24%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-85" />
+      <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="absolute top-1/2 left-1/2 size-[36%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-80" />
     </div>
   );
 }
