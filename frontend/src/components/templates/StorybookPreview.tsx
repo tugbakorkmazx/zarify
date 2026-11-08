@@ -59,8 +59,7 @@ export function StorybookPreview() {
   }
 
   return (
-    <section className="relative flex min-h-[calc(100svh-5rem)] flex-col items-center justify-center overflow-hidden px-4 py-12 text-[#463D30]"
-      style={{ background: "linear-gradient(#4d4a3c3d,#4d4a3c3d), url(/storybook/background.png) center / cover, #a5a28b" }}>
+    <section className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-4 py-12 text-[#463D30]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25"
         style={{ backgroundImage: "linear-gradient(#5c4e3b12,#5c4e3b12)" }} />
       <div className="relative z-10 mb-5 flex w-full max-w-3xl items-center justify-between gap-3">
