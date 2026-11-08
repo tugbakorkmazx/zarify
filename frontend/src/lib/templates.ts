@@ -29,7 +29,7 @@ export const templates: TemplateSummary[] = [
   {
     slug: "hikaye-kitabi",
     name: "Hikâye Kitabı",
-    description: "Açılan kitap ve çevrilen sayfalarla anlatılan romantik bir davetiye. Etkileşimli tasarım prototipi.",
+    description: "Altın işlemeli bir kapağın ardında açılan, sayfa sayfa kişiselleştirebileceğiniz romantik bir düğün davetiyesi.",
     categorySlug: "dugun",
   },
   {

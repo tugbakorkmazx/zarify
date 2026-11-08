@@ -5,9 +5,9 @@ import type { InvitationFormValues } from "@/lib/invitationForm";
  * sessionStorage). Overwritten on every click. */
 const key = (invitationId: string) => `zarify.preview.${invitationId}`;
 
-export function writePreview(invitationId: string, values: InvitationFormValues) {
+export function writePreview(invitationId: string, values: InvitationFormValues, templateSlug: string) {
   try {
-    localStorage.setItem(key(invitationId), JSON.stringify(values));
+    localStorage.setItem(key(invitationId), JSON.stringify({ ...values, templateSlug }));
   } catch {
     // storage unavailable — the preview tab says so
   }

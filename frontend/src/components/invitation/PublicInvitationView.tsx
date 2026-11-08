@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
+import { InvitationTemplate, STORYBOOK_BACKGROUND } from "@/components/templates/InvitationTemplate";
 import { EnvelopeIntro } from "@/components/invitation/EnvelopeIntro";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -103,7 +103,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
   const isAdmin = user?.role === "admin";
 
   const page = (
-    <main>
+    <main className={inv.templateSlug === "hikaye-kitabi" ? STORYBOOK_BACKGROUND : undefined}>
       {!isLive && (
         <div
           role="status"
@@ -126,7 +126,10 @@ export function PublicInvitationView({ slug }: { slug: string }) {
           </Link>
         </div>
       )}
-      <HerbaryumTemplate
+      <InvitationTemplate
+        key={inv.slug}
+        templateSlug={inv.templateSlug}
+        timeLine={inv.weddingTime.slice(0, 5)}
         eventDate={eventDate}
         names={names}
         dateLine={formatDateLine(inv.weddingDate, lang)}
@@ -145,7 +148,7 @@ export function PublicInvitationView({ slug }: { slug: string }) {
 
   // The envelope ceremony is for guests; an owner previewing a pending
   // invitation goes straight to the page.
-  return isLive ? (
+  return isLive && inv.templateSlug !== "hikaye-kitabi" ? (
     <EnvelopeIntro invitationId={inv.slug} names={names}>
       {page}
     </EnvelopeIntro>
