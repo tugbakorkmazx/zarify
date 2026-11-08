@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { useRef, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
 import { RsvpSection } from "@/components/invitation/RsvpSection";
 import { coupleInitials } from "@/lib/coupleInitials";
 import { venueDirectionsUrl } from "@/lib/mapUrl";
@@ -19,6 +19,15 @@ const sampleChapters: Chapter[] = [
 ];
 
 type Chapter = { eyebrow: string; heading: string; text?: string | null; extra?: ReactNode; dedication?: boolean };
+
+function LeftPageArt() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="absolute top-[12%] left-1/2 size-[36%] -translate-x-1/2 object-contain opacity-80" />
+      <Image src="/storybook/rings.png" alt="" width={96} height={96} loading="eager" className="absolute top-1/2 left-1/2 size-[24%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-85" />
+    </div>
+  );
+}
 
 function Countdown({ date }: { date: Date }) {
   const { days, hours, minutes, seconds } = useCountdown(date);
@@ -120,6 +129,14 @@ export function StorybookPreview({
     setTurnTarget(next);
   }
 
+  function turnFromPage(event: MouseEvent<HTMLDivElement>) {
+    if (!opened || (event.target as Element).closest("a, button") || window.getSelection()?.isCollapsed === false) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const mobileBack = !window.matchMedia("(min-width: 40rem)").matches &&
+      event.clientX < bounds.left + bounds.width / 2;
+    nextPage(mobileBack ? -1 : 1);
+  }
+
   return (
     <>
       <section className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-4 py-12 text-[#463D30]">
@@ -133,10 +150,21 @@ export function StorybookPreview({
             <div data-open={opened} className={`${styles.book} relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
               <div aria-hidden="true" className={styles.paperSpread} />
               <div inert={!opened || target !== null} className={`${styles.pageContent} transition-opacity duration-150 motion-reduce:transition-none ${opened ? "opacity-100" : "opacity-0"}`}>
-                <div key={standingPage} ref={pageScroll} className={styles.pageScroll}>
+                <div key={standingPage} ref={pageScroll} onClick={turnFromPage} className={`${styles.pageScroll} touch-manipulation ${opened ? "cursor-pointer" : ""}`}>
                   <ChapterPage chapter={chapters[standingPage]} index={standingPage} />
                 </div>
               </div>
+
+              {opened && (
+                <>
+                  <button type="button" aria-label="Önceki sayfa" onClick={() => nextPage(-1)}
+                    disabled={page === 0} aria-disabled={target !== null || undefined}
+                    className="pointer-events-none absolute inset-y-4 left-2 z-10 w-[calc(50%-0.5rem)] focus-visible:outline-2 focus-visible:outline-[#725632] sm:left-auto sm:right-full sm:w-full" />
+                  <button type="button" aria-label="Sonraki sayfa" onClick={() => nextPage(1)}
+                    disabled={page === chapters.length - 1} aria-disabled={target !== null || undefined}
+                    className="pointer-events-none absolute inset-y-4 right-2 z-10 w-[calc(50%-0.5rem)] focus-visible:outline-2 focus-visible:outline-[#725632] sm:inset-x-2 sm:w-auto" />
+                </>
+              )}
 
               {target !== null && <div aria-hidden="true" className={styles.pageShadow} />}
               {target !== null && leafPage !== null && (
@@ -159,7 +187,9 @@ export function StorybookPreview({
                       <ChapterPage chapter={chapters[leafPage]} index={leafPage} />
                     </div>
                   </div>
-                  <div className={`${styles.leftPaper} absolute inset-0 hidden [backface-visibility:hidden] [transform:rotateY(180deg)] sm:block`} />
+                  <div className={`${styles.leftPaper} absolute inset-0 hidden [backface-visibility:hidden] [transform:rotateY(180deg)] sm:block`}>
+                    <LeftPageArt />
+                  </div>
                 </div>
               )}
 
@@ -169,26 +199,23 @@ export function StorybookPreview({
                   className="pointer-events-auto absolute inset-0 [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                   <StorybookCover names={coverNames} />
                 </button>
-                <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
+                <div inert={!opened} className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 sm:transition-none ${opened ? "opacity-0" : ""}`}>
                   <div aria-hidden="true" className={`${styles.leftPaper} ${styles.coverPaper} absolute`} />
-                  <div className="relative hidden flex-col items-center sm:flex">
-                    <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="h-40 w-40 object-contain opacity-80" />
-                    <span className="mt-6 font-script text-4xl leading-tight text-[#6b5d4a]">Hikâyemiz</span>
-                    <Image src="/storybook/rings.png" alt="" width={64} height={64} loading="eager" className="mt-4 h-16 w-16 object-contain opacity-80" />
-                    <span className="mt-4 text-xs tracking-[0.22em] text-[#8b795c]">ZARIFY</span>
+                  <div className={`${styles.coverArt} absolute hidden sm:block`}>
+                    <LeftPageArt />
                   </div>
+                  <div aria-hidden="true" onClick={() => nextPage(-1)} className={`absolute inset-0 hidden touch-manipulation sm:block ${opened ? "pointer-events-auto" : ""} ${page > 0 ? "cursor-pointer" : ""}`} />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-7 grid w-full max-w-[360px] place-items-center">
-            <button type="button" onClick={openBook} className={`col-start-1 row-start-1 border-b border-[#fff6e5] px-6 py-2 font-body text-2xl italic text-[#fff6e5] ${opened ? "invisible" : ""}`}>Aç</button>
-            <div className={`col-start-1 row-start-1 flex w-full items-center justify-between ${opened ? "visible" : "invisible"}`}>
-              <button type="button" onClick={() => nextPage(-1)} disabled={page === 0} aria-disabled={target !== null || undefined} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
+          <div className="mt-7 grid min-h-12 place-items-center">
+            {opened ? (
               <span aria-live="polite" className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
-              <button type="button" onClick={() => nextPage(1)} disabled={page === chapters.length - 1} aria-disabled={target !== null || undefined} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">Sonraki →</button>
-            </div>
+            ) : (
+              <button type="button" onClick={openBook} className="border-b border-[#fff6e5] px-6 py-2 font-body text-2xl italic text-[#fff6e5]">Aç</button>
+            )}
           </div>
         </div>
         {!content && <p className="relative z-10 mt-8 max-w-md text-center text-xs leading-relaxed text-[#f5efdf]">

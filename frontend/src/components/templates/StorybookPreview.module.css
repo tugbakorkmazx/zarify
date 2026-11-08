@@ -21,6 +21,7 @@
 .paperSpread,
 .pageScroll,
 .coverPaper,
+.coverArt,
 .leaf,
 .pageShadow {
   inset-block: var(--paper-top) var(--paper-bottom);
@@ -33,7 +34,8 @@
   inset-inline: var(--paper-start) var(--paper-edge);
 }
 
-.coverPaper {
+.coverPaper,
+.coverArt {
   inset-inline: var(--paper-edge) 0;
 }
 
