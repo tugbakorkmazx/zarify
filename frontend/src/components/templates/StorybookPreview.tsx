@@ -24,17 +24,17 @@ function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
       {chapter.dedication ? (
         <>
           <Image src="/storybook/lily.png" alt="" width={112} height={112} loading="eager" className="pointer-events-none absolute right-2 bottom-2 -z-10 size-24 object-contain opacity-60 sm:size-28" />
-          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-full border border-[#a28b6a]/70 font-serif text-lg text-[#725632]">
+          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center whitespace-nowrap rounded-full border border-[#a28b6a]/70 font-body text-lg italic text-[#725632]">
             {coupleInitials(chapter.heading)}
           </span>
         </>
       ) : (
         <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 shrink-0 object-contain opacity-85" />
       )}
-      <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapter.eyebrow}</span>
-      <h2 className={`mt-4 text-balance font-serif leading-tight ${chapter.dedication ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
+      <span className="apparatus mt-4 text-xs tracking-[0.22em] text-[#725632]">{chapter.eyebrow}</span>
+      <h2 className={`mt-4 text-balance font-display leading-tight ${chapter.dedication ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
       <div className="my-5 h-px w-16 shrink-0 bg-[#a28b6a]" />
-      <p className="max-w-[28ch] whitespace-pre-line font-serif text-lg leading-relaxed">{chapter.text}</p>
+      <p className={`max-w-[30ch] whitespace-pre-line font-body text-xl leading-snug ${chapter.dedication ? "italic" : ""}`}>{chapter.text}</p>
       <span className="mt-8 text-xs text-[#927a5c]">{index + 1}</span>
     </div>
   );
@@ -49,6 +49,7 @@ export function StorybookPreview({
   names, dateLine, timeLine, venueName, venueAddress, mapUrl, content,
   rsvpEnabled, invitationSlug, rsvpClosesAtUtc,
 }: StorybookProps) {
+  const coverNames = names?.trim() || sampleChapters[0].heading;
   const chapters: Chapter[] = content ? [
     { eyebrow: "İTHAF", heading: names ?? "", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız.", dedication: true },
     ...(content.storyText ? [{ eyebrow: "HİKÂYEMİZ", heading: "Birlikte bir ömre", text: content.storyText }] : []),
@@ -139,14 +140,24 @@ export function StorybookPreview({
 
               {/* The left page is the reverse of the cover and shares its hinge. */}
               <div className={`pointer-events-none absolute inset-0 origin-left [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none ${opened ? "[transform:translateZ(1px)_rotateY(-180deg)]" : "[transform:translateZ(1px)_rotateY(0deg)]"}`}>
-                <button type="button" onClick={openBook} inert={opened} aria-label="Kitabı aç"
+                <button type="button" onClick={openBook} inert={opened} aria-label={`${coverNames} — kitabı aç`}
                   className="pointer-events-auto absolute inset-0 [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                   <Image src={cover} alt="Yeşil, altın işlemeli kitap kapağı" fill sizes="(min-width: 640px) 380px, 100vw" loading="eager" unoptimized className="object-contain drop-shadow-[10px_15px_18px_#2d302880]" />
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-x-[20%] inset-y-[21%] flex flex-col items-center justify-center text-[#f4dfab] [text-shadow:0_2px_4px_#232914]">
+                    <span className="grid size-16 shrink-0 place-items-center whitespace-nowrap rounded-full border border-[#d7bd82]/75 font-body text-lg italic sm:size-[4.5rem] sm:text-xl">
+                      {coupleInitials(coverNames)}
+                    </span>
+                    <span className={`mt-5 text-balance wrap-anywhere font-display leading-tight ${coverNames.length > 42 ? "line-clamp-4 text-base sm:text-lg" : "text-2xl sm:text-3xl"}`}>
+                      {coverNames}
+                    </span>
+                    <span className="mt-4 h-px w-12 shrink-0 bg-[#d7bd82]/75" />
+                    <span className="apparatus mt-3 text-[10px] tracking-[0.2em] sm:text-xs">Hikâye Kitabı</span>
+                  </span>
                 </button>
                 <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center border-8 border-r-0 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
                   <div className="hidden flex-col items-center sm:flex">
                     <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="h-40 w-40 object-contain opacity-80" />
-                    <span className="mt-6 font-serif text-2xl italic text-[#6b5d4a]">Hikâyemiz</span>
+                    <span className="mt-6 font-script text-4xl leading-tight text-[#6b5d4a]">Hikâyemiz</span>
                     <Image src="/storybook/rings.png" alt="" width={64} height={64} loading="eager" className="mt-4 h-16 w-16 object-contain opacity-80" />
                     <span className="mt-4 text-xs tracking-[0.22em] text-[#8b795c]">ZARIFY</span>
                   </div>
@@ -156,7 +167,7 @@ export function StorybookPreview({
           </div>
 
           <div className="mt-7 grid w-full max-w-[360px] place-items-center">
-            <button type="button" onClick={openBook} className={`col-start-1 row-start-1 border-b border-[#fff6e5] px-6 py-2 font-serif text-2xl text-[#fff6e5] ${opened ? "invisible" : ""}`}>Aç</button>
+            <button type="button" onClick={openBook} className={`col-start-1 row-start-1 border-b border-[#fff6e5] px-6 py-2 font-body text-2xl italic text-[#fff6e5] ${opened ? "invisible" : ""}`}>Aç</button>
             <div className={`col-start-1 row-start-1 flex w-full items-center justify-between ${opened ? "visible" : "invisible"}`}>
               <button type="button" onClick={() => nextPage(-1)} disabled={page === 0} aria-disabled={target !== null || undefined} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
               <span aria-live="polite" className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
