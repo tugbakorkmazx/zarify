@@ -4,6 +4,7 @@
   --paper-bottom: 2.69%;
   --paper-edge: 1.25%;
   --paper-start: 0.5%;
+  --paper-radius: 16px;
 }
 
 .pageContent {
@@ -52,13 +53,19 @@
 
 .leftPaper {
   background-position: 3.7% center;
+  border-radius: var(--paper-radius) 0 0 var(--paper-radius);
+}
+
+.rightPaper,
+.pageShadow {
+  border-radius: var(--paper-radius);
 }
 
 .paperSpread {
   position: absolute;
   pointer-events: none;
   opacity: 0;
-  border-radius: 3px;
+  border-radius: var(--paper-radius);
   box-shadow: 0 2px 2px #31231745, 4px 8px 15px #31231740;
   transition: opacity 150ms ease;
 }
@@ -70,6 +77,11 @@
 @media (width >= 40rem) {
   .book {
     --paper-start: 0%;
+  }
+
+  .rightPaper,
+  .pageShadow {
+    border-radius: 0 var(--paper-radius) var(--paper-radius) 0;
   }
 
   /* The turning cover carries a matching crop until it settles onto the spread. */
