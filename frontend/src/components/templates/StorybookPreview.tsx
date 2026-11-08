@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const chapters = [
@@ -12,17 +13,11 @@ const chapters = [
 
 export function StorybookPreview() {
   const [opened, setOpened] = useState(false);
-  const [opening, setOpening] = useState(false);
-  const [motionReduced, setMotionReduced] = useState(false);
   const [page, setPage] = useState(0);
   const [turning, setTurning] = useState(false);
   const [sound, setSound] = useState(false);
   const audio = useRef<HTMLAudioElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setMotionReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
@@ -44,18 +39,18 @@ export function StorybookPreview() {
   }
 
   function openBook() {
-    if (opening || opened) return;
-    setOpening(true);
+    if (opened) return;
+    setOpened(true);
     void audio.current?.play().then(() => setSound(true)).catch(() => setSound(false));
-    timer.current = setTimeout(() => {
-      setOpened(true);
-      setOpening(false);
-    }, motionReduced ? 0 : 1600);
   }
 
   function nextPage(direction: number) {
     const next = Math.max(0, Math.min(chapters.length - 1, page + direction));
     if (next === page || turning) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setPage(next);
+      return;
+    }
     setTurning(true);
     timer.current = setTimeout(() => {
       setPage(next);
@@ -78,55 +73,46 @@ export function StorybookPreview() {
       {/* Audio asset will be added after a commercially licensed recording is selected. */}
       <audio ref={audio} loop preload="none" src="/audio/storybook-theme.mp3" />
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
-        {!opened ? (
-          <div className="flex w-full flex-col items-center">
-            <div className="relative flex w-full max-w-[760px] items-center justify-center" style={{ perspective: "1500px" }}>
-              <div className="relative aspect-[3/4] w-[min(70vw,330px)]"
-                style={{ transformStyle: "preserve-3d", transform: opening ? "translateX(22%) scale(.92)" : "translateX(0) scale(1)", transition: motionReduced ? "none" : "transform 1400ms cubic-bezier(.22,.8,.25,1)" }}>
-                <div aria-hidden="true" className="absolute inset-0 border-[10px] border-[#4a593f] bg-[#eee1c5] shadow-[12px_20px_45px_#242b2599]">
-                  <div className="absolute inset-0 bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left opacity-75" />
-                  <div className="absolute inset-3 border border-[#b59b73]/60" />
-                  <span className="absolute inset-0 flex items-center justify-center font-serif text-3xl text-[#8a7558]">❦</span>
-                </div>
-                <button type="button" onClick={openBook} disabled={opening} aria-label="Kitabı aç"
-                  className="absolute inset-0 flex flex-col items-center justify-center border-[12px] border-[#394630] bg-[#536348] px-7 text-center shadow-[10px_15px_25px_#2d302880,inset_0_0_0_2px_#b7a881,inset_0_0_0_15px_#536348,inset_0_0_0_16px_#b7a881] focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-white"
-                  style={{ transformOrigin: "left center", backfaceVisibility: "hidden", transform: opening ? "rotateY(-155deg)" : "rotateY(0deg)", transition: motionReduced ? "none" : "transform 1500ms cubic-bezier(.28,.62,.18,1)", transformStyle: "preserve-3d" }}>
-                  <span className="absolute inset-y-0 left-1 w-2 border-r border-[#b7a881]/50 bg-[#36452f]/30" />
-                  <span className="text-4xl text-[#d7c69e] drop-shadow-md">❦</span>
-                  <span className="mt-7 font-serif text-3xl leading-tight text-[#efe3c6] sm:text-4xl">Birlikte<br />Bir Ömür</span>
-                  <span className="mt-7 text-sm tracking-[0.25em] text-[#d7c69e]">✦ ✦ ✦</span>
-                </button>
-              </div>
-            </div>
-            <button type="button" onClick={openBook} disabled={opening} className="mt-8 border-b border-[#fff6e5] px-6 py-2 font-serif text-2xl text-[#fff6e5] disabled:opacity-50">{opening ? "Açılıyor…" : "Aç"}</button>
-          </div>
-        ) : (
-          <div className="w-full">
-            <div className="relative mx-auto flex aspect-[4/5] w-full max-w-[420px] overflow-hidden border-[8px] border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-cover bg-center shadow-[12px_20px_45px_#242b2599] sm:aspect-[1.55/1] sm:max-w-[760px]">
-              <div className="absolute inset-0 bg-[#f8eed5]/25" />
-              <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-5 -translate-x-1/2 bg-gradient-to-r from-[#aa967a]/10 via-[#8b745d]/35 to-[#fff6dc]/10 sm:block" />
-              <div className={`relative flex w-full flex-col items-center justify-center px-7 py-10 text-center transition duration-[440ms] sm:w-1/2 ${turning ? "opacity-20 [transform:rotateY(-14deg)]" : "opacity-100"}`}>
-                <img src="/storybook/lily.png" alt="" className="h-20 w-20 object-contain opacity-85" />
+        <div className="flex w-full max-w-[760px] justify-center [perspective:1500px]">
+          <div className={`relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
+            <div inert={!opened} className="grid aspect-[12/17] min-h-[440px] border-8 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right shadow-[12px_20px_45px_#242b2599]">
+              <div className="pointer-events-none absolute inset-2 bg-[#f8eed5]/25" />
+              <div className={`relative flex flex-col items-center justify-center overflow-hidden px-7 py-10 text-center transition duration-[440ms] ${turning ? "opacity-20 [transform:rotateY(-14deg)]" : "opacity-100"}`}>
+                <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 object-contain opacity-85" />
                 <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapters[page].eyebrow}</span>
                 <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{chapters[page].heading}</h2>
                 <div className="my-5 h-px w-16 bg-[#a28b6a]" />
                 <p className="max-w-[28ch] font-serif text-lg leading-relaxed">{chapters[page].text}</p>
                 <span className="mt-8 text-xs text-[#927a5c]">{page + 1}</span>
               </div>
-              <div className="relative hidden w-1/2 flex-col items-center justify-center border-l border-[#ad9a7b]/40 px-8 text-center sm:flex">
-                <img src="/storybook/flower.png" alt="" className="h-40 w-40 object-contain opacity-80" />
-                <span className="mt-6 font-serif text-2xl italic text-[#6b5d4a]">Hikâyemiz</span>
-                <img src="/storybook/rings.png" alt="" className="mt-4 h-16 w-16 object-contain opacity-80" />
-                <span className="mt-4 text-xs tracking-[0.22em] text-[#8b795c]">ZARIFY</span>
+            </div>
+
+            {/* The left page is the reverse of the cover and shares its hinge. */}
+            <div className={`pointer-events-none absolute inset-0 origin-left [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none ${opened ? "[transform:translateZ(1px)_rotateY(-180deg)]" : "[transform:translateZ(1px)_rotateY(0deg)]"}`}>
+              <button type="button" onClick={openBook} inert={opened} aria-label="Kitabı aç"
+                className="pointer-events-auto absolute inset-0 bg-[#394630] shadow-[10px_15px_25px_#2d302880] [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                <Image src="/storybook/cover.jpg" alt="Yeşil, altın işlemeli kitap kapağı" fill sizes="(min-width: 640px) 380px, 100vw" loading="eager" unoptimized className="object-contain" />
+              </button>
+              <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center border-8 border-r-0 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
+                <div className="hidden flex-col items-center sm:flex">
+                  <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="h-40 w-40 object-contain opacity-80" />
+                  <span className="mt-6 font-serif text-2xl italic text-[#6b5d4a]">Hikâyemiz</span>
+                  <Image src="/storybook/rings.png" alt="" width={64} height={64} loading="eager" className="mt-4 h-16 w-16 object-contain opacity-80" />
+                  <span className="mt-4 text-xs tracking-[0.22em] text-[#8b795c]">ZARIFY</span>
+                </div>
               </div>
             </div>
-            <div className="mx-auto mt-7 flex max-w-[360px] items-center justify-between">
-              <button type="button" onClick={() => nextPage(-1)} disabled={page === 0 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
-              <span className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
-              <button type="button" onClick={() => nextPage(1)} disabled={page === chapters.length - 1 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">Sonraki →</button>
-            </div>
           </div>
-        )}
+        </div>
+
+        <div className="mt-7 grid w-full max-w-[360px] place-items-center">
+          <button type="button" onClick={openBook} className={`col-start-1 row-start-1 border-b border-[#fff6e5] px-6 py-2 font-serif text-2xl text-[#fff6e5] ${opened ? "invisible" : ""}`}>Aç</button>
+          <div className={`col-start-1 row-start-1 flex w-full items-center justify-between ${opened ? "visible" : "invisible"}`}>
+            <button type="button" onClick={() => nextPage(-1)} disabled={page === 0 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
+            <span className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
+            <button type="button" onClick={() => nextPage(1)} disabled={page === chapters.length - 1 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">Sonraki →</button>
+          </div>
+        </div>
       </div>
       <p className="relative z-10 mt-8 max-w-md text-center text-xs leading-relaxed text-[#f5efdf]">
         Tasarım önizlemesi · Örnek davetiye bilgileri kullanılmıştır.
