@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { RsvpSection } from "@/components/invitation/RsvpSection";
 import type { HerbaryumTemplate } from "./HerbaryumTemplate";
+import styles from "./StorybookPreview.module.css";
 
 const sampleChapters: Chapter[] = [
   { eyebrow: "BİRİNCİ BÖLÜM", heading: "Bir hikâye başlıyor", text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer." },
@@ -14,6 +15,19 @@ const sampleChapters: Chapter[] = [
 ];
 
 type Chapter = { eyebrow: string; heading: string; text?: ReactNode };
+
+function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
+  return (
+    <div className="flex min-h-full min-w-0 flex-col items-center justify-center wrap-anywhere px-7 py-10 text-center">
+      <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 shrink-0 object-contain opacity-85" />
+      <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapter.eyebrow}</span>
+      <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{chapter.heading}</h2>
+      <div className="my-5 h-px w-16 shrink-0 bg-[#a28b6a]" />
+      <p className="max-w-[28ch] whitespace-pre-line font-serif text-lg leading-relaxed">{chapter.text}</p>
+      <span className="mt-8 text-xs text-[#927a5c]">{index + 1}</span>
+    </div>
+  );
+}
 
 type StorybookProps = Pick<ComponentProps<typeof HerbaryumTemplate>,
   "names" | "dateLine" | "venueName" | "venueAddress" | "mapUrl" | "content" |
@@ -44,33 +58,30 @@ export function StorybookPreview({
     ...(content.accommodationNote ? [{ eyebrow: "DAVET NOTU", heading: "Konaklama", text: content.accommodationNote }] : []),
   ] : sampleChapters;
   const [opened, setOpened] = useState(false);
-  const [page, setPage] = useState(0);
-  const [turning, setTurning] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  const [pageIndex, setPage] = useState(0);
+  const [turnTarget, setTurnTarget] = useState<number | null>(null);
+  const pageScroll = useRef<HTMLDivElement>(null);
+  const leavingScrollTop = useRef(0);
+  const page = Math.min(pageIndex, chapters.length - 1);
+  const target = turnTarget === null ? null : Math.min(turnTarget, chapters.length - 1);
+  const forward = target !== null && target > page;
+  const standingPage = forward ? target : page;
+  const leafPage = forward ? page : target;
 
   function openBook() {
     if (opened) return;
     setOpened(true);
   }
 
-  const chapter = chapters[Math.min(page, chapters.length - 1)];
-
   function nextPage(direction: number) {
     const next = Math.max(0, Math.min(chapters.length - 1, page + direction));
-    if (next === page || turning) return;
+    if (next === page || target !== null) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setPage(next);
       return;
     }
-    setTurning(true);
-    timer.current = setTimeout(() => {
-      setPage(next);
-      setTurning(false);
-    }, 440);
+    leavingScrollTop.current = pageScroll.current?.scrollTop ?? 0;
+    setTurnTarget(next);
   }
 
   return (
@@ -84,17 +95,35 @@ export function StorybookPreview({
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
           <div className="flex w-full max-w-[760px] justify-center [perspective:1500px]">
             <div className={`relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
-              <div inert={!opened} className="grid aspect-[12/17] min-h-[440px] border-8 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right shadow-[12px_20px_45px_#242b2599]">
-                <div className="pointer-events-none absolute inset-2 bg-[#f8eed5]/25" />
-                <div className={`relative flex flex-col items-center justify-center min-w-0 wrap-anywhere px-7 py-10 text-center transition duration-[440ms] ${turning ? "opacity-20 [transform:rotateY(-14deg)]" : "opacity-100"}`}>
-                  <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 object-contain opacity-85" />
-                  <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapter.eyebrow}</span>
-                  <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{chapter.heading}</h2>
-                  <div className="my-5 h-px w-16 bg-[#a28b6a]" />
-                  <p className="max-w-[28ch] whitespace-pre-line font-serif text-lg leading-relaxed">{chapter.text}</p>
-                  <span className="mt-8 text-xs text-[#927a5c]">{page + 1}</span>
+              <div inert={!opened || target !== null} className="grid aspect-[12/17] min-h-[440px] grid-rows-[minmax(0,1fr)] border-8 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right shadow-[12px_20px_45px_#242b2599]">
+                <div key={standingPage} ref={pageScroll} className="overflow-y-auto bg-[#f8eed5]/25">
+                  <ChapterPage chapter={chapters[standingPage]} index={standingPage} />
                 </div>
               </div>
+
+              {target !== null && leafPage !== null && (
+                <div
+                  aria-hidden="true"
+                  inert
+                  className={`${styles.leaf} ${forward ? "" : styles.reverse} pointer-events-none absolute inset-2`}
+                  onAnimationEnd={() => {
+                    setPage(target);
+                    setTurnTarget(null);
+                  }}
+                >
+                  <div className="absolute inset-0 bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right [backface-visibility:hidden]">
+                    <div
+                      ref={(element) => {
+                        if (element && forward) element.scrollTop = leavingScrollTop.current;
+                      }}
+                      className="h-full overflow-hidden bg-[#f8eed5]/25"
+                    >
+                      <ChapterPage chapter={chapters[leafPage]} index={leafPage} />
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 hidden bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left [backface-visibility:hidden] [transform:rotateY(180deg)] sm:block" />
+                </div>
+              )}
 
               {/* The left page is the reverse of the cover and shares its hinge. */}
               <div className={`pointer-events-none absolute inset-0 origin-left [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none ${opened ? "[transform:translateZ(1px)_rotateY(-180deg)]" : "[transform:translateZ(1px)_rotateY(0deg)]"}`}>
@@ -117,9 +146,9 @@ export function StorybookPreview({
           <div className="mt-7 grid w-full max-w-[360px] place-items-center">
             <button type="button" onClick={openBook} className={`col-start-1 row-start-1 border-b border-[#fff6e5] px-6 py-2 font-serif text-2xl text-[#fff6e5] ${opened ? "invisible" : ""}`}>Aç</button>
             <div className={`col-start-1 row-start-1 flex w-full items-center justify-between ${opened ? "visible" : "invisible"}`}>
-              <button type="button" onClick={() => nextPage(-1)} disabled={page === 0 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
-              <span className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
-              <button type="button" onClick={() => nextPage(1)} disabled={page === chapters.length - 1 || turning} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">Sonraki →</button>
+              <button type="button" onClick={() => nextPage(-1)} disabled={page === 0} aria-disabled={target !== null || undefined} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">← Önceki</button>
+              <span aria-live="polite" className="text-xs tracking-widest text-[#fff8e8]">{page + 1} / {chapters.length}</span>
+              <button type="button" onClick={() => nextPage(1)} disabled={page === chapters.length - 1} aria-disabled={target !== null || undefined} className="border border-[#f9f0dd]/60 px-5 py-2 text-sm text-[#fff8e8] disabled:opacity-30">Sonraki →</button>
             </div>
           </div>
         </div>

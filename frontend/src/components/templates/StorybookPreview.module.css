@@ -1,0 +1,32 @@
+.leaf {
+  --turn-angle: -90deg;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  animation: turn-leaf 460ms var(--ease-in-out-strong) both;
+}
+
+.reverse {
+  animation-direction: reverse;
+}
+
+@media (width >= 40rem) {
+  .leaf {
+    --turn-angle: -180deg;
+  }
+}
+
+@keyframes turn-leaf {
+  from {
+    transform: translateZ(0.5px) rotateY(0deg);
+  }
+
+  to {
+    transform: translateZ(0.5px) rotateY(var(--turn-angle));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaf {
+    animation-duration: 1ms;
+  }
+}
