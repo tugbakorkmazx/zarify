@@ -9,6 +9,25 @@
   animation-direction: reverse;
 }
 
+.pageShadow {
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #39261580, #39261524 45%, transparent 80%);
+  transform: translateZ(0.25px);
+  animation: page-shadow 460ms var(--ease-in-out-strong) both;
+}
+
+@keyframes page-shadow {
+  0%, 100% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0.72;
+  }
+}
+
 @media (width >= 40rem) {
   .leaf {
     --turn-angle: -180deg;
@@ -28,5 +47,9 @@
 @media (prefers-reduced-motion: reduce) {
   .leaf {
     animation-duration: 1ms;
+  }
+
+  .pageShadow {
+    display: none;
   }
 }

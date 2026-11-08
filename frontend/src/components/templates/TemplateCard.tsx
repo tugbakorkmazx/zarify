@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
 import { CoverMiniature } from "@/components/art/CoverMiniature";
+import cover from "../../../public/storybook/cover.png";
 
 /** A template's card doubles as its own preview: the real cover in
  * miniature — swan lake and lace card — with the name and description
@@ -19,9 +21,8 @@ export function TemplateCard({ template }: { template: TemplateSummary }) {
     >
       {template.slug === "hikaye-kitabi" ? (
         <div className="flex aspect-[16/10] items-center justify-center bg-[#c5c2a8]">
-          <div className="flex aspect-[3/4] h-[75%] flex-col items-center justify-center border-[5px] border-[#35442f] bg-[#526248] font-serif text-[#e3d1a9] shadow-xl">
-            <span className="text-3xl">❦</span>
-            <span className="mt-3 text-center text-xl">Hikâye<br />Kitabı</span>
+          <div className="relative h-[82%] w-1/2">
+            <Image src={cover} alt="" fill sizes="(min-width: 768px) 300px, 50vw" unoptimized className="object-contain drop-shadow-[5px_9px_11px_#2d30286b]" />
           </div>
         </div>
       ) : (

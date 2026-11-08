@@ -3,25 +3,36 @@
 import Image from "next/image";
 import { useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { RsvpSection } from "@/components/invitation/RsvpSection";
+import { coupleInitials } from "@/lib/coupleInitials";
+import cover from "../../../public/storybook/cover.png";
 import type { HerbaryumTemplate } from "./HerbaryumTemplate";
 import styles from "./StorybookPreview.module.css";
 
 const sampleChapters: Chapter[] = [
-  { eyebrow: "BİRİNCİ BÖLÜM", heading: "Bir hikâye başlıyor", text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer." },
+  { eyebrow: "İTHAF", heading: "Elif & Kerem", text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer.", dedication: true },
   { eyebrow: "DAVET", heading: "Birlikte bir ömre", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız." },
   { eyebrow: "TARİH", heading: "En güzel günümüz", text: "12 Haziran 2027 · Cumartesi · 19.00" },
   { eyebrow: "MEKÂN", heading: "Buluşma yeri", text: "Mekân bilgileri burada yer alacak." },
   { eyebrow: "SON SAYFA", heading: "Sizi bekliyoruz", text: "Bu güzel günü sizinle paylaşmak dileğiyle." },
 ];
 
-type Chapter = { eyebrow: string; heading: string; text?: ReactNode };
+type Chapter = { eyebrow: string; heading: string; text?: ReactNode; dedication?: boolean };
 
 function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
   return (
-    <div className="flex min-h-full min-w-0 flex-col items-center justify-center wrap-anywhere px-7 py-10 text-center">
-      <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 shrink-0 object-contain opacity-85" />
+    <div className="relative isolate flex min-h-full min-w-0 flex-col items-center justify-center wrap-anywhere px-7 py-10 text-center">
+      {chapter.dedication ? (
+        <>
+          <Image src="/storybook/lily.png" alt="" width={112} height={112} loading="eager" className="pointer-events-none absolute right-2 bottom-2 -z-10 size-24 object-contain opacity-60 sm:size-28" />
+          <span aria-hidden="true" className="grid size-16 shrink-0 place-items-center rounded-full border border-[#a28b6a]/70 font-serif text-lg text-[#725632]">
+            {coupleInitials(chapter.heading)}
+          </span>
+        </>
+      ) : (
+        <Image src="/storybook/lily.png" alt="" width={80} height={80} loading="eager" className="h-20 w-20 shrink-0 object-contain opacity-85" />
+      )}
       <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapter.eyebrow}</span>
-      <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{chapter.heading}</h2>
+      <h2 className={`mt-4 text-balance font-serif leading-tight ${chapter.dedication ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
       <div className="my-5 h-px w-16 shrink-0 bg-[#a28b6a]" />
       <p className="max-w-[28ch] whitespace-pre-line font-serif text-lg leading-relaxed">{chapter.text}</p>
       <span className="mt-8 text-xs text-[#927a5c]">{index + 1}</span>
@@ -38,8 +49,8 @@ export function StorybookPreview({
   names, dateLine, timeLine, venueName, venueAddress, mapUrl, content,
   rsvpEnabled, invitationSlug, rsvpClosesAtUtc,
 }: StorybookProps) {
-  const chapters = content ? [
-    { eyebrow: "DAVET", heading: names ?? "", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız." },
+  const chapters: Chapter[] = content ? [
+    { eyebrow: "İTHAF", heading: names ?? "", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız.", dedication: true },
     ...(content.storyText ? [{ eyebrow: "HİKÂYEMİZ", heading: "Birlikte bir ömre", text: content.storyText }] : []),
     { eyebrow: "TARİH", heading: "En güzel günümüz", text: [dateLine, timeLine].filter(Boolean).join(" · ") },
     {
@@ -95,12 +106,13 @@ export function StorybookPreview({
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
           <div className="flex w-full max-w-[760px] justify-center [perspective:1500px]">
             <div className={`relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
-              <div inert={!opened || target !== null} className="grid aspect-[12/17] min-h-[440px] grid-rows-[minmax(0,1fr)] border-8 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right shadow-[12px_20px_45px_#242b2599]">
+              <div inert={!opened || target !== null} className={`grid aspect-[12/17] min-h-[440px] grid-rows-[minmax(0,1fr)] border-8 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-right shadow-[12px_20px_45px_#242b2599] transition-opacity duration-150 motion-reduce:transition-none ${opened ? "opacity-100" : "opacity-0"}`}>
                 <div key={standingPage} ref={pageScroll} className="overflow-y-auto bg-[#f8eed5]/25">
                   <ChapterPage chapter={chapters[standingPage]} index={standingPage} />
                 </div>
               </div>
 
+              {target !== null && <div aria-hidden="true" className={styles.pageShadow} />}
               {target !== null && leafPage !== null && (
                 <div
                   aria-hidden="true"
@@ -128,8 +140,8 @@ export function StorybookPreview({
               {/* The left page is the reverse of the cover and shares its hinge. */}
               <div className={`pointer-events-none absolute inset-0 origin-left [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none ${opened ? "[transform:translateZ(1px)_rotateY(-180deg)]" : "[transform:translateZ(1px)_rotateY(0deg)]"}`}>
                 <button type="button" onClick={openBook} inert={opened} aria-label="Kitabı aç"
-                  className="pointer-events-auto absolute inset-0 bg-[#394630] shadow-[10px_15px_25px_#2d302880] [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                  <Image src="/storybook/cover.jpg" alt="Yeşil, altın işlemeli kitap kapağı" fill sizes="(min-width: 640px) 380px, 100vw" loading="eager" unoptimized className="object-contain" />
+                  className="pointer-events-auto absolute inset-0 [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                  <Image src={cover} alt="Yeşil, altın işlemeli kitap kapağı" fill sizes="(min-width: 640px) 380px, 100vw" loading="eager" unoptimized className="object-contain drop-shadow-[10px_15px_18px_#2d302880]" />
                 </button>
                 <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center border-8 border-r-0 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
                   <div className="hidden flex-col items-center sm:flex">
