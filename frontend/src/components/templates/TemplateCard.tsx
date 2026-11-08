@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import type { TemplateSummary } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
 import { CoverMiniature } from "@/components/art/CoverMiniature";
-import cover from "../../../public/storybook/cover.png";
+import { StorybookCover } from "./StorybookCover";
 
 /** A template's card doubles as its own preview: the real cover in
  * miniature — swan lake and lace card — with the name and description
@@ -20,9 +19,9 @@ export function TemplateCard({ template }: { template: TemplateSummary }) {
       className="group paper-card block bg-paper transition-transform duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 active:scale-[0.99]"
     >
       {template.slug === "hikaye-kitabi" ? (
-        <div className="flex aspect-[16/10] items-center justify-center bg-[#c5c2a8]">
-          <div className="relative h-[82%] w-1/2">
-            <Image src={cover} alt="" fill sizes="(min-width: 768px) 300px, 50vw" unoptimized className="object-contain drop-shadow-[5px_9px_11px_#2d30286b]" />
+        <div className="flex aspect-[16/10] items-center justify-center bg-[#a5a28b] bg-[linear-gradient(#4d4a3c3d,#4d4a3c3d),url(/storybook/background.png)] bg-cover bg-center">
+          <div className="relative aspect-[7/10] h-[86%]">
+            <StorybookCover miniature />
           </div>
         </div>
       ) : (

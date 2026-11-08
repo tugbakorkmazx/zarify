@@ -4,12 +4,12 @@ import Image from "next/image";
 import { useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { RsvpSection } from "@/components/invitation/RsvpSection";
 import { coupleInitials } from "@/lib/coupleInitials";
-import cover from "../../../public/storybook/cover.png";
 import type { HerbaryumTemplate } from "./HerbaryumTemplate";
+import { StorybookCover, STORYBOOK_SAMPLE_NAMES } from "./StorybookCover";
 import styles from "./StorybookPreview.module.css";
 
 const sampleChapters: Chapter[] = [
-  { eyebrow: "İTHAF", heading: "Elif & Kerem", text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer.", dedication: true },
+  { eyebrow: "İTHAF", heading: STORYBOOK_SAMPLE_NAMES, text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer.", dedication: true },
   { eyebrow: "DAVET", heading: "Birlikte bir ömre", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız." },
   { eyebrow: "TARİH", heading: "En güzel günümüz", text: "12 Haziran 2027 · Cumartesi · 19.00" },
   { eyebrow: "MEKÂN", heading: "Buluşma yeri", text: "Mekân bilgileri burada yer alacak." },
@@ -49,7 +49,7 @@ export function StorybookPreview({
   names, dateLine, timeLine, venueName, venueAddress, mapUrl, content,
   rsvpEnabled, invitationSlug, rsvpClosesAtUtc,
 }: StorybookProps) {
-  const coverNames = names?.trim() || sampleChapters[0].heading;
+  const coverNames = names?.trim() || STORYBOOK_SAMPLE_NAMES;
   const chapters: Chapter[] = content ? [
     { eyebrow: "İTHAF", heading: names ?? "", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız.", dedication: true },
     ...(content.storyText ? [{ eyebrow: "HİKÂYEMİZ", heading: "Birlikte bir ömre", text: content.storyText }] : []),
@@ -142,17 +142,7 @@ export function StorybookPreview({
               <div className={`pointer-events-none absolute inset-0 origin-left [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none ${opened ? "[transform:translateZ(1px)_rotateY(-180deg)]" : "[transform:translateZ(1px)_rotateY(0deg)]"}`}>
                 <button type="button" onClick={openBook} inert={opened} aria-label={`${coverNames} — kitabı aç`}
                   className="pointer-events-auto absolute inset-0 [backface-visibility:hidden] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
-                  <Image src={cover} alt="Yeşil, altın işlemeli kitap kapağı" fill sizes="(min-width: 640px) 380px, 100vw" loading="eager" unoptimized className="object-contain drop-shadow-[10px_15px_18px_#2d302880]" />
-                  <span aria-hidden="true" className="pointer-events-none absolute inset-x-[20%] inset-y-[21%] flex flex-col items-center justify-center text-[#f4dfab] [text-shadow:0_2px_4px_#232914]">
-                    <span className="grid size-16 shrink-0 place-items-center whitespace-nowrap rounded-full border border-[#d7bd82]/75 font-body text-lg italic sm:size-[4.5rem] sm:text-xl">
-                      {coupleInitials(coverNames)}
-                    </span>
-                    <span className={`mt-5 text-balance wrap-anywhere font-display leading-tight ${coverNames.length > 42 ? "line-clamp-4 text-base sm:text-lg" : "text-2xl sm:text-3xl"}`}>
-                      {coverNames}
-                    </span>
-                    <span className="mt-4 h-px w-12 shrink-0 bg-[#d7bd82]/75" />
-                    <span className="apparatus mt-3 text-[10px] tracking-[0.2em] sm:text-xs">Hikâye Kitabı</span>
-                  </span>
+                  <StorybookCover names={coverNames} />
                 </button>
                 <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center border-8 border-r-0 border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
                   <div className="hidden flex-col items-center sm:flex">
