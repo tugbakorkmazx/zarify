@@ -1,3 +1,56 @@
+.paperSpread,
+.leftPaper,
+.rightPaper {
+  background-color: #e5d3ab;
+  background-image: url("/storybook/pages.jpg");
+  background-repeat: no-repeat;
+  background-size: 208% 104%;
+}
+
+.paperSpread,
+.rightPaper {
+  background-position: 96.3% center;
+}
+
+.leftPaper {
+  background-position: 3.7% center;
+}
+
+.paperSpread {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 3px;
+  box-shadow: 0 2px 2px #31231745, 4px 8px 15px #31231740;
+  transition: opacity 150ms ease;
+}
+
+[data-open="true"] > .paperSpread {
+  opacity: 1;
+}
+
+@media (width >= 40rem) {
+  /* The turning cover carries a matching crop until it settles onto the spread. */
+  .paperSpread {
+    inset-inline-start: -100%;
+    background-image: linear-gradient(90deg, transparent 47%, #5739190e 50%, transparent 53%), url("/storybook/pages.jpg");
+    background-position: center;
+    background-size: 100% 100%, 104% 104%;
+    clip-path: inset(-20px -24px -24px 50%);
+  }
+
+  [data-open="true"] > .paperSpread {
+    clip-path: inset(-20px -24px -24px -24px);
+    transition: opacity 150ms ease, clip-path 0s 1500ms;
+  }
+
+  [data-open="true"] .coverPaper {
+    visibility: hidden;
+    transition: visibility 0s 1500ms;
+  }
+}
+
 .leaf {
   --turn-angle: -90deg;
   transform-origin: left center;
@@ -11,7 +64,7 @@
 
 .pageShadow {
   position: absolute;
-  inset: 8px;
+  inset: 0;
   pointer-events: none;
   background: linear-gradient(90deg, #39261580, #39261524 45%, transparent 80%);
   transform: translateZ(0.25px);
@@ -45,6 +98,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-open="true"] > .paperSpread,
+  [data-open="true"] .coverPaper {
+    transition: none;
+  }
+
   .leaf {
     animation-duration: 1ms;
   }
