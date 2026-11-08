@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { InvitationTemplate, STORYBOOK_BACKGROUND } from "./InvitationTemplate";
+import { STORYBOOK_NAME } from "@/lib/templates";
 import { useAuth, ApiError } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useInvitationDraft } from "@/lib/invitationDraft";
@@ -25,7 +26,7 @@ const PLACEHOLDER_MAP_URL =
 
 export function TemplateGalleryPreview({ templateSlug }: { templateSlug: "nikah-tezhibi" | "hikaye-kitabi" }) {
   const storybook = templateSlug === "hikaye-kitabi";
-  const templateName = storybook ? "Hikâye Kitabı" : "Herbaryum";
+  const templateName = storybook ? STORYBOOK_NAME : "Herbaryum";
   const templatePath = `/sablonlar/${templateSlug}`;
   const { user, token, logout, ready } = useAuth();
   const { draft, clearDraft } = useInvitationDraft();
@@ -156,7 +157,7 @@ export function TemplateGalleryPreview({ templateSlug }: { templateSlug: "nikah-
 
       {storybook && draft && draft.eventType !== "dugun" && (
         <p role="status" className="bg-paper-deep px-6 py-3 text-center text-wine">
-          Hikâye Kitabı düğün davetiyeleri için kullanılabilir. Devam etmek için bilgilerinizden kategoriyi Düğün olarak seçin.
+          {STORYBOOK_NAME} düğün davetiyeleri için kullanılabilir. Devam etmek için bilgilerinizden kategoriyi Düğün olarak seçin.
         </p>
       )}
 

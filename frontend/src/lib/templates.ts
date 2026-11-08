@@ -25,10 +25,12 @@ export interface TemplateSummary {
   categorySlug: string;
 }
 
+export const STORYBOOK_NAME = "Olivarya";
+
 export const templates: TemplateSummary[] = [
   {
     slug: "hikaye-kitabi",
-    name: "Hikâye Kitabı",
+    name: STORYBOOK_NAME,
     description: "Altın işlemeli bir kapağın ardında açılan, sayfa sayfa kişiselleştirebileceğiniz romantik bir düğün davetiyesi.",
     categorySlug: "dugun",
   },

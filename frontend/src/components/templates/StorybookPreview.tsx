@@ -6,6 +6,7 @@ import { RsvpSection } from "@/components/invitation/RsvpSection";
 import { coupleInitials } from "@/lib/coupleInitials";
 import { venueDirectionsUrl } from "@/lib/mapUrl";
 import { useCountdown } from "@/lib/useCountdown";
+import { STORYBOOK_NAME } from "@/lib/templates";
 import type { InvitationContent } from "@/lib/invitationForm";
 import type { HerbaryumTemplate } from "./HerbaryumTemplate";
 import { StorybookCover, STORYBOOK_SAMPLE_NAMES } from "./StorybookCover";
@@ -175,7 +176,7 @@ export function StorybookPreview({
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25"
           style={{ backgroundImage: "linear-gradient(#5c4e3b12,#5c4e3b12)" }} />
         <div className="relative z-10 mb-5 flex w-full max-w-3xl items-center justify-between gap-3">
-          <span className="text-xs tracking-[0.2em] text-[#fff8e8]">ZARIFY · HİKÂYE KİTABI</span>
+          <span className="text-xs tracking-[0.2em] text-[#fff8e8]">ZARIFY · {STORYBOOK_NAME.toLocaleUpperCase("tr-TR")}</span>
         </div>
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
           <div className="flex w-full max-w-[760px] justify-center [perspective:1500px]">
