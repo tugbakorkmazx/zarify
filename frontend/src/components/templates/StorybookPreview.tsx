@@ -6,16 +6,32 @@ import { RsvpSection } from "@/components/invitation/RsvpSection";
 import { coupleInitials } from "@/lib/coupleInitials";
 import { venueDirectionsUrl } from "@/lib/mapUrl";
 import { useCountdown } from "@/lib/useCountdown";
+import type { InvitationContent } from "@/lib/invitationForm";
 import type { HerbaryumTemplate } from "./HerbaryumTemplate";
 import { StorybookCover, STORYBOOK_SAMPLE_NAMES } from "./StorybookCover";
 import styles from "./StorybookPreview.module.css";
+
+const PAGE_ACTION = "apparatus mt-5 inline-flex min-h-11 items-center rounded-sm bg-[#53402d] px-4 text-sm text-[#fff6e5] hover:bg-[#392615] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#53402d]";
+const RSVP_ID = "storybook-rsvp";
+const rsvpChapter: Chapter = {
+  eyebrow: "RSVP",
+  heading: "Katılım bildirimi",
+  text: "Bu özel günde aramızda olup olamayacağınızı bize bildirin.",
+  extra: <a href={`#${RSVP_ID}`} className={PAGE_ACTION}>Katılımımı bildir</a>,
+};
+const sampleSchedule: InvitationContent["schedule"] = [
+  { time: "18:30", title: "Karşılama", description: null },
+  { time: "19:00", title: "Nikâh töreni", description: null },
+  { time: "20:00", title: "Yemek ve kutlama", description: null },
+];
 
 const sampleChapters: Chapter[] = [
   { eyebrow: "İTHAF", heading: STORYBOOK_SAMPLE_NAMES, text: "Bazı hikâyeler bir bakışla başlar, bir ömür sürer.", dedication: true },
   { eyebrow: "DAVET", heading: "Birlikte bir ömre", text: "Bu özel günümüzde sizleri de aramızda görmekten mutluluk duyarız." },
   { eyebrow: "TARİH", heading: "En güzel günümüz", text: "12 Haziran 2027 · Cumartesi · 19.00", extra: <Countdown date={new Date("2027-06-12T19:00:00+03:00")} /> },
   { eyebrow: "MEKÂN", heading: "Buluşma yeri", text: "Örnek konum · Üsküdar, İstanbul", extra: <Directions href={venueDirectionsUrl(null, "Üsküdar, İstanbul")} /> },
-  { eyebrow: "SON SAYFA", heading: "Sizi bekliyoruz", text: "Bu güzel günü sizinle paylaşmak dileğiyle." },
+  { eyebrow: "PROGRAM", heading: "Günün programı", text: "Örnek akış", extra: <DaySchedule items={sampleSchedule} /> },
+  { ...rsvpChapter, text: "Örnek katılım formunu deneyebilirsiniz." },
 ];
 
 type Chapter = { eyebrow: string; heading: string; text?: string | null; extra?: ReactNode; dedication?: boolean };
@@ -45,9 +61,29 @@ function Countdown({ date }: { date: Date }) {
 
 function Directions({ href }: { href?: string }) {
   return href && (
-    <a href={href} target="_blank" rel="noreferrer" className="apparatus mt-5 inline-flex min-h-11 items-center rounded-sm bg-[#53402d] px-4 text-sm text-[#fff6e5] hover:bg-[#392615] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#53402d]">
+    <a href={href} target="_blank" rel="noreferrer" className={PAGE_ACTION}>
       Yol tarifi al
     </a>
+  );
+}
+
+function DaySchedule({ items }: { items: InvitationContent["schedule"] }) {
+  if (items.length === 0) {
+    return <p className="font-body text-lg italic text-[#725632]">Program henüz paylaşılmadı.</p>;
+  }
+
+  return (
+    <ol className="mt-2 w-full max-w-64 divide-y divide-[#a28b6a]/45 text-left">
+      {items.map(({ time, title, description }, index) => (
+        <li key={index} className="grid grid-cols-[auto_1fr] items-baseline gap-3 py-2">
+          <time dateTime={time.slice(0, 5)} className="font-body text-lg tabular-nums text-[#725632]">{time.slice(0, 5)}</time>
+          <div className="min-w-0 font-body text-lg leading-snug">
+            <p className="font-semibold">{title}</p>
+            {description && <p className="text-base text-[#725632]">{description}</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -67,7 +103,7 @@ function ChapterPage({ chapter, index }: { chapter: Chapter; index: number }) {
       <span className="apparatus mt-4 text-xs tracking-[0.22em] text-[#725632]">{chapter.eyebrow}</span>
       <h2 className={`mt-4 text-balance font-display leading-tight ${chapter.dedication ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl"}`}>{chapter.heading}</h2>
       <div className="my-5 h-px w-16 shrink-0 bg-[#a28b6a]" />
-      <p className={`max-w-[30ch] whitespace-pre-line font-body text-xl leading-snug ${chapter.dedication ? "italic" : ""}`}>{chapter.text}</p>
+      {chapter.text && <p className={`max-w-[30ch] whitespace-pre-line font-body text-xl leading-snug ${chapter.dedication ? "italic" : ""}`}>{chapter.text}</p>}
       {chapter.extra}
       <span className="mt-8 text-xs text-[#927a5c]">{index + 1}</span>
     </div>
@@ -81,7 +117,7 @@ type StorybookProps = Pick<ComponentProps<typeof HerbaryumTemplate>,
 
 export function StorybookPreview({
   eventDate, names, dateLine, timeLine, venueName, venueAddress, content,
-  rsvpEnabled, invitationSlug, rsvpClosesAtUtc,
+  rsvpEnabled = true, invitationSlug, rsvpClosesAtUtc,
 }: StorybookProps) {
   const coverNames = names?.trim() || STORYBOOK_SAMPLE_NAMES;
   const chapters: Chapter[] = content ? [
@@ -95,12 +131,11 @@ export function StorybookPreview({
       eyebrow: "MEKÂN", heading: venueName ?? "", text: venueAddress,
       extra: <Directions href={venueDirectionsUrl(venueName, venueAddress)} />,
     },
-    ...content.schedule.map((item) => ({
-      eyebrow: `PROGRAM · ${item.time.slice(0, 5)}`, heading: item.title, text: item.description,
-    })),
+    { eyebrow: "PROGRAM", heading: "Günün programı", extra: <DaySchedule items={content.schedule} /> },
     ...(content.dressCode ? [{ eyebrow: "DAVET NOTU", heading: "Kıyafet", text: content.dressCode }] : []),
     ...(content.giftNote ? [{ eyebrow: "DAVET NOTU", heading: "Hediye", text: content.giftNote }] : []),
     ...(content.accommodationNote ? [{ eyebrow: "DAVET NOTU", heading: "Konaklama", text: content.accommodationNote }] : []),
+    ...(rsvpEnabled ? [rsvpChapter] : []),
   ] : sampleChapters;
   const [opened, setOpened] = useState(false);
   const [pageIndex, setPage] = useState(0);
@@ -222,9 +257,11 @@ export function StorybookPreview({
           Tasarım önizlemesi · Örnek davetiye bilgileri kullanılmıştır.
         </p>}
       </section>
-      {content && opened && (
-        <RsvpSection enabled={rsvpEnabled} names={names} invitationSlug={invitationSlug}
-          deadline={content.rsvpDeadline} closesAtUtc={rsvpClosesAtUtc} />
+      {opened && (content || rsvpEnabled) && (
+        <div id={RSVP_ID}>
+          <RsvpSection enabled={rsvpEnabled} names={names} invitationSlug={invitationSlug}
+            deadline={content?.rsvpDeadline} closesAtUtc={rsvpClosesAtUtc} />
+        </div>
       )}
     </>
   );
