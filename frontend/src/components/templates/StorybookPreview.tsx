@@ -130,10 +130,10 @@ export function StorybookPreview({
         </div>
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
           <div className="flex w-full max-w-[760px] justify-center [perspective:1500px]">
-            <div data-open={opened} className={`relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
+            <div data-open={opened} className={`${styles.book} relative grid w-full max-w-[380px] [transform-style:preserve-3d] transition-transform duration-[1500ms] ease-in-out motion-reduce:transition-none sm:w-1/2 ${opened ? "sm:translate-x-1/2" : ""}`}>
               <div aria-hidden="true" className={styles.paperSpread} />
-              <div inert={!opened || target !== null} className={`grid aspect-[12/17] min-h-[440px] grid-rows-[minmax(0,1fr)] transition-opacity duration-150 motion-reduce:transition-none ${opened ? "opacity-100" : "opacity-0"}`}>
-                <div key={standingPage} ref={pageScroll} className="overflow-y-auto">
+              <div inert={!opened || target !== null} className={`${styles.pageContent} transition-opacity duration-150 motion-reduce:transition-none ${opened ? "opacity-100" : "opacity-0"}`}>
+                <div key={standingPage} ref={pageScroll} className={styles.pageScroll}>
                   <ChapterPage chapter={chapters[standingPage]} index={standingPage} />
                 </div>
               </div>
@@ -143,7 +143,7 @@ export function StorybookPreview({
                 <div
                   aria-hidden="true"
                   inert
-                  className={`${styles.leaf} ${forward ? "" : styles.reverse} pointer-events-none absolute inset-0`}
+                  className={`${styles.leaf} ${forward ? "" : styles.reverse} pointer-events-none absolute`}
                   onAnimationEnd={() => {
                     setPage(target);
                     setTurnTarget(null);
@@ -170,7 +170,7 @@ export function StorybookPreview({
                   <StorybookCover names={coverNames} />
                 </button>
                 <div inert={!opened} className={`absolute inset-0 flex flex-col items-center justify-center px-8 text-center [backface-visibility:hidden] [transform:rotateY(180deg)] transition-opacity delay-[1200ms] duration-300 motion-reduce:transition-none sm:opacity-100 ${opened ? "opacity-0" : ""}`}>
-                  <div aria-hidden="true" className={`${styles.leftPaper} ${styles.coverPaper} absolute inset-0`} />
+                  <div aria-hidden="true" className={`${styles.leftPaper} ${styles.coverPaper} absolute`} />
                   <div className="relative hidden flex-col items-center sm:flex">
                     <Image src="/storybook/flower.png" alt="" width={160} height={160} loading="eager" className="h-40 w-40 object-contain opacity-80" />
                     <span className="mt-6 font-script text-4xl leading-tight text-[#6b5d4a]">Hikâyemiz</span>
