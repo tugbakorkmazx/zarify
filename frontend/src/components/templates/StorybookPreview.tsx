@@ -65,7 +65,7 @@ export function StorybookPreview() {
 
   return (
     <section className="relative flex min-h-[calc(100svh-5rem)] flex-col items-center justify-center overflow-hidden px-4 py-12 text-[#463D30]"
-      style={{ background: "linear-gradient(#4d4a3c3d,#4d4a3c3d), url(/storybook/background.webp) center / cover, #a5a28b" }}>
+      style={{ background: "linear-gradient(#4d4a3c3d,#4d4a3c3d), url(/storybook/background.png) center / cover, #a5a28b" }}>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25"
         style={{ backgroundImage: "linear-gradient(#5c4e3b12,#5c4e3b12)" }} />
       <div className="relative z-10 mb-5 flex w-full max-w-3xl items-center justify-between gap-3">
@@ -84,7 +84,7 @@ export function StorybookPreview() {
               <div className="relative aspect-[3/4] w-[min(70vw,330px)]"
                 style={{ transformStyle: "preserve-3d", transform: opening ? "translateX(22%) scale(.92)" : "translateX(0) scale(1)", transition: motionReduced ? "none" : "transform 1400ms cubic-bezier(.22,.8,.25,1)" }}>
                 <div aria-hidden="true" className="absolute inset-0 border-[10px] border-[#4a593f] bg-[#eee1c5] shadow-[12px_20px_45px_#242b2599]">
-                  <div className="absolute inset-0 bg-[url(/storybook/pages.webp)] bg-[length:200%_100%] bg-left opacity-75" />
+                  <div className="absolute inset-0 bg-[url(/storybook/pages.jpg)] bg-[length:200%_100%] bg-left opacity-75" />
                   <div className="absolute inset-3 border border-[#b59b73]/60" />
                   <span className="absolute inset-0 flex items-center justify-center font-serif text-3xl text-[#8a7558]">❦</span>
                 </div>
@@ -102,11 +102,11 @@ export function StorybookPreview() {
           </div>
         ) : (
           <div className="w-full">
-            <div className="relative mx-auto flex aspect-[4/5] w-full max-w-[420px] overflow-hidden border-[8px] border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.webp)] bg-cover bg-center shadow-[12px_20px_45px_#242b2599] sm:aspect-[1.55/1] sm:max-w-[760px]">
+            <div className="relative mx-auto flex aspect-[4/5] w-full max-w-[420px] overflow-hidden border-[8px] border-[#4a593f] bg-[#eee0bd] bg-[url(/storybook/pages.jpg)] bg-cover bg-center shadow-[12px_20px_45px_#242b2599] sm:aspect-[1.55/1] sm:max-w-[760px]">
               <div className="absolute inset-0 bg-[#f8eed5]/25" />
               <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-5 -translate-x-1/2 bg-gradient-to-r from-[#aa967a]/10 via-[#8b745d]/35 to-[#fff6dc]/10 sm:block" />
               <div className={`relative flex w-full flex-col items-center justify-center px-7 py-10 text-center transition duration-[440ms] sm:w-1/2 ${turning ? "opacity-20 [transform:rotateY(-14deg)]" : "opacity-100"}`}>
-                <img src="/storybook/lily.webp" alt="" className="h-20 w-20 object-contain opacity-85" />
+                <img src="/storybook/lily.png" alt="" className="h-20 w-20 object-contain opacity-85" />
                 <span className="mt-4 text-[10px] tracking-[0.25em] text-[#806a51]">{chapters[page].eyebrow}</span>
                 <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">{chapters[page].heading}</h2>
                 <div className="my-5 h-px w-16 bg-[#a28b6a]" />
@@ -114,8 +114,9 @@ export function StorybookPreview() {
                 <span className="mt-8 text-xs text-[#927a5c]">{page + 1}</span>
               </div>
               <div className="relative hidden w-1/2 flex-col items-center justify-center border-l border-[#ad9a7b]/40 px-8 text-center sm:flex">
-                <img src="/storybook/flower.webp" alt="" className="h-40 w-40 object-contain opacity-80" />
+                <img src="/storybook/flower.png" alt="" className="h-40 w-40 object-contain opacity-80" />
                 <span className="mt-6 font-serif text-2xl italic text-[#6b5d4a]">Hikâyemiz</span>
+                <img src="/storybook/rings.png" alt="" className="mt-4 h-16 w-16 object-contain opacity-80" />
                 <span className="mt-4 text-xs tracking-[0.22em] text-[#8b795c]">ZARIFY</span>
               </div>
             </div>
