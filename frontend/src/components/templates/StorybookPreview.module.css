@@ -1,0 +1,175 @@
+.book {
+  /* Match the painted bounds inside the transparent 420 × 595 cover. */
+  --paper-top: 2.52%;
+  --paper-bottom: 2.69%;
+  --paper-edge: 1.25%;
+  --paper-start: 0.5%;
+  --paper-radius: 16px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pageContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pageContent::before {
+  content: "";
+  grid-area: 1 / 1;
+  height: 0;
+  padding-top: 141.6667%;
+}
+
+.pageBody {
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1;
+  min-width: 0;
+  margin: 3.57% var(--paper-edge) 3.81% var(--paper-start);
+}
+
+.paperSpread,
+.coverPaper,
+.coverArt,
+.leaf,
+.pageShadow {
+  inset-block: var(--paper-top) var(--paper-bottom);
+}
+
+.paperSpread,
+.leaf,
+.pageShadow {
+  inset-inline: var(--paper-start) var(--paper-edge);
+}
+
+.coverPaper,
+.coverArt {
+  inset-inline: var(--paper-edge) 0;
+}
+
+.paperSpread,
+.leftPaper,
+.rightPaper {
+  background-color: #e5d3ab;
+  background-image: url("/storybook/pages.jpg");
+  background-repeat: no-repeat;
+  background-size: 208% 104%;
+}
+
+.paperSpread,
+.rightPaper {
+  background-position: 96.3% center;
+}
+
+.leftPaper {
+  background-position: 3.7% center;
+  border-radius: var(--paper-radius) 0 0 var(--paper-radius);
+}
+
+.rightPaper,
+.pageShadow {
+  border-radius: var(--paper-radius);
+}
+
+.paperSpread {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: var(--paper-radius);
+  box-shadow: 0 2px 2px #31231745, 4px 8px 15px #31231740;
+  transition: opacity 150ms ease;
+}
+
+[data-open="true"] > .paperSpread {
+  opacity: 1;
+}
+
+@media (width >= 40rem) {
+  .book {
+    --paper-start: 0%;
+  }
+
+  .rightPaper,
+  .pageShadow {
+    border-radius: 0 var(--paper-radius) var(--paper-radius) 0;
+  }
+
+  /* The turning cover carries a matching crop until it settles onto the spread. */
+  .paperSpread {
+    inset-inline-start: calc(-100% + var(--paper-edge));
+    background-image: linear-gradient(90deg, transparent 47%, #5739190e 50%, transparent 53%), url("/storybook/pages.jpg");
+    background-position: center;
+    background-size: 100% 100%, 104% 104%;
+    clip-path: inset(-20px -24px -24px 50%);
+  }
+
+  [data-open="true"] > .paperSpread {
+    clip-path: inset(-20px -24px -24px -24px);
+    transition: opacity 150ms ease, clip-path 0s 1500ms;
+  }
+
+  [data-open="true"] .coverPaper {
+    visibility: hidden;
+    transition: visibility 0s 1500ms;
+  }
+}
+
+.leaf {
+  --turn-angle: -90deg;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  animation: turn-leaf 460ms var(--ease-in-out-strong) both;
+}
+
+.reverse {
+  animation-direction: reverse;
+}
+
+.pageShadow {
+  position: absolute;
+  pointer-events: none;
+  background: linear-gradient(90deg, #39261580, #39261524 45%, transparent 80%);
+  transform: translateZ(0.25px);
+  animation: page-shadow 460ms var(--ease-in-out-strong) both;
+}
+
+@keyframes page-shadow {
+  0%, 100% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0.72;
+  }
+}
+
+@media (width >= 40rem) {
+  .leaf {
+    --turn-angle: -180deg;
+  }
+}
+
+@keyframes turn-leaf {
+  from {
+    transform: translateZ(0.5px) rotateY(0deg);
+  }
+
+  to {
+    transform: translateZ(0.5px) rotateY(var(--turn-angle));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-open="true"] > .paperSpread,
+  [data-open="true"] .coverPaper {
+    transition: none;
+  }
+
+  .leaf {
+    animation-duration: 1ms;
+  }
+
+  .pageShadow {
+    display: none;
+  }
+}

@@ -27,6 +27,9 @@ public class Invitation
     public required string Slug { get; set; }
     public required string TemplateSlug { get; set; }
 
+    /// Stable category key such as "dugun" or "dogum-gunu".
+    public string EventType { get; set; } = "dugun";
+
     /// What the couple writes in the bank-transfer description ("ZRF-4K7Q")
     /// so the admin can match the payment. Separate from the slug: short,
     /// name-independent, no look-alike characters. Null only on invitations

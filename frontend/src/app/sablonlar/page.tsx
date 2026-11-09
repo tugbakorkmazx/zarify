@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { TemplateGalleryBody } from "@/components/templates/TemplateGalleryBody";
 
 export const metadata: Metadata = {
-  title: "Şablonlar — Zarify",
-  description: "Düğün davetiyeniz için bir şablon seçin.",
+  title: "Davetiyeler ve Şablonlar — Zarify",
+  description:
+    "Düğün, nişan, söz, kına, doğum günü ve diğer özel günleriniz için Zarify davetiye kategorilerini keşfedin.",
 };
 
 export default function TemplateGalleryPage() {

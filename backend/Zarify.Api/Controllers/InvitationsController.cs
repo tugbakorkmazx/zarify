@@ -230,6 +230,7 @@ public class InvitationsController(
     /// sending.)
     private static void ApplyFields(Invitation invitation, InvitationFieldsRequest request)
     {
+        invitation.EventType = request.EventType;
         invitation.BrideName = request.BrideName.Trim();
         invitation.GroomName = request.GroomName.Trim();
         invitation.WeddingDate = request.WeddingDate;

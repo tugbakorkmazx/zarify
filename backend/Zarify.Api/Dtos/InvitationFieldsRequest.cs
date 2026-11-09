@@ -8,6 +8,15 @@ public class InvitationFieldsRequest : IValidatableObject
 {
     public const int MaxScheduleItems = 12;
 
+    private static readonly HashSet<string> AllowedEventTypes = new(StringComparer.Ordinal)
+    {
+        "dugun", "nisan", "soz", "isteme", "kina-gecesi", "sunnet",
+        "dogum-gunu", "baby-shower", "cinsiyet-partisi", "mevlit", "kurumsal", "yildonumu",
+    };
+
+    [Required, MaxLength(40)]
+    public string EventType { get; set; } = "dugun";
+
     [Required, MaxLength(100)]
     public required string BrideName { get; set; }
 
@@ -46,6 +55,10 @@ public class InvitationFieldsRequest : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (!AllowedEventTypes.Contains(EventType))
+        {
+            yield return new ValidationResult("Geçersiz davet kategorisi.", [nameof(EventType)]);
+        }
         if (Schedule.Count > MaxScheduleItems)
         {
             yield return new ValidationResult(

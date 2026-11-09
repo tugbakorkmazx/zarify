@@ -101,6 +101,12 @@ namespace Zarify.Api.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasDefaultValue("dugun")
+                        .HasColumnType("varchar(40)");
+
                     b.Property<string>("DressCode")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");

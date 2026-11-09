@@ -166,7 +166,7 @@ function EditForm({
   }, [dirty]);
 
   function openPreview() {
-    writePreview(invitation.id, values);
+    writePreview(invitation.id, values, invitation.templateSlug);
     window.open(`/davetiyelerim/${invitation.id}/onizleme`, "_blank", "noopener");
   }
 

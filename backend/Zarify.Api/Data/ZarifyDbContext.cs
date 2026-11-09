@@ -39,6 +39,7 @@ public class ZarifyDbContext(DbContextOptions<ZarifyDbContext> options) : DbCont
             entity.Property(i => i.DistanceSalesVersion).HasMaxLength(32);
             entity.Property(i => i.Slug).HasMaxLength(160);
             entity.Property(i => i.TemplateSlug).HasMaxLength(100);
+            entity.Property(i => i.EventType).HasMaxLength(40).HasDefaultValue("dugun");
             entity.Property(i => i.BrideName).HasMaxLength(100);
             entity.Property(i => i.GroomName).HasMaxLength(100);
             entity.Property(i => i.VenueName).HasMaxLength(150);

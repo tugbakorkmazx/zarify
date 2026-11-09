@@ -52,6 +52,7 @@ export function RsvpSection({
   invitationSlug,
   deadline,
   closesAtUtc,
+  bookPage = false,
 }: {
   enabled?: boolean;
   /** The published invitation replies are saved against. Absent on the
@@ -68,6 +69,7 @@ export function RsvpSection({
    * wedding day). Past it the form is replaced by a "süresi doldu" note —
    * the API refuses late replies too. */
   closesAtUtc?: string;
+  bookPage?: boolean;
 }) {
   const { t, lang } = useI18n();
   const deadlineLine = deadline
@@ -140,6 +142,144 @@ export function RsvpSection({
   const lineInput =
     "border-b border-soot-soft/60 bg-transparent py-2 font-body text-lg text-soot outline-none transition-[border-color,box-shadow] focus:border-wine focus:shadow-[0_1px_0_var(--color-wine)]";
 
+  const formContent = !enabled ? (
+      <p className="font-body text-lg leading-relaxed text-soot">
+        {t.rsvp.disabledNote}
+      </p>
+    ) : closed ? (
+      <p className="font-body text-lg leading-relaxed text-soot" role="status">
+        {t.rsvp.closedNote}
+      </p>
+    ) : submitted ? (
+      <div className="flex flex-col items-center gap-4 py-8 text-center" role="status">
+        <p className="font-display text-3xl text-soot">{t.footer.closing}</p>
+        <span className="grid h-16 w-16 place-items-center rounded-full bg-wine font-display text-lg text-paper shadow-[0_2px_6px_rgba(31,28,23,0.4)]">
+          {signature}
+        </span>
+      </div>
+    ) : (
+      <form onSubmit={handleSubmit} className={`flex flex-col ${bookPage ? "gap-2" : "gap-8"}`}>
+        {!invitationSlug && (
+          <p className="font-body text-sm italic text-soot-soft">
+            {t.rsvp.previewNote}
+          </p>
+        )}
+        {invitationSlug && previous && (
+          <p className="font-body text-base italic leading-relaxed text-soot-soft" role="note">
+            {t.rsvp.returningNote.replace("{name}", previous.name)}
+          </p>
+        )}
+
+        <label className="flex flex-col gap-1">
+          <span className={labelClass}>{t.rsvp.nameLabel}</span>
+          <input
+            required
+            type="text"
+            name="name"
+            autoComplete="name"
+            maxLength={100}
+            defaultValue={previous?.name ?? ""}
+            className={lineInput}
+          />
+        </label>
+
+        <fieldset className={`flex flex-col ${bookPage ? "gap-1" : "gap-3"}`}>
+          <legend className={`${labelClass} ${bookPage ? "mb-1" : "mb-3"}`}>{t.rsvp.attendingLabel}</legend>
+          {(
+            [
+              ["yes", t.rsvp.attendingYes],
+              ["maybe", t.rsvp.attendingMaybe],
+              ["no", t.rsvp.attendingNo],
+            ] as const
+          ).map(([value, label]) => (
+            <label
+              key={value}
+              className="flex cursor-pointer items-center gap-3 font-body text-lg text-soot"
+            >
+              <input
+                type="radio"
+                name="attending"
+                value={value}
+                checked={attendance === value}
+                onChange={() => setAttendance(value)}
+                className="h-4 w-4 accent-wine"
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+
+        {attendance !== "no" && (
+          <label className="flex flex-col gap-1">
+            <span className={labelClass}>{t.rsvp.guestsLabel}</span>
+            <input
+              type="number"
+              name="guests"
+              min={1}
+              max={20}
+              defaultValue={1}
+              className={`${lineInput} numerals w-24`}
+            />
+          </label>
+        )}
+
+        <label className="flex flex-col gap-2">
+          <span className={labelClass}>{t.rsvp.messageLabel}</span>
+          <textarea
+            name="message"
+            rows={bookPage ? 1 : 3}
+            placeholder={t.rsvp.messagePlaceholder}
+            className="resize-none border border-soot-soft/60 bg-transparent p-3 font-body text-lg text-soot placeholder:text-soot-soft/70 outline-none transition-colors focus:border-wine"
+          />
+        </label>
+
+        {error && (
+          <p
+            role="alert"
+            className="border border-wine/60 px-4 py-3 font-body text-base text-wine"
+          >
+            {error}
+          </p>
+        )}
+
+        <div className={`flex flex-col-reverse items-center text-center ${bookPage ? "gap-2" : "gap-6"}`}>
+          <p className="max-w-[40ch] font-body text-sm text-soot-soft">
+            {t.rsvp.privacyNote}{" "}
+            <Link
+              href="/kvkk-aydinlatma-metni"
+              className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
+            >
+              {t.rsvp.kvkkLink}
+            </Link>
+            {" · "}
+            <Link
+              href="/gizlilik"
+              className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
+            >
+              {t.rsvp.privacyLink}
+            </Link>
+          </p>
+          <button
+            type="submit"
+            disabled={submitting}
+            aria-busy={submitting}
+            className={`${BUTTON_PRIMARY} ${bookPage ? "w-full" : "min-w-[12rem]"}`}
+          >
+            {t.rsvp.submit}
+          </button>
+        </div>
+      </form>
+  );
+
+  if (bookPage) {
+    return (
+      <section className="mx-auto w-full max-w-sm text-left">
+        {deadlineLine && !closed && <p className="mb-2 text-center font-body text-sm text-soot-soft">{deadlineLine}</p>}
+        {formContent}
+      </section>
+    );
+  }
+
   return (
     <section className="wine-band px-5 py-24 sm:px-10 sm:py-32">
       <div className="mx-auto flex max-w-2xl flex-col items-center">
@@ -154,134 +294,7 @@ export function RsvpSection({
         <div className="mt-12 w-full max-w-xl">
           <div className="paper-card paper-ground p-2">
             <div className="border border-soot/30 p-6 sm:p-10">
-              {!enabled ? (
-                <p className="font-body text-lg leading-relaxed text-soot">
-                  {t.rsvp.disabledNote}
-                </p>
-              ) : closed ? (
-                <p className="font-body text-lg leading-relaxed text-soot" role="status">
-                  {t.rsvp.closedNote}
-                </p>
-              ) : submitted ? (
-                <div className="flex flex-col items-center gap-4 py-8 text-center" role="status">
-                  <p className="font-display text-3xl text-soot">{t.footer.closing}</p>
-                  <span className="grid h-16 w-16 place-items-center rounded-full bg-wine font-display text-lg text-paper shadow-[0_2px_6px_rgba(31,28,23,0.4)]">
-                    {signature}
-                  </span>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-                  {!invitationSlug && (
-                    <p className="font-body text-sm italic text-soot-soft">
-                      {t.rsvp.previewNote}
-                    </p>
-                  )}
-                  {invitationSlug && previous && (
-                    <p className="font-body text-base italic leading-relaxed text-soot-soft" role="note">
-                      {t.rsvp.returningNote.replace("{name}", previous.name)}
-                    </p>
-                  )}
-
-                  <label className="flex flex-col gap-1">
-                    <span className={labelClass}>{t.rsvp.nameLabel}</span>
-                    <input
-                      required
-                      type="text"
-                      name="name"
-                      autoComplete="name"
-                      maxLength={100}
-                      defaultValue={previous?.name ?? ""}
-                      className={lineInput}
-                    />
-                  </label>
-
-                  <fieldset className="flex flex-col gap-3">
-                    <legend className={`${labelClass} mb-3`}>{t.rsvp.attendingLabel}</legend>
-                    {(
-                      [
-                        ["yes", t.rsvp.attendingYes],
-                        ["maybe", t.rsvp.attendingMaybe],
-                        ["no", t.rsvp.attendingNo],
-                      ] as const
-                    ).map(([value, label]) => (
-                      <label
-                        key={value}
-                        className="flex cursor-pointer items-center gap-3 font-body text-lg text-soot"
-                      >
-                        <input
-                          type="radio"
-                          name="attending"
-                          value={value}
-                          checked={attendance === value}
-                          onChange={() => setAttendance(value)}
-                          className="h-4 w-4 accent-wine"
-                        />
-                        {label}
-                      </label>
-                    ))}
-                  </fieldset>
-
-                  {attendance !== "no" && (
-                    <label className="flex flex-col gap-1">
-                      <span className={labelClass}>{t.rsvp.guestsLabel}</span>
-                      <input
-                        type="number"
-                        name="guests"
-                        min={1}
-                        max={20}
-                        defaultValue={1}
-                        className={`${lineInput} numerals w-24`}
-                      />
-                    </label>
-                  )}
-
-                  <label className="flex flex-col gap-2">
-                    <span className={labelClass}>{t.rsvp.messageLabel}</span>
-                    <textarea
-                      name="message"
-                      rows={3}
-                      placeholder={t.rsvp.messagePlaceholder}
-                      className="resize-none border border-soot-soft/60 bg-transparent p-3 font-body text-lg text-soot placeholder:text-soot-soft/70 outline-none transition-colors focus:border-wine"
-                    />
-                  </label>
-
-                  {error && (
-                    <p
-                      role="alert"
-                      className="border border-wine/60 px-4 py-3 font-body text-base text-wine"
-                    >
-                      {error}
-                    </p>
-                  )}
-
-                  <div className="flex flex-col-reverse items-center gap-6 text-center">
-                    <p className="max-w-[40ch] font-body text-sm text-soot-soft">
-                      {t.rsvp.privacyNote}{" "}
-                      <Link
-                        href="/kvkk-aydinlatma-metni"
-                        className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
-                      >
-                        {t.rsvp.kvkkLink}
-                      </Link>
-                      {" · "}
-                      <Link
-                        href="/gizlilik"
-                        className="underline decoration-olive-soft underline-offset-4 hover:text-wine hover:decoration-wine"
-                      >
-                        {t.rsvp.privacyLink}
-                      </Link>
-                    </p>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      aria-busy={submitting}
-                      className={`${BUTTON_PRIMARY} min-w-[12rem]`}
-                    >
-                      {t.rsvp.submit}
-                    </button>
-                  </div>
-                </form>
-              )}
+              {formContent}
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useParams } from "next/navigation";
-import { HerbaryumTemplate } from "@/components/templates/HerbaryumTemplate";
+import { InvitationTemplate, STORYBOOK_BACKGROUND } from "@/components/templates/InvitationTemplate";
 import { readPreview } from "@/lib/editPreview";
 import { contentFromValues, withFormDefaults, type InvitationFormValues } from "@/lib/invitationForm";
 import { formatDateLine } from "@/lib/formatDateLine";
@@ -13,11 +13,13 @@ function subscribeNever() {
   return () => {};
 }
 
-function parse(raw: string | null): InvitationFormValues | null {
+function parse(raw: string | null): (InvitationFormValues & { templateSlug?: string }) | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? withFormDefaults(parsed) : null;
+    return parsed && typeof parsed === "object"
+      ? { ...withFormDefaults(parsed), templateSlug: typeof parsed.templateSlug === "string" ? parsed.templateSlug : undefined }
+      : null;
   } catch {
     return null;
   }
@@ -49,14 +51,16 @@ export default function EditPreviewPage() {
 
   const names = `${values.brideName} & ${values.groomName}`;
   return (
-    <main>
+    <main className={values.templateSlug === "hikaye-kitabi" ? STORYBOOK_BACKGROUND : undefined}>
       <div role="status" className="border-b border-wine/40 bg-paper-deep px-6 py-3 text-center">
         <p className="font-body text-base text-wine">
           Önizleme — bu değişiklikler henüz kaydedilmedi. Yayındaki davetiyeye geçmesi için düzenleme sayfasında
           &ldquo;Değişiklikleri Kaydet&rdquo;e basın.
         </p>
       </div>
-      <HerbaryumTemplate
+      <InvitationTemplate
+        templateSlug={values.templateSlug}
+        timeLine={values.weddingTime}
         eventDate={new Date(`${values.weddingDate}T${values.weddingTime || "00:00"}:00+03:00`)}
         names={names}
         dateLine={values.weddingDate ? formatDateLine(values.weddingDate, lang) : undefined}

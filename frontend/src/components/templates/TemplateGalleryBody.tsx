@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { templates } from "@/lib/templates";
+import { eventCategories } from "@/lib/templates";
 import { useI18n } from "@/lib/i18n";
-import { TemplateCard } from "@/components/templates/TemplateCard";
 import { LanguageToggle } from "@/components/invitation/LanguageToggle";
 import { DoubleRule } from "@/components/herbarium/DoubleRule";
 import { SectionHeading } from "@/components/art/SectionHeading";
+import { useInvitationDraft } from "@/lib/invitationDraft";
+import { CategoryIllustration } from "@/components/templates/CategoryIllustration";
 
 export function TemplateGalleryBody() {
   const { t } = useI18n();
   const l = t.landing.gallery;
+  const { draft, saveDraft } = useInvitationDraft();
 
   return (
     <main className="paper-ground min-h-svh px-5 pt-5 pb-24 sm:px-10 sm:pt-7">
@@ -25,18 +27,55 @@ export function TemplateGalleryBody() {
           <LanguageToggle />
         </div>
         <DoubleRule className="mt-4 text-soot" />
-        
 
         <SectionHeading as="h1" eyebrow={l.eyebrow} className="mt-16">
           {l.heading}
         </SectionHeading>
-        <p className="mx-auto mt-6 max-w-[52ch] text-center font-body text-xl leading-relaxed text-soot-soft">{l.body}</p>
+        <p className="mx-auto mt-6 max-w-[52ch] text-center font-body text-xl leading-relaxed text-soot-soft">
+          {l.body}
+        </p>
 
-        <div className="mx-auto mt-16 grid max-w-3xl gap-8">
-          {templates.map((template) => (
-            <TemplateCard key={template.slug} template={template} />
-          ))}
-        </div>
+        <nav
+          aria-label="Davet kategorileri"
+          className="mx-auto mt-12 max-w-5xl"
+        >
+          <p className="mb-5 text-center font-body text-xs uppercase tracking-[0.2em] text-soot-soft">
+            Davet türünüzü seçin
+          </p>
+          <div className="grid grid-cols-1 gap-x-7 gap-y-5 sm:grid-cols-2">
+            {eventCategories.map((category, index) => (
+              <Link
+                key={category.slug}
+                href={`/sablonlar/kategori/${category.slug}`}
+                onClick={() => {
+                  if (draft) saveDraft({ ...draft, eventType: category.slug });
+                }}
+                className="group relative flex min-h-44 items-center overflow-hidden border border-[#C9BEAB]/65 bg-[#F7F3EB]/65 text-soot transition-colors duration-300 hover:border-[#947B70] hover:bg-[#F8F4EE] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wine sm:min-h-48"
+              >
+                <div className="relative flex h-44 w-[36%] shrink-0 items-center justify-center overflow-hidden bg-[#EAE6DA]/35 px-4 sm:h-48">
+                  <span aria-hidden="true" className="pointer-events-none absolute inset-3 border border-[#C5BBA9]/30" />
+                  <div className="flex h-24 w-24 max-w-full items-center justify-center rounded-full bg-[#E8DDD0]/50 transition-transform duration-500 group-hover:scale-[1.04] sm:h-28 sm:w-28">
+                    <CategoryIllustration category={category.slug} className="h-16 w-16 text-[#795B5F] sm:h-[72px] sm:w-[72px]" />
+                  </div>
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col items-start px-4 py-5 sm:px-6">
+                  <span className="font-body text-[10px] tracking-[0.22em] text-[#9A8B7C]">
+                    ZARIFY · {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mt-4 font-display text-2xl leading-snug text-[#51313B] sm:text-[27px]">
+                    {category.name}
+                  </span>
+                  <span className="mt-4 h-px w-9 bg-[#B6A58E] transition-all duration-300 group-hover:w-14" />
+                  <span className="mt-3 font-body text-xs tracking-[0.06em] text-[#8E8175]">
+                    Şablonları keşfet <span aria-hidden="true">↗</span>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </nav>
+
+
       </div>
     </main>
   );
